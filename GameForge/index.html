@@ -1,0 +1,299 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameForge - Gaming Business</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0b0b0f;
+            color: white;
+        }
+
+        header {
+            padding: 20px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #111118;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+        }
+
+         .hero {
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px 20px;
+
+    background:
+        radial-gradient(circle at center, #24105c 0%, #0b0b0f 55%, #050507 100%);
+}
+
+        .hero h1 {
+    font-size: 70px;
+    margin-bottom: 20px;
+    letter-spacing: 6px;
+    text-shadow: 0 0 25px #6c2cff;
+}
+
+        .hero p {
+            font-size: 20px;
+            color: #bbbbbb;
+            margin-bottom: 30px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 14px 30px;
+            background: #6c2cff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .section {
+            padding: 70px 8%;
+            text-align: center;
+        }
+
+        .section h2 {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            padding: 25px;
+            text-align: center;
+            background: #111118;
+            color: #888;
+        }
+        .games-container {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+}
+
+.game-card {
+    width: 280px;
+    background: #15151f;
+    border: 1px solid #29293a;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.game-card:hover {
+    transform: translateY(-10px);
+    border-color: #6c2cff;
+}
+
+.game-image {
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 70px;
+    background: #0b0b0f;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.game-card h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.game-card p {
+    color: #aaaaaa;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.game-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #6c2cff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.game-button:hover {
+    background: #8b5cff;
+}
+@media (max-width: 768px) {
+
+    header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    nav a {
+        margin-left: 0;
+    }
+
+    .hero {
+        min-height: 70vh;
+        padding: 30px 15px;
+    }
+
+    .hero h1 {
+        font-size: 45px;
+        letter-spacing: 3px;
+    }
+
+    .hero p {
+        font-size: 17px;
+    }
+
+    .section {
+        padding: 50px 20px;
+    }
+
+    .section h2 {
+        font-size: 32px;
+    }
+
+    .game-card {
+        width: 100%;
+        max-width: 350px;
+    }
+}
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">🎮 GameForge</div>
+
+        <nav>
+            <a href="#">Home</a>
+            <a href="#services">Services</a>
+            <a href="#about">About</a>
+            <a href="#games">Games</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div>
+            <h1>GAMEFORGE</h1>
+            <p>Forge Your World. Play Your Game.</p>
+            <a href="#games" class="button">Explore Games</a>
+        </div>
+    </section>
+
+    <section class="section" id="about">
+        <h2>About GameForge</h2>
+        <p>We create exciting gaming experiences for players around the world.</p>
+    </section>
+
+    <section class="section" id="games">
+    <h2>Our Games</h2>
+
+    <div class="games-container">
+
+        <div class="game-card">
+            <div class="game-image">🎮</div>
+            <h3>GameForge Racing</h3>
+            <p>Experience exciting racing and build your ultimate garage.</p>
+            <a href="#" class="game-button">Coming Soon</a>
+        </div>
+
+        <div class="game-card">
+            <div class="game-image">⚔️</div>
+            <h3>Forge Warriors</h3>
+            <p>Enter the battlefield and become the strongest warrior.</p>
+            <a href="#" class="game-button">Coming Soon</a>
+        </div>
+
+        <div class="game-card">
+            <div class="game-image">🏙️</div>
+            <h3>City Builder</h3>
+            <p>Create, manage and grow your own powerful city.</p>
+            <a href="#" class="game-button">Coming Soon</a>
+        </div>
+
+    </div>
+</section>
+<section class="section" id="services">
+    <h2>Our Services</h2>
+
+    <div class="games-container">
+
+        <div class="game-card">
+            <div class="game-image">🎮</div>
+            <h3>Game Development</h3>
+            <p>We create exciting and engaging games for players.</p>
+        </div>
+
+        <div class="game-card">
+            <div class="game-image">💻</div>
+            <h3>Game Design</h3>
+            <p>Creative worlds, gameplay systems and unique experiences.</p>
+        </div>
+
+        <div class="game-card">
+            <div class="game-image">🚀</div>
+            <h3>Game Publishing</h3>
+            <p>We bring our games to players and grow our gaming community.</p>
+        </div>
+
+    </div>
+</section>
+    <section class="section" id="contact">
+    <h2>Contact GameForge</h2>
+
+    <p class="contact-text">
+        Have a question, business idea or collaboration opportunity?
+        Get in touch with us.
+    </p>
+
+    <div class="contact-box">
+        <p>📧 Email: yadavji90801@gmail.com</p>
+        <p>🎮 Gaming & Development</p>
+        <p>🌐 GameForge</p>
+    </div>
+
+    <a href="mailto:yadavji90801@gmail.com" class="button">
+        Contact Us
+    </a>
+</section>
+    <footer>
+        © 2026 GameForge. All rights reserved.
+    </footer>
+
+</body>
+</html>
