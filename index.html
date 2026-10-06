@@ -191,6 +191,97 @@
         max-width: 350px;
     }
 }
+/* ✨ Hero Animation */
+.hero h1 {
+    animation: heroTitle 1s ease-out;
+}
+
+.hero p {
+    animation: heroText 1.3s ease-out;
+}
+
+.hero .button,
+.hero a {
+    animation: heroButton 1.6s ease-out;
+}
+
+@keyframes heroTitle {
+    from {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes heroText {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes heroButton {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+/* 🎮 Game Card Hover Animation */
+.game-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.45);
+}
+/* 🔵 Button Hover Animation */
+button,
+.game-button,
+a.button,
+nav a {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+button:hover,
+.game-button:hover,
+a.button:hover,
+nav a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+}
+/* 🖼️ Photo Floating Animation */
+.profile-photo img {
+    animation: photoFloat 3s ease-in-out infinite;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 0 25px rgba(37, 99, 235, 0.45);
+}
+
+.profile-photo img:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 40px rgba(37, 99, 235, 0.75);
+}
+
+@keyframes photoFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
 <style>
 
     /* tumhara purana CSS */
@@ -208,6 +299,7 @@
     }
 
 </style>
+
     </style>
 </head>
 
