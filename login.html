@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>GameForge - Login</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background: #050816;
+            color: white;
+        }
+
+        .box {
+            width: 90%;
+            max-width: 420px;
+            padding: 35px;
+            background: #10172a;
+            border: 1px solid #26365f;
+            border-radius: 20px;
+            box-shadow: 0 0 35px rgba(37, 99, 235, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9ca3af;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            background: #080d1d;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #3b82f6;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .guest {
+            background: #374151;
+        }
+
+        .guest:hover {
+            background: #4b5563;
+        }
+
+        .switch {
+            text-align: center;
+            margin-top: 20px;
+            color: #9ca3af;
+        }
+
+        .switch span {
+            color: #60a5fa;
+            cursor: pointer;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+            min-height: 22px;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #60a5fa;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h1>🎮 GameForge</h1>
+
+    <p class="subtitle" id="modeText">
+        Login to save your game progress
+    </p>
+
+    <div id="formArea">
+
+        <input
+            type="email"
+            id="email"
+            placeholder="Email address"
+            autocomplete="email"
+        >
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            autocomplete="current-password"
+        >
+
+        <button id="mainButton">Login</button>
+
+        <button class="guest" id="guestButton">
+            Play as Guest
+        </button>
+
+        <div class="switch">
+            Don't have an account?
+            <span id="switchMode">Create Account</span>
+        </div>
+
+    </div>
+
+    <div id="message"></div>
+
+    <a href="index.html" class="back">← Back to GameForge</a>
+
+</div>
+
+<script>
+    // ==============================
+    // SUPABASE CONNECTION
+    // ==============================
+
+    const SUPABASE_URL = "https://tzjqlrpdvblbucxqsbtp.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_aN0H5r-h8RRducZp79FNgA_URPgcNVg";
+
+    const gameforgeSupabase = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+
+    // ==============================
+    // ELEMENTS
+    // ==============================
+
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const mainButton = document.getElementById("mainButton");
+    const guestButton = document.getElementById("guestButton");
+    const switchMode = document.getElementById("switchMode");
+    const modeText = document.getElementById("modeText");
+    const message = document.getElementById("message");
+
+
+    let isLoginMode = true;
+
+
+    // ==============================
+    // LOGIN / SIGNUP SWITCH
+    // ==============================
+
+    switchMode.addEventListener("click", () => {
+
+        isLoginMode = !isLoginMode;
+
+        if (isLoginMode) {
+
+            mainButton.textContent = "Login";
+
+            modeText.textContent =
+                "Login to save your game progress";
+
+            switchMode.textContent =
+                "Create Account";
+
+        } else {
+
+            mainButton.textContent = "Create Account";
+
+            modeText.textContent =
+                "Create an account to save your progress";
+
+            switchMode.textContent =
+                "Already have an account?";
+
+        }
+
+        message.textContent = "";
+    });
+
+
+    // ==============================
+    // LOGIN / SIGNUP
+    // ==============================
+
+    mainButton.addEventListener("click", async () => {
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        message.textContent = "";
+
+        if (!email || !password) {
+
+            message.textContent =
+                "Please enter email and password.";
+
+            return;
+        }
+
+        if (password.length < 6) {
+
+            message.textContent =
+                "Password must be at least 6 characters.";
+
+            return;
+        }
+
+
+        mainButton.disabled = true;
+        mainButton.textContent = "Please wait...";
+
+
+        // LOGIN
+        if (isLoginMode) {
+
+            const { data, error } =
+                await gameforgeSupabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+
+            if (error) {
+
+                message.textContent =
+                    error.message;
+
+                mainButton.disabled = false;
+                mainButton.textContent = "Login";
+
+                return;
+            }
+
+
+            message.textContent =
+                "✅ Login successful!";
+                setTimeout(() => {
+    window.location.href = "index.html";
+}, 500);
+
+           message.textContent = "✅ Login successful! Welcome to GameForge.";
+        }
+
+        // SIGN UP
+        else {
+
+            const { data, error } =
+                await gameforgeSupabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+
+            if (error) {
+
+                message.textContent =
+                    error.message;
+
+                mainButton.disabled = false;
+                mainButton.textContent = "Create Account";
+
+                return;
+            }
+
+
+           message.innerHTML = `
+    <div style="
+        padding:15px;
+        margin-top:10px;
+        border-radius:12px;
+        background:#102a43;
+        border:1px solid #2563eb;
+        line-height:1.6;
+    ">
+        <strong>✅ Account created successfully!</strong><br><br>
+        📧 Please check your email and click the
+        <strong>confirmation link</strong> to activate your account.<br><br>
+        💡 Don't see it? Check your
+        <strong>Spam</strong> or <strong>Promotions</strong> folder.
+    </div>
+`;
+
+            mainButton.disabled = false;
+            mainButton.textContent = "Create Account";
+        }
+
+    });
+
+
+    // ==============================
+    // GUEST MODE
+    // ==============================
+
+    guestButton.addEventListener("click", () => {
+
+        localStorage.setItem(
+            "gameforge_guest",
+            "true"
+        );
+
+        window.location.href = "games.html";
+
+    });
+
+</script>
+
+</body>
+</html>
