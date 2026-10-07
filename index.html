@@ -1,4 +1,3 @@
-!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -282,7 +281,7 @@ nav a:hover {
         transform: translateY(-8px);
     }
 }
-<style>
+
 
     /* tumhara purana CSS */
 
@@ -298,7 +297,102 @@ nav a:hover {
         box-shadow: 0 0 30px rgba(37, 99, 235, 0.7);
     }
 
-</style>
+/* 📱 Better Mobile Layout */
+
+@media (max-width: 600px) {
+
+    body {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    header {
+        width: 100%;
+        padding: 15px 12px;
+    }
+
+    .logo {
+        font-size: 24px;
+    }
+
+    nav {
+        width: 100%;
+        gap: 8px;
+    }
+
+    nav a {
+        font-size: 14px;
+        padding: 6px 4px;
+    }
+
+    .hero {
+        min-height: 65vh;
+        padding: 40px 15px;
+    }
+
+    .hero h1 {
+        font-size: clamp(38px, 12vw, 55px);
+        letter-spacing: 2px;
+        line-height: 1.1;
+    }
+
+    .hero p {
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .button,
+    .game-button {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+
+    .section {
+        padding: 45px 15px;
+    }
+
+    .section h2 {
+        font-size: 30px;
+    }
+
+    .section > p {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .games-container {
+        width: 100%;
+        gap: 18px;
+    }
+
+    .game-card {
+        width: 100%;
+        max-width: 340px;
+        padding: 18px;
+    }
+
+    .game-image {
+        height: 130px;
+        font-size: 60px;
+    }
+
+    .game-card h3 {
+        font-size: 21px;
+    }
+
+    .game-card p {
+        font-size: 15px;
+    }
+
+    .profile-photo img {
+        width: min(280px, 90vw);
+    }
+
+    footer {
+        font-size: 14px;
+        padding: 20px 10px;
+    }
+}
 
     </style>
 </head>
@@ -336,19 +430,14 @@ nav a:hover {
     <div class="games-container">
 
         <div class="game-card">
-            <div class="game-image">🎮</div>
-            <h3>GameForge Racing</h3>
-            <div class="game-card">
-    <h3>🎯 Click the Target</h3>
-    <p>Test your speed and accuracy. Click the target as fast as you can!</p>
+    <div class="game-image">🎮</div>
+    <h3>GameForge Racing</h3>
+    <p>Experience exciting racing and build your ultimate garage.</p>
+    <a href="games.html" class="game-button">Play Now</a>
 
-    <a href="target.html" class="game-button">
-        Play Now
-    </a>
 </div>
-            <p>Experience exciting racing and build your ultimate garage.</p>
-            <a href="#" class="game-button">Play Now</a>
-        </div>
+
+
 
         <div class="game-card">
             <div class="game-image">⚔️</div>
@@ -363,6 +452,21 @@ nav a:hover {
             <p>Create, manage and grow your own powerful city.</p>
             <a href="#" class="game-button">Coming Soon</a>
         </div>
+        <section class="section" id="mini-games">
+    <h2>🎮 GameForge Mini Games</h2>
+    <p>Play our collection of simple and fun mini games.</p>
+
+    <div class="games-container">
+
+        <div class="game-card">
+            <div class="game-image">🎯</div>
+            <h3>Click the Target</h3>
+            <p>Test your speed and accuracy by clicking the target!</p>
+            <a href="target.html" class="game-button">Play Now</a>
+        </div>
+
+    </div>
+</section>
 
     </div>
 </section>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GameForge - Puzzle</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #0b0b0f;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.container {
+    width: 95%;
+    max-width: 500px;
+    margin: 30px auto;
+}
+
+h1 {
+    margin-bottom: 5px;
+    font-size: 40px;
+}
+
+.subtitle {
+    color: #aaa;
+    margin-bottom: 20px;
+}
+
+.info {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.info-box {
+    background: #15151f;
+    padding: 12px 22px;
+    border-radius: 10px;
+}
+
+#puzzle {
+    width: min(90vw, 400px);
+    height: min(90vw, 400px);
+    margin: auto;
+    padding: 5px;
+    background: #15151f;
+    border: 3px solid #6c2cff;
+    border-radius: 12px;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+}
+
+.tile {
+    border: none;
+    border-radius: 8px;
+    background: #6c2cff;
+    color: white;
+    font-size: clamp(20px, 7vw, 32px);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.tile:hover {
+    background: #8b5cff;
+}
+
+.empty {
+    background: #0b0b0f;
+    cursor: default;
+}
+
+.empty:hover {
+    background: #0b0b0f;
+}
+
+button#shuffle {
+    margin-top: 20px;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    background: #6c2cff;
+    color: white;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+button#shuffle:hover {
+    background: #8b5cff;
+}
+
+#message {
+    min-height: 25px;
+    color: #ccc;
+    margin-top: 15px;
+}
+
+.back {
+    display: inline-block;
+    margin-top: 10px;
+    color: #aaa;
+    text-decoration: none;
+}
+
+.back:hover {
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🧩 Puzzle</h1>
+
+    <div class="subtitle">
+        GameForge Mini Game
+    </div>
+
+    <div class="info">
+        <div class="info-box">
+            Moves: <b id="moves">0</b>
+        </div>
+
+        <div class="info-box">
+            Best: <b id="best">-</b>
+        </div>
+    </div>
+
+    <div id="puzzle"></div>
+
+    <button id="shuffle">
+        🔀 New Puzzle
+    </button>
+
+    <p id="message">
+        Arrange the numbers from 1 to 15.
+    </p>
+
+    <a href="games.html" class="back">
+        ← Back to Games
+    </a>
+
+</div>
+
+<script>
+
+const puzzle = document.getElementById("puzzle");
+const movesText = document.getElementById("moves");
+const bestText = document.getElementById("best");
+const message = document.getElementById("message");
+const shuffleButton = document.getElementById("shuffle");
+
+let board = [];
+let moves = 0;
+
+let best = localStorage.getItem("puzzleBest");
+
+if (best !== null) {
+    bestText.textContent = best;
+}
+
+
+/* CREATE BOARD */
+
+function createBoard() {
+
+    board = [];
+
+    for (let i = 1; i <= 15; i++) {
+        board.push(i);
+    }
+
+    board.push(0);
+
+    moves = 0;
+    movesText.textContent = moves;
+
+    message.textContent =
+        "Arrange the numbers from 1 to 15.";
+
+    render();
+}
+
+
+/* RENDER */
+
+function render() {
+
+    puzzle.innerHTML = "";
+
+    board.forEach((number, index) => {
+
+        const tile = document.createElement("button");
+
+        tile.className = "tile";
+
+        if (number === 0) {
+
+            tile.classList.add("empty");
+
+        } else {
+
+            tile.textContent = number;
+
+            tile.addEventListener(
+                "click",
+                function() {
+                    moveTile(index);
+                }
+            );
+        }
+
+        puzzle.appendChild(tile);
+    });
+}
+
+
+/* MOVE TILE */
+
+function moveTile(index) {
+
+    const emptyIndex = board.indexOf(0);
+
+    const row = Math.floor(index / 4);
+    const col = index % 4;
+
+    const emptyRow = Math.floor(emptyIndex / 4);
+    const emptyCol = emptyIndex % 4;
+
+
+    const isAdjacent =
+        Math.abs(row - emptyRow) +
+        Math.abs(col - emptyCol) === 1;
+
+
+    if (!isAdjacent) {
+        return;
+    }
+
+
+    board[emptyIndex] = board[index];
+    board[index] = 0;
+
+    moves++;
+
+    movesText.textContent = moves;
+
+    render();
+
+    checkWin();
+}
+
+
+/* CHECK WIN */
+
+function checkWin() {
+
+    for (let i = 0; i < 15; i++) {
+
+        if (board[i] !== i + 1) {
+            return;
+        }
+    }
+
+    message.textContent =
+        "🎉 Congratulations! Puzzle Solved!";
+
+
+    if (
+        best === null ||
+        moves < Number(best)
+    ) {
+
+        best = moves;
+
+        localStorage.setItem(
+            "puzzleBest",
+            best
+        );
+
+        bestText.textContent = best;
+    }
+}
+
+
+/* SHUFFLE */
+
+function shuffleBoard() {
+
+    /*
+       Start from solved board.
+       Make many valid moves.
+       This guarantees the puzzle
+       remains solvable.
+    */
+
+    board = [];
+
+    for (let i = 1; i <= 15; i++) {
+        board.push(i);
+    }
+
+    board.push(0);
+
+
+    let previousEmpty = -1;
+
+
+    for (let i = 0; i < 300; i++) {
+
+        const emptyIndex = board.indexOf(0);
+
+        const possibleMoves = [];
+
+
+        const row = Math.floor(emptyIndex / 4);
+        const col = emptyIndex % 4;
+
+
+        if (row > 0) {
+            possibleMoves.push(emptyIndex - 4);
+        }
+
+        if (row < 3) {
+            possibleMoves.push(emptyIndex + 4);
+        }
+
+        if (col > 0) {
+            possibleMoves.push(emptyIndex - 1);
+        }
+
+        if (col < 3) {
+            possibleMoves.push(emptyIndex + 1);
+        }
+
+
+        const filteredMoves =
+            possibleMoves.filter(
+                move => move !== previousEmpty
+            );
+
+
+        const randomIndex =
+            Math.floor(
+                Math.random() *
+                filteredMoves.length
+            );
+
+
+        const selected =
+            filteredMoves[randomIndex];
+
+
+        previousEmpty = emptyIndex;
+
+
+        board[emptyIndex] =
+            board[selected];
+
+        board[selected] = 0;
+    }
+
+
+    moves = 0;
+
+    movesText.textContent = moves;
+
+    message.textContent =
+        "Arrange the numbers from 1 to 15.";
+
+    render();
+}
+
+
+/* BUTTON */
+
+shuffleButton.addEventListener(
+    "click",
+    shuffleBoard
+);
+
+
+/* START */
+
+createBoard();
+
+shuffleBoard();
+
+</script>
+
+</body>
+</html>
