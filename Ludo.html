@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameForge Ludo</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:
+    radial-gradient(circle at top,#182044,#070a12 45%,#020308);
+    font-family:Arial,sans-serif;
+    color:white;
+    text-align:center;
+    padding:20px 10px;
+}
+
+h1{
+    margin:5px 0;
+    font-size:clamp(32px,7vw,55px);
+    color:#fff;
+    text-shadow:
+        0 0 10px #00d9ff,
+        0 0 30px #754cff;
+}
+
+.subtitle{
+    color:#9da8bb;
+    margin-bottom:15px;
+}
+
+.top{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+}
+
+button,
+.back{
+    border:0;
+    padding:12px 18px;
+    border-radius:10px;
+    color:white;
+    font-weight:bold;
+    background:linear-gradient(135deg,#146cff,#713cff);
+    cursor:pointer;
+    text-decoration:none;
+    box-shadow:0 0 15px #5130bb;
+}
+
+button:hover,
+.back:hover{
+    transform:translateY(-2px);
+    box-shadow:0 0 25px #734cff;
+}
+
+#turn{
+    font-size:20px;
+    font-weight:bold;
+    margin:10px;
+}
+
+#timer{
+    color:#ffd83d;
+}
+
+.board{
+    width:min(94vw,700px);
+    aspect-ratio:1;
+    margin:15px auto;
+    display:grid;
+    grid-template-columns:repeat(15,1fr);
+    grid-template-rows:repeat(15,1fr);
+    border:6px solid #111927;
+    border-radius:18px;
+    overflow:hidden;
+    background:#111;
+    box-shadow:
+        0 0 25px #00d9ff66,
+        0 0 60px #703cff55;
+}
+
+.cell{
+    position:relative;
+    border:1px solid #222c3c;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.white{
+    background:#f4f6fa;
+}
+
+.red{
+    background:#ff244f;
+}
+
+.green{
+    background:#22dc62;
+}
+
+.blue{
+    background:#249cff;
+}
+
+.yellow{
+    background:#ffd21c;
+}
+
+.redHome{
+    background:linear-gradient(145deg,#ff3158,#850d2c);
+}
+
+.greenHome{
+    background:linear-gradient(145deg,#39ed73,#087a38);
+}
+
+.blueHome{
+    background:linear-gradient(145deg,#2db5ff,#075cae);
+}
+
+.yellowHome{
+    background:linear-gradient(145deg,#ffe34c,#bd8500);
+}
+
+.home{
+    position:absolute;
+    width:88%;
+    height:88%;
+    background:white;
+    border-radius:15px;
+    padding:10%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:10%;
+    box-shadow:
+        0 0 12px #fff,
+        inset 0 0 12px #999;
+}
+
+.slot{
+    border:3px solid #bbb;
+    border-radius:50%;
+    background:#e9edf4;
+}
+
+.center{
+    background:
+    conic-gradient(
+        #22dc62 0 25%,
+        #ffd21c 25% 50%,
+        #249cff 50% 75%,
+        #ff244f 75% 100%
+    );
+}
+
+.star{
+    font-size:clamp(12px,3vw,25px);
+    color:#ff3158;
+    text-shadow:0 0 8px currentColor;
+}
+
+.token{
+    width:76%;
+    height:76%;
+    position:absolute;
+    border-radius:50%;
+    z-index:5;
+    border:3px solid white;
+    box-shadow:
+        0 4px 7px #0009,
+        0 0 15px currentColor;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(9px,2vw,15px);
+    font-weight:bold;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.token:hover{
+    transform:scale(1.15);
+}
+
+.token.redToken{
+    background:radial-gradient(circle at 30% 25%,#ff9bad,#ff174e 55%,#970025);
+}
+
+.token.greenToken{
+    background:radial-gradient(circle at 30% 25%,#d0ffdf,#20df62 55%,#087b39);
+}
+
+.token.blueToken{
+    background:radial-gradient(circle at 30% 25%,#d0f3ff,#18a8ff 55%,#0056ad);
+}
+
+.token.yellowToken{
+    background:radial-gradient(circle at 30% 25%,#fff7b0,#ffd21c 55%,#b97c00);
+}
+
+.legal{
+    box-shadow:
+        inset 0 0 0 3px #00eaff,
+        inset 0 0 15px #00eaff;
+}
+
+.diceBox{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    margin:15px auto;
+}
+
+.dice{
+    width:70px;
+    height:70px;
+    background:white;
+    color:#111;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:45px;
+    box-shadow:0 0 20px #fff8;
+}
+
+.message{
+    min-height:25px;
+    color:#cbd5e1;
+    margin:8px;
+}
+
+@media(max-width:500px){
+
+    .board{
+        width:97vw;
+        border-width:3px;
+        border-radius:10px;
+    }
+
+    .home{
+        padding:7%;
+        gap:7%;
+    }
+
+    .slot{
+        border-width:2px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎲 GameForge Ludo</h1>
+
+<div class="subtitle">
+    Classic Ludo • Neon Edition
+</div>
+
+<div class="top">
+
+    <button onclick="newGame()">
+        🔄 New Game
+    </button>
+
+    <button onclick="changePlayers()">
+        👥 Players: <span id="playerCount">4</span>
+    </button>
+
+</div>
+
+<div id="turn">
+    🔴 Red's Turn |
+    ⏱️ <span id="timer">15</span>s
+</div>
+
+<div id="board" class="board"></div>
+
+<div class="diceBox">
+
+    <div id="dice" class="dice">
+        ⚀
+    </div>
+
+    <button id="rollButton" onclick="rollDice()">
+        🎲 Roll Dice
+    </button>
+
+</div>
+
+<div id="message" class="message">
+    Red: Roll the dice.
+</div>
+
+<br>
+
+<a href="games.html" class="back">
+    ← Back to Games
+</a>
+
+<script>
+
+const colors = [
+    "red",
+    "green",
+    "yellow",
+    "blue"
+];
+
+const names = {
+    red:"Red",
+    green:"Green",
+    yellow:"Yellow",
+    blue:"Blue"
+};
+
+const startPosition = {
+    red:0,
+    green:13,
+    yellow:26,
+    blue:39
+};
+
+const path = [
+
+    [6,0],[7,0],[8,0],
+    [8,1],[8,2],[8,3],[8,4],[8,5],
+    [9,6],[10,6],[11,6],[12,6],[13,6],[14,6],
+    [14,7],[14,8],
+    [13,8],[12,8],[11,8],[10,8],[9,8],
+    [8,9],[8,10],[8,11],[8,12],[8,13],[8,14],
+    [7,14],[6,14],
+    [6,13],[6,12],[6,11],[6,10],[6,9],
+    [5,8],[4,8],[3,8],[2,8],[1,8],[0,8],
+    [0,7],[0,6],
+    [1,6],[2,6],[3,6],[4,6],[5,6]
+
+];
+
+const safeSquares = [
+    0,8,13,21,26,34,39,47
+];
+
+let players = 4;
+let currentPlayer = 0;
+let diceValue = 0;
+let diceRolled = false;
+let tokens = {};
+let legalTokens = [];
+let timer;
+let timeLeft = 15;
+let gameFinished = false;
+
+function newGame(){
+
+    clearInterval(timer);
+
+    currentPlayer = 0;
+    diceValue = 0;
+    diceRolled = false;
+    legalTokens = [];
+    gameFinished = false;
+
+    tokens = {};
+
+    colors.slice(0,players).forEach(color=>{
+
+        tokens[color] = [
+            -1,-1,-1,-1
+        ];
+
+    });
+
+    document.getElementById("dice").textContent = "⚀";
+
+    document.getElementById("message").textContent =
+        "Red: Roll the dice.";
+
+    startTimer();
+
+    drawBoard();
+}
+
+function changePlayers(){
+
+    players++;
+
+    if(players>4){
+        players=2;
+    }
+
+    document.getElementById("playerCount").textContent =
+        players;
+
+    newGame();
+}
+
+function currentColor(){
+
+    return colors[currentPlayer];
+}
+
+function startTimer(){
+
+    clearInterval(timer);
+
+    timeLeft = 15;
+
+    document.getElementById("timer").textContent =
+        timeLeft;
+
+    timer = setInterval(()=>{
+
+        if(gameFinished)return;
+
+        timeLeft--;
+
+        document.getElementById("timer").textContent =
+            timeLeft;
+
+        if(timeLeft<=0){
+
+            clearInterval(timer);
+
+            document.getElementById("message").textContent =
+                "⏰ Time up! Turn lost.";
+
+            nextTurn();
+
+        }
+
+    },1000);
+}
+
+function rollDice(){
+
+    if(
+        diceRolled ||
+        gameFinished
+    ){
+        return;
+    }
+
+    diceValue =
+        Math.floor(Math.random()*6)+1;
+
+    diceRolled = true;
+
+    const diceFaces = [
+        "",
+        "⚀",
+        "⚁",
+        "⚂",
+        "⚃",
+        "⚄",
+        "⚅"
+    ];
+
+    document.getElementById("dice").textContent =
+        diceFaces[diceValue];
+
+    legalTokens = [];
+
+    const color = currentColor();
+
+    tokens[color].forEach((position,index)=>{
+
+        if(position===-1){
+
+            if(diceValue===6){
+
+                legalTokens.push(index);
+
+            }
+
+        }else{
+
+            if(position+diceValue<=57){
+
+                legalTokens.push(index);
+
+            }
+
+        }
+
+    });
+
+    if(legalTokens.length===0){
+
+        document.getElementById("message").textContent =
+            "No legal move.";
+
+        setTimeout(nextTurn,800);
+
+    }else{
+
+        document.getElementById("message").textContent =
+            "Select a token.";
+
+    }
+
+    drawBoard();
+}
+
+function moveToken(index){
+
+    if(gameFinished)return;
+
+    const color = currentColor();
+
+    if(
+        !diceRolled ||
+        !legalTokens.includes(index)
+    ){
+        return;
+    }
+
+    let position =
+        tokens[color][index];
+
+    if(position===-1){
+
+        position=0;
+
+    }else{
+
+        position += diceValue;
+
+    }
+
+    tokens[color][index] =
+        position;
+
+    if(position<=51){
+
+        captureOpponents(
+            color,
+            getPathPosition(
+                color,
+                position
+            )
+        );
+
+    }
+
+    if(
+        tokens[color].every(
+            p=>p===57
+        )
+    ){
+
+        gameFinished=true;
+
+        clearInterval(timer);
+
+        document.getElementById("message").textContent =
+            "🏆 "+names[color]+" WINS!";
+
+        drawBoard();
+
+        return;
+    }
+
+    if(diceValue===6){
+
+        diceRolled=false;
+        legalTokens=[];
+
+        document.getElementById("message").textContent =
+            names[color]+" rolled 6! Roll again.";
+
+        startTimer();
+
+    }else{
+
+        nextTurn();
+
+    }
+
+    drawBoard();
+}
+
+function nextTurn(){
+
+    if(gameFinished)return;
+
+    currentPlayer++;
+
+    if(currentPlayer>=players){
+
+        currentPlayer=0;
+
+    }
+
+    diceValue=0;
+    diceRolled=false;
+    legalTokens=[];
+
+    document.getElementById("dice").textContent =
+        "⚀";
+
+    document.getElementById("message").textContent =
+        names[currentColor()]+": Roll the dice.";
+
+    startTimer();
+
+    drawBoard();
+}
+
+function getPathPosition(color,position){
+
+    const index =
+        (
+            startPosition[color] +
+            position
+        ) % 52;
+
+    return path[index];
+
+}
+
+function captureOpponents(color,position){
+
+    if(!position)return;
+
+    const [r,c] = position;
+
+    const pathIndex =
+        path.findIndex(
+            p=>p[0]===r && p[1]===c
+        );
+
+    if(safeSquares.includes(pathIndex)){
+        return;
+    }
+
+    colors.slice(0,players).forEach(other=>{
+
+        if(other===color)return;
+
+        tokens[other] =
+            tokens[other].map(position=>{
+
+                if(
+                    position>=0 &&
+                    position<=51
+                ){
+
+                    const p =
+                        getPathPosition(
+                            other,
+                            position
+                        );
+
+                    if(
+                        p[0]===r &&
+                        p[1]===c
+                    ){
+
+                        return -1;
+
+                    }
+
+                }
+
+                return position;
+
+            });
+
+    });
+
+}
+
+function drawBoard(){
+
+    const board =
+        document.getElementById("board");
+
+    board.innerHTML="";
+
+    for(let r=0;r<15;r++){
+
+        for(let c=0;c<15;c++){
+
+            const cell =
+                document.createElement("div");
+
+            cell.className="cell";
+
+            /*
+             HOME AREAS
+            */
+
+            if(r<6 && c<6){
+
+                cell.classList.add("redHome");
+
+            }
+
+            else if(r<6 && c>8){
+
+                cell.classList.add("greenHome");
+
+            }
+
+            else if(r>8 && c<6){
+
+                cell.classList.add("blueHome");
+
+            }
+
+            else if(r>8 && c>8){
+
+                cell.classList.add("yellowHome");
+
+            }
+
+            /*
+             CENTER
+            */
+
+            if(
+                r>=6 &&
+                r<=8 &&
+                c>=6 &&
+                c<=8
+            ){
+
+                cell.className =
+                    "cell center";
+
+            }
+
+            /*
+             PATH
+            */
+
+            const pathIndex =
+                path.findIndex(
+                    p=>p[0]===r &&
+                       p[1]===c
+                );
+
+            if(pathIndex>=0){
+
+                cell.className="cell white";
+
+                if(
+                    pathIndex===startPosition.red
+                ){
+                    cell.classList.add("red");
+                }
+
+                if(
+                    pathIndex===startPosition.green
+                ){
+                    cell.classList.add("green");
+                }
+
+                if(
+                    pathIndex===startPosition.yellow
+                ){
+                    cell.classList.add("yellow");
+                }
+
+                if(
+                    pathIndex===startPosition.blue
+                ){
+                    cell.classList.add("blue");
+                }
+
+                if(
+                    safeSquares.includes(pathIndex)
+                ){
+
+                    cell.innerHTML =
+                        '<span class="star">★</span>';
+
+                }
+
+            }
+
+            /*
+             HOME LANES
+            */
+
+            if(
+                c===7 &&
+                r>=1 &&
+                r<=5
+            ){
+
+                cell.className =
+                    "cell green";
+
+            }
+
+            if(
+                r===7 &&
+                c>=1 &&
+                c<=5
+            ){
+
+                cell.className =
+                    "cell red";
+
+            }
+
+            if(
+                c===7 &&
+                r>=9 &&
+                r<=13
+            ){
+
+                cell.className =
+                    "cell blue";
+
+            }
+
+            if(
+                r===7 &&
+                c>=9 &&
+                c<=13
+            ){
+
+                cell.className =
+                    "cell yellow";
+
+            }
+
+            /*
+             HOME BOXES
+            */
+
+            if(r===0 && c===0){
+
+                createHome(
+                    cell,
+                    "red"
+                );
+
+            }
+
+            if(r===0 && c===9){
+
+                createHome(
+                    cell,
+                    "green"
+                );
+
+            }
+
+            if(r===9 && c===0){
+
+                createHome(
+                    cell,
+                    "blue"
+                );
+
+            }
+
+            if(r===9 && c===9){
+
+                createHome(
+                    cell,
+                    "yellow"
+                );
+
+            }
+
+            board.appendChild(cell);
+
+        }
+
+    }
+
+    placeTokens();
+
+    document.getElementById("turn").innerHTML =
+        "🎯 "+
+        names[currentColor()]+"'s Turn | "+
+        "⏱️ <span id='timer'>"+
+        timeLeft+
+        "</span>s";
+
+}
+
+function createHome(cell,color){
+
+    const home =
+        document.createElement("div");
+
+    home.className="home";
+
+    for(let i=0;i<4;i++){
+
+        const slot =
+            document.createElement("div");
+
+        slot.className="slot";
+
+        home.appendChild(slot);
+
+    }
+
+    cell.appendChild(home);
+
+}
+
+function placeTokens(){
+
+    const counts={};
+
+    colors.slice(0,players).forEach(color=>{
+
+        tokens[color].forEach(
+            (position,index)=>{
+
+                let r,c;
+
+                if(position===-1){
+
+                    const homes={
+
+                        red:[
+                            [1,1],
+                            [1,4],
+                            [4,1],
+                            [4,4]
+                        ],
+
+                        green:[
+                            [1,10],
+                            [1,13],
+                            [4,10],
+                            [4,13]
+                        ],
+
+                        blue:[
+                            [10,1],
+                            [10,4],
+                            [13,1],
+                            [13,4]
+                        ],
+
+                        yellow:[
+                            [10,10],
+                            [10,13],
+                            [13,10],
+                            [13,13]
+                        ]
+
+                    };
+
+                    [r,c] =
+                        homes[color][index];
+
+                }
+
+                else{
+
+                    [r,c] =
+                        getPathPosition(
+                            color,
+                            position
+                        );
+
+                }
+
+                const cell =
+                    [...document.querySelectorAll(".cell")]
+                    .find(
+                        x=>
+                        Number(x.dataset.r)===r &&
+                        Number(x.dataset.c)===c
+                    );
+
+                /*
+                 data attributes
+                */
+
+                if(cell){
+
+                    cell.dataset.r=r;
+                    cell.dataset.c=c;
+
+                    const token =
+                        document.createElement("div");
+
+                    token.className =
+                        "token "+
+                        color+"Token";
+
+                    token.textContent =
+                        index+1;
+
+                    token.onclick =
+                        function(event){
+
+                            event.stopPropagation();
+
+                            moveToken(index);
+
+                        };
+
+                    if(
+                        position>=0 &&
+                        position<=51
+                    ){
+
+                        token.classList.toggle(
+                            "legal",
+                            legalTokens.includes(index)
+                        );
+
+                    }
+
+                    cell.appendChild(token);
+
+                }
+
+            }
+        );
+
+    });
+
+}
+
+newGame();
+
+</script>
+
+</body>
+</html>
