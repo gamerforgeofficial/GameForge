@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090813">
+<title>ForgeWarrior | GameForge</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  color:#f8f7ff;
+  background:
+    radial-gradient(ellipse at 50% 0%,#6c2cff55,transparent 45%),
+    #090813;
+}
+header{
+  padding:22px 5%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  border-bottom:1px solid #8b5cf644;
+}
+.logo{font-size:23px;font-weight:900;color:#b99aff}
+a{color:#d9c9ff;text-decoration:none}
+.back{padding:10px 14px;border:1px solid #8b5cf6;border-radius:10px}
+.hero{text-align:center;padding:65px 18px 40px}
+.hero h1{
+  font-size:clamp(38px,8vw,68px);
+  margin:0;
+  text-shadow:0 0 25px #8b5cf6;
+}
+.hero h1 span{color:#a78bfa}
+.hero p{color:#c2bdd8;line-height:1.7}
+.tag{
+  display:inline-block;padding:8px 13px;border-radius:30px;
+  border:1px solid #8b5cf688;color:#c8b5ff;
+  margin-bottom:18px;
+}
+main{width:min(1100px,92%);margin:auto}
+.section-title{font-size:25px;margin:20px 0}
+.games{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
+  gap:18px;margin-bottom:55px;
+}
+.card{
+  background:linear-gradient(145deg,#1c1736,#100e20);
+  border:1px solid #8b5cf644;
+  border-radius:18px;padding:22px;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+}
+.card:hover{
+  transform:translateY(-5px);
+  border-color:#a78bfa;
+  box-shadow:0 0 24px #6c2cff33;
+}
+.art{font-size:48px;margin-bottom:15px}
+.card h3{margin:5px 0 10px}
+.card p{color:#b5b1cb;line-height:1.6;min-height:48px}
+.play{
+  display:inline-block;margin-top:8px;padding:12px 17px;
+  background:linear-gradient(120deg,#6c2cff,#9b6dff);
+  color:white;border-radius:10px;font-weight:bold;
+}
+.badge{font-size:12px;color:#c5b4ff;border:1px solid #8b5cf655;padding:5px 8px;border-radius:20px}
+footer{text-align:center;padding:25px;color:#9992b4;border-top:1px solid #8b5cf633}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚔ FORGEWARRIOR</div>
+  <a class="back" href="index.html">← GameForge Home</a>
+</header>
+
+<section class="hero">
+  <div class="tag">GAMEFORGE · WARRIOR DIVISION</div>
+  <h1>FORGE<span>WARRIOR</span></h1>
+  <p>Enter the arena. Build your skills. Become a legend.</p>
+  <p>Choose your next challenge.</p>
+</section>
+
+<main>
+  <h2 class="section-title">⚔ Warrior Arena</h2>
+
+  <section class="games">
+    <article class="card">
+      <div class="art">🛡️</div>
+      <span class="badge">ARENA</span>
+      <h3>Warrior Survival</h3>
+      <p>Survive enemy waves in a future warrior arena.</p>
+      <a class="play" href="warrior-survival.html">Play Game →</a>
+    </article>
+
+    <article class="card">
+      <div class="art">🏹</div>
+      <span class="badge">PRECISION</span>
+      <h3>Shadow Archer</h3>
+      <p>Test your aim and hit targets with precision.</p>
+      <a class="play" href="shadow-archer.html">Play Game →</a>
+    </article>
+
+    <article class="card">
+      <div class="art">💎</div>
+      <span class="badge">PUZZLE</span>
+      <h3>Rune Match</h3>
+      <p>Match magical runes in a quick brain challenge.</p>
+      <a class="play" href="rune-match.html">Play Game →</a>
+    </article>
+
+    <article class="card">
+      <div class="art">🐉</div>
+      <span class="badge">COMING SOON</span>
+      <h3>Dragon Realm</h3>
+      <p>A fantasy adventure is being forged.</p>
+      <span class="badge">In Development</span>
+    </article>
+  </section>
+</main>
+
+<footer>© GameForge · Forge Your World. Play Your Game.</footer>
+
+</body>
+</html>
