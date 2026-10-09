@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Warrior Survival | GameForge</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090a12;color:white;font-family:Arial,sans-serif;overflow:hidden}
+canvas{display:block;width:100vw;height:100dvh;background:#171b20;touch-action:none}
+#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.panel{background:#10101ddd;border:1px solid #c99b5a;border-radius:12px;padding:10px;box-shadow:0 0 15px #0008}
+.bar{height:10px;background:#38313d;border-radius:9px;overflow:hidden;margin:4px 0 8px}
+.fill{height:100%;width:100%;transition:width .1s}
+#hp{background:#ff514e}#mana{background:#37a8ff}#xp{background:#b66cff}
+#info{text-align:center;font-weight:bold;color:#ffd77c}
+#stats{font-size:12px;min-width:145px}
+button{background:linear-gradient(135deg,#3a244b,#15121e);color:white;border:1px solid #bd955c;border-radius:12px;padding:10px;cursor:pointer;font-weight:bold}
+button:active{transform:scale(.95)}
+#buttons{position:fixed;right:12px;bottom:18px;display:grid;grid-template-columns:repeat(2,65px);gap:8px}
+#buttons button{height:60px;border-radius:50%;font-size:21px;background:linear-gradient(145deg,#8a3e25,#24101a)}
+#move{position:fixed;left:10px;bottom:15px;display:grid;grid-template-columns:48px 48px 48px;gap:4px}
+#move button{height:45px;padding:0;background:#171927dd}
+#move .blank{visibility:hidden}
+#overlay{position:fixed;inset:0;background:#05050bdc;display:flex;align-items:center;justify-content:center;padding:18px;z-index:5}
+#box{width:min(480px,100%);max-height:90dvh;overflow:auto;text-align:center;padding:25px;border:1px solid #e0a34b;border-radius:20px;background:linear-gradient(145deg,#21192c,#0c1019);box-shadow:0 0 45px #9d4cff33}
+h1{font-size:clamp(35px,9vw,58px);margin:10px 0;text-shadow:0 0 20px #ff642c}
+h1 span{display:block;color:#ff573c;font-style:italic}
+p{line-height:1.5;color:#d4cadd}
+.primary{background:linear-gradient(120deg,#b44a22,#f6b849);color:#160d0a;padding:14px 20px}
+#choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#toast{position:fixed;top:100px;left:50%;transform:translateX(-50%);background:#191323;border:1px solid #ffca69;border-radius:20px;padding:10px;display:none;z-index:4}
+@media(max-width:520px){#hud{top:5px;left:5px;right:5px;gap:4px}.panel{padding:7px}#stats{min-width:120px;font-size:10px}#buttons{grid-template-columns:repeat(2,55px);gap:5px;right:6px;bottom:10px}#buttons button{height:52px;font-size:18px}#move{left:5px;bottom:10px;grid-template-columns:40px 40px 40px;gap:3px}#move button{height:40px} }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+ <div class="panel" id="stats">
+  ⚔ LEVEL <b id="level">1</b>
+  <div>❤️ <span id="healthText">120/120</span></div>
+  <div class="bar"><div id="hp" class="fill"></div></div>
+  <div>🔷 MANA <span id="manaText">60/60</span></div>
+  <div class="bar"><div id="mana" class="fill"></div></div>
+  <div>⭐ XP <span id="xpText">0/30</span></div>
+  <div class="bar"><div id="xp" class="fill"></div></div>
+ </div>
+ <div class="panel" id="info">
+  <div id="wave">WAVE 1</div>
+  <div style="font-size:12px">Enemies: <span id="count">0</span></div>
+  <div style="font-size:12px">🪙 <span id="gold">0</span></div>
+ </div>
+ <div style="display:flex;gap:4px;pointer-events:auto;align-items:start">
+  <button id="sound">🔊</button><button id="pause">Ⅱ</button>
+ </div>
+</div>
+
+<div id="move">
+ <button class="blank">·</button><button data-dir="up">▲</button><button class="blank">·</button>
+ <button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button>
+</div>
+<div id="buttons">
+ <button id="potion">🧪<small style="display:block;font-size:9px">HEAL</small></button>
+ <button id="dash">💨<small style="display:block;font-size:9px">DASH</small></button>
+ <button id="spin">🔥<small style="display:block;font-size:9px">SPIN</small></button>
+ <button id="attack">⚔️<small style="display:block;font-size:9px">ATTACK</small></button>
+</div>
+<div id="toast"></div>
+<div id="overlay"><div id="box">
+ <div style="letter-spacing:3px;color:#ffca69">GAMEFORGE PRESENTS</div>
+ <h1>WARRIOR <span>SURVIVAL</span></h1>
+ <p>Survive endless enemy waves. Collect gold and XP, upgrade your warrior, and defeat a powerful boss every fifth wave.</p>
+ <p>Move with WASD or arrow keys. Attack with Space, special attack with Q, dash with E, heal with H, pause with P.</p>
+ <button class="primary" id="start">⚔ START GAME</button>
+</div></div>
+
+<script>
+(()=>{
+"use strict";
+const canvas=document.querySelector("#game"),ctx=canvas.getContext("2d");
+const $=id=>document.getElementById(id);
+let W=innerWidth,H=innerHeight,last=0,state="menu",time=0,spawnTime=0,waveTime=0;
+let soundOn=true,audio=null,keys=new Set(),touch=new Set();
+let enemies=[],drops=[],particles=[],texts=[],wave=1,gold=0,kills=0;
+let level=1,xp=0,xpNeed=30,potions=3,shake=0;
+const hero={x:0,y:0,r:16,hp:120,maxHp:120,mana:60,maxMana:60,damage:18,armor:0,speed:205,crit:.08,invuln:0};
+function resize(){W=innerWidth;H=innerHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=W*d;canvas.height=H*d;ctx.setTransform(d,0,0,d,0,0)}
+addEventListener("resize",resize);resize();
+function beep(f=250,d=.07,type="sawtooth"){if(!soundOn)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();if(audio.state==="suspended")audio.resume();let o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=f;g.gain.value=.035;g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+d)}catch(e){}}
+function rand(a,b){return a+Math.random()*(b-a)}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function toast(s){$("toast").textContent=s;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",1400)}
+function spawn(boss=false){
+ let a=rand(0,Math.PI*2),r=Math.max(W,H)*.55;
+ let x=Math.max(20,Math.min(W-20,hero.x+Math.cos(a)*r));
+ let y=Math.max(75,Math.min(H-40,hero.y+Math.sin(a)*r));
+ let brute=!boss&&Math.random()<.2;
+ let hp=(boss?450:brute?65:32)+wave*(boss?50:5);
+ enemies.push({x,y,r:boss?29:brute?20:14,hp,max:hp,
+ speed:boss?38:brute?31:48+wave,damage:boss?22:brute?12:7+wave,
+ boss,brute,hit:0,cd:rand(.2,1)});
+}
+function nearest(range=Infinity){let best=null,bd=range;for(let e of enemies){let d=dist(hero,e);if(d<bd){bd=d;best=e}}return best}
+function burst(x,y,color,n=8){for(let i=0;i<n;i++){let a=rand(0,6.28),s=rand(30,150);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.2,.6),color})}}
+function text(x,y,t,color="#fff"){texts.push({x,y,t,color,life:.8})}
+function hurt(e,amount){if(!e)return;amount=Math.round(amount*(Math.random()<hero.crit?2:1));e.hp-=amount;e.hit=.12;text(e.x,e.y-e.r-6,"-"+amount,amount>hero.damage?"#ffe16b":"#fff");burst(e.x,e.y,"#ff8b49",4);if(e.hp<=0){kills++;gold+=e.boss?100:e.brute?8:3;if(Math.random()<.3||e.boss)drops.push({x:e.x,y:e.y,type:"xp"});if(Math.random()<.2)drops.push({x:e.x,y:e.y,type:"gold"});if(e.boss){gold+=100;toast("BOSS DEFEATED! +200 GOLD")}enemies=enemies.filter(v=>v!==e);beep(420,.04,"square")}}
+let attackCd=0;
+function attack(){if(state!=="playing"||attackCd>0)return;attackCd=.35;let e=nearest(82);if(e){hurt(e,hero.damage);e.x+=(e.x-hero.x)*.15;e.y+=(e.y-hero.y)*.15}beep(150,.07)}
+function spin(){if(state!=="playing"||hero.mana<22)return;hero.mana-=22;shake=7;burst(hero.x,hero.y,"#ff7a31",35);[...enemies].forEach(e=>{if(dist(hero,e)<145)hurt(e,hero.damage*2)});toast("WHIRLWIND!");beep(90,.25)}
+function dash(){if(state!=="playing"||hero.mana<12)return;hero.mana-=12;let dx=(keys.has("d")||keys.has("arrowright")||touch.has("right")?1:0)-(keys.has("a")||keys.has("arrowleft")||touch.has("left")?1:0),dy=(keys.has("s")||keys.has("arrowdown")||touch.has("down")?1:0)-(keys.has("w")||keys.has("arrowup")||touch.has("up")?1:0);if(!dx&&!dy){let e=nearest(400);dx=e?hero.x-e.x:0;dy=e?hero.y-e.y:-1}let n=Math.hypot(dx,dy)||1;hero.x+=dx/n*115;hero.y+=dy/n*115;hero.invuln=.4;burst(hero.x,hero.y,"#65dfff",12);beep(600,.08,"triangle")}
+function heal(){if(state!=="playing"||potions<1||hero.hp===hero.maxHp)return;potions--;let amount=Math.round(hero.maxHp*.4);hero.hp=Math.min(hero.maxHp,hero.hp+amount);text(hero.x,hero.y-25,"+"+amount,"#70ff99");toast("HEALTH RESTORED")}
+function reset(){enemies=[];drops=[];particles=[];texts=[];wave=1;gold=0;kills=0;level=1;xp=0;xpNeed=30;potions=3;time=spawnTime=waveTime=attackCd=0;Object.assign(hero,{x:W/2,y:H/2,hp:120,maxHp:120,mana:60,maxMana:60,damage:18,armor:0,speed:205,crit:.08,invuln:0});for(let i=0;i<7;i++)spawn();updateUI()}
+function upgradeMenu(){state="upgrade";$("overlay").style.display="flex";$("box").innerHTML=`<div style="color:#ffca69;letter-spacing:3px">LEVEL ${level} REACHED</div><h1>CHOOSE <span>POWER</span></h1><p>Select one upgrade to continue.</p><div id="choices"><button data-u="damage">⚔️<b> Heavy Blade</b><br>+8 attack damage</button><button data-u="health">❤️<b> Iron Will</b><br>+35 max health</button><button data-u="speed">💨<b> Swift Steps</b><br>Move faster</button><button data-u="armor">🛡<b> Steel Armor</b><br>Reduce damage taken</button><button data-u="crit">✨<b> Deadly Focus</b><br>More critical hits</button><button data-u="mana">🔷<b> Arcane Heart</b><br>Increase mana</button></div>`;$("choices").onclick=e=>{let b=e.target.closest("[data-u]");if(!b)return;switch(b.dataset.u){case"damage":hero.damage+=8;break;case"health":hero.maxHp+=35;hero.hp=Math.min(hero.maxHp,hero.hp+35);break;case"speed":hero.speed*=1.12;break;case"armor":hero.armor+=3;break;case"crit":hero.crit=Math.min(.6,hero.crit+.07);break;case"mana":hero.maxMana+=15;hero.mana=hero.maxMana;break}state="playing";$("overlay").style.display="none";last=performance.now();updateUI()}}
+function start(){reset();state="playing";$("overlay").style.display="none";last=performance.now();beep(440,.12,"triangle")}
+function gameOver(){state="over";$("overlay").style.display="flex";$("box").innerHTML=`<div style="color:#ffca69;letter-spacing:3px">BATTLE COMPLETE</div><h1>WARRIOR <span>FALLEN</span></h1><p>You reached wave ${wave}, defeated ${kills} enemies and collected ${gold} gold.</p><button class="primary" id="again">↻ FIGHT AGAIN</button>`;$("again").onclick=start}
+function pause(){if(state==="playing"){state="paused";$("overlay").style.display="flex";$("box").innerHTML='<h1>BATTLE <span>PAUSED</span></h1><p>Ready to return to battle?</p><button class="primary" id="resume">▶ RESUME</button> <button id="restart">↻ RESTART</button>';$("resume").onclick=()=>{state="playing";$("overlay").style.display="none";last=performance.now()};$("restart").onclick=start}else if(state==="paused"){state="playing";$("overlay").style.display="none";last=performance.now()}}
+function updateUI(){$("level").textContent=level;$("healthText").textContent=Math.ceil(hero.hp)+"/"+hero.maxHp;$("hp").style.width=hero.hp/hero.maxHp*100+"%";$("manaText").textContent=Math.ceil(hero.mana)+"/"+hero.maxMana;$("mana").style.width=hero.mana/hero.maxMana*100+"%";$("xpText").textContent=xp+"/"+xpNeed;$("xp").style.width=xp/xpNeed*100+"%";$("gold").textContent=gold;$("wave").textContent="WAVE "+wave;$("count").textContent=enemies.length}
+function update(dt){if(state!=="playing")return;time+=dt;spawnTime+=dt;waveTime+=dt;attackCd=Math.max(0,attackCd-dt);hero.invuln=Math.max(0,hero.invuln-dt);hero.mana=Math.min(hero.maxMana,hero.mana+dt*2);
+let dx=(keys.has("d")||keys.has("arrowright")||touch.has("right")?1:0)-(keys.has("a")||keys.has("arrowleft")||touch.has("left")?1:0),dy=(keys.has("s")||keys.has("arrowdown")||touch.has("down")?1:0)-(keys.has("w")||keys.has("arrowup")||touch.has("up")?1:0),n=Math.hypot(dx,dy);
+if(n){hero.x+=dx/n*hero.speed*dt;hero.y+=dy/n*hero.speed*dt}
+hero.x=Math.max(18,Math.min(W-18,hero.x));hero.y=Math.max(65,Math.min(H-20,hero.y));
+for(let e of [...enemies]){let d=dist(hero,e)||1;if(d>hero.r+e.r){e.x+=(hero.x-e.x)/d*e.speed*dt;e.y+=(hero.y-e.y)/d*e.speed*dt}else{e.cd-=dt;if(e.cd<=0&&hero.invuln<=0){let dmg=Math.max(1,Math.round(e.damage-hero.armor));hero.hp-=dmg;hero.invuln=.3;e.cd=.85;text(hero.x,hero.y-25,"-"+dmg,"#ff5757");if(hero.hp<=0){hero.hp=0;updateUI();gameOver();return}}}}
+for(let d of [...drops])if(dist(hero,d)<30){if(d.type==="xp"){xp+=10;burst(d.x,d.y,"#bd8cff",7);while(xp>=xpNeed){xp-=xpNeed;level++;xpNeed=Math.round(xpNeed*1.35);hero.maxHp+=12;hero.hp=Math.min(hero.maxHp,hero.hp+30);hero.maxMana+=5;hero.mana=hero.maxMana;upgradeMenu();break}}else gold+=5;drops=drops.filter(v=>v!==d)}
+if(waveTime>=35){waveTime=0;wave++;toast("WAVE "+wave+" INCOMING!");if(wave%5===0)spawn(true);for(let i=0;i<Math.min(3+Math.floor(wave/2),8);i++)spawn()}
+if(spawnTime>Math.max(.5,1.7-wave*.04)&&enemies.length<Math.min(25,8+wave*2)){spawnTime=0;spawn()}
+for(let p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}particles=particles.filter(p=>p.life>0);
+for(let t of texts){t.y-=30*dt;t.life-=dt}texts=texts.filter(t=>t.life>0);
+if(Math.random()<dt*.12)drops.push({x:rand(25,W-25),y:rand(80,H-50),type:"xp"});
+if(attackCd<=0&&nearest(82))attack();updateUI()}
+function draw(){ctx.clearRect(0,0,W,H);let g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,"#1b2827");g.addColorStop(.5,"#17171c");g.addColorStop(1,"#302019");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ctx.strokeStyle="#b8b19c12";for(let x=0;x<W;x+=45){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=45){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ctx.save();if(shake>0){ctx.translate(rand(-shake,shake),rand(-shake,shake));shake=Math.max(0,shake-1)}
+for(let i=0;i<7;i++){let x=(i*173+70)%W,y=(i*223+120)%H;ctx.fillStyle="#090b0e";ctx.fillRect(x,y,12,25);ctx.fillStyle="#ff8a35";ctx.beginPath();ctx.arc(x+6,y-3+Math.sin(time*8+i)*2,4,0,7);ctx.fill()}
+for(let d of drops){ctx.save();ctx.translate(d.x,d.y);ctx.rotate(time*2);ctx.fillStyle=d.type==="xp"?"#b98cff":"#ffca53";ctx.shadowBlur=12;ctx.shadowColor=ctx.fillStyle;ctx.beginPath();ctx.moveTo(0,-8);ctx.lineTo(7,0);ctx.lineTo(0,8);ctx.lineTo(-7,0);ctx.fill();ctx.restore()}
+for(let e of enemies){ctx.fillStyle="#0008";ctx.beginPath();ctx.ellipse(e.x+2,e.y+e.r*.6,e.r*1.2,e.r*.5,0,0,7);ctx.fill();ctx.fillStyle=e.hit>0?"white":e.boss?"#ae42ca":e.brute?"#c56a37":"#7e9888";ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,7);ctx.fill();ctx.fillStyle="#28202a";ctx.fillRect(e.x-e.r*.6,e.y-e.r*.25,e.r*1.2,e.r*.8);ctx.fillStyle="#ff554d";ctx.fillRect(e.x-e.r*.5,e.y-e.r*.15,4,3);ctx.fillRect(e.x+e.r*.2,e.y-e.r*.15,4,3);ctx.fillStyle="#29212a";ctx.fillRect(e.x-e.r,e.y-e.r-9,e.r*2,4);ctx.fillStyle=e.boss?"#d94bff":"#ef5249";ctx.fillRect(e.x-e.r,e.y-e.r-9,e.r*2*Math.max(0,e.hp/e.max),4);if(e.boss){ctx.fillStyle="#ffd6ff";ctx.font="bold 11px Arial";ctx.textAlign="center";ctx.fillText("BOSS",e.x,e.y-e.r-13)}}
+for(let p of particles){ctx.globalAlpha=Math.max(0,p.life*2);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fill()}ctx.globalAlpha=1;
+for(let t of texts){ctx.fillStyle=t.color;ctx.font="bold 14px Arial";ctx.textAlign="center";ctx.fillText(t.t,t.x,t.y)}
+ctx.save();ctx.translate(hero.x,hero.y);ctx.shadowBlur=hero.invuln?25:15;ctx.shadowColor=hero.invuln?"#80e7ff":"#ff9b3c";ctx.fillStyle="#d9ae72";ctx.beginPath();ctx.arc(0,0,hero.r+3,0,7);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle="#263446";ctx.beginPath();ctx.arc(0,0,hero.r,0,7);ctx.fill();ctx.fillStyle="#c9d0d9";ctx.beginPath();ctx.arc(0,-5,7,0,7);ctx.fill();ctx.fillStyle="#f1bb68";ctx.fillRect(-8,3,16,12);ctx.strokeStyle="#f5e3bc";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(7,1);ctx.lineTo(22,-13);ctx.stroke();ctx.restore();ctx.restore()}
+function loop(t){let dt=Math.min(.033,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);
+addEventListener("keydown",e=>{let k=e.key.toLowerCase();if([" ","arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();keys.add(k);if(k===" ")attack();if(k==="q")spin();if(k==="e")dash();if(k==="h")heal();if(k==="p"||k==="escape")pause()});
+addEventListener("keyup",e=>keys.delete(e.key.toLowerCase()));
+document.querySelectorAll("[data-dir]").forEach(b=>{let d=b.dataset.dir;b.addEventListener("pointerdown",e=>{e.preventDefault();touch.add(d)});["pointerup","pointercancel","pointerleave"].forEach(ev=>b.addEventListener(ev,()=>touch.delete(d)))});
+$("start").onclick=start;$("attack").onclick=attack;$("spin").onclick=spin;$("dash").onclick=dash;$("potion").onclick=heal;$("pause").onclick=pause;
+$("sound").onclick=()=>{soundOn=!soundOn;$("sound").textContent=soundOn?"🔊":"🔇";beep(400,.06,"sine")};
+})();
+</script>
+</body>
+</html>

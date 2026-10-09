@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon Rift — GameForge</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b0715;
+  --panel: #171027;
+  --line: #382456;
+  --text: #f7f0ff;
+  --muted: #b9a9d4;
+  --pink: #f45bff;
+  --cyan: #61f4ff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at top,#24123d 0%,var(--bg) 55%);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+}
+main { max-width: 1000px; margin: auto; padding: 18px; }
+.top {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.brand { font-weight: 900; letter-spacing: .12em; color: var(--cyan); }
+.brand span { color: var(--pink); }
+.tag { color: var(--muted); font-size: .9rem; }
+.panel {
+  background: linear-gradient(145deg,#1b1230,#100b1d);
+  border: 1px solid var(--line); border-radius: 18px; padding: 14px;
+}
+.hud {
+  display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 8px; margin-bottom: 12px;
+}
+.stat {
+  background: #0d0918; border: 1px solid #302047;
+  border-radius: 12px; padding: 9px; text-align: center;
+}
+.stat small {
+  display: block; color: var(--muted); font-size: .72rem;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.stat strong { font-size: 1.15rem; }
+.stage { position: relative; }
+.gamecanvas {
+  display: block; width: 100%; height: auto; aspect-ratio: 16/10;
+  border-radius: 13px; background: #080613;
+  border: 1px solid #392354; touch-action: none;
+}
+.overlay {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 20px; background: #080613cc;
+  border-radius: 13px;
+}
+.overlay[hidden] { display: none; }
+.overlaybox { max-width: 420px; }
+.overlay h1 { font-size: clamp(2rem,6vw,3.5rem); line-height: 1; margin: 8px 0 12px; }
+.overlay p { color: #d0c1e6; line-height: 1.5; }
+button {
+  border: 1px solid #7540a3;
+  background: linear-gradient(135deg,#9b4dff,#e449d8);
+  color: white; font-weight: 800; border-radius: 11px;
+  padding: 11px 15px; cursor: pointer; font-size: .95rem;
+}
+.secondary, .touch button {
+  background: #211632; border-color: #493363;
+}
+.help { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; color: var(--muted); font-size: .9rem; }
+.help strong { color: var(--text); }
+.help div { background: #100b1d; border: 1px solid #302047; border-radius: 12px; padding: 12px; }
+.touch { display: none; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.touch button { min-width: 58px; min-height: 48px; touch-action: manipulation; }
+.touch .fire { background: linear-gradient(135deg,#b44cff,#ec45a7); }
+.footer { color: #86749f; font-size: .78rem; text-align: center; margin: 12px 0 2px; }
+@media(max-width:560px) {
+  main { padding: 10px; }
+  .hud { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .help { grid-template-columns: 1fr; }
+  .touch { display: flex; }
+  .tag { width: 100%; }
+  .panel { padding: 9px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div>
+      <div class="brand">GAME<span>FORGE</span> / RIFT</div>
+      <div class="tag">Neon Rift — dodge the sentinels, collect energy, survive the breach.</div>
+    </div>
+    <button id="soundBtn" class="secondary" type="button">🔊 Sound: On</button>
+  </header>
+
+  <section class="panel">
+    <div class="hud">
+      <div class="stat"><small>Score</small><strong id="score">0</strong></div>
+      <div class="stat"><small>Energy</small><strong id="energy">0</strong></div>
+      <div class="stat"><small>Time</small><strong id="time">60</strong></div>
+      <div class="stat"><small>Best (this visit)</small><strong id="best">0</strong></div>
+    </div>
+
+    <div class="stage">
+      <canvas id="game" class="gamecanvas" width="800" height="500" aria-label="Neon Rift arena game"></canvas>
+      <div id="overlay" class="overlay">
+        <div class="overlaybox">
+          <div style="font-size:2.5rem">✦ ◈ ✦</div>
+          <h1>NEON RIFT</h1>
+          <p>Slip through the rift, collect cyan energy orbs and avoid the roaming sentinels. Survive for 60 seconds to win.</p>
+          <button id="startBtn" type="button">Enter the Rift</button>
+          <p style="font-size:.8rem">Keyboard: WASD / Arrow keys · Space = dash · P = pause</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="touch" aria-label="Touch controls">
+      <button data-key="ArrowUp" type="button">▲</button>
+      <button data-key="ArrowLeft" type="button">◀</button>
+      <button data-key="ArrowDown" type="button">▼</button>
+      <button data-key="ArrowRight" type="button">▶</button>
+      <button id="dashBtn" class="fire" type="button">✦ DASH</button>
+    </div>
+
+    <div class="help">
+      <div><strong>Movement</strong><br>Use WASD or arrow keys. On mobile, tap the directional buttons.</div>
+      <div><strong>Rift dash</strong><br>Press Space or DASH to burst forward. Use it to escape danger; it recharges quickly.</div>
+    </div>
+  </section>
+  <div class="footer">A GameForge original • Single-file browser game • No account required</div>
+</main>
+
+<script>
+(function() {
+'use strict';
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const $ = id => document.getElementById(id);
+
+const scoreEl = $('score');
+const energyEl = $('energy');
+const timeEl = $('time');
+const bestEl = $('best');
+const overlay = $('overlay');
+const startBtn = $('startBtn');
+const soundBtn = $('soundBtn');
+
+let state = 'menu';
+let score = 0, energy = 0, timeLeft = 60;
+let best = 0, last = 0, elapsed = 0;
+let dashCooldown = 0, invuln = 0;
+let soundOn = true, audio = null, raf = 0;
+
+const keys = new Set();
+const touchKeys = new Set();
+
+const player = {
+  x: 400, y: 250, vx: 0, vy: 0,
+  r: 12, faceX: 1, faceY: 0
+};
+
+let orbs = [], enemies = [], particles = [];
+
+const rand = (a,b) => a + Math.random() * (b-a);
+
+function beep(freq=500,dur=.06,type='sine',volume=.025) {
+  if (!soundOn) return;
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === 'suspended') audio.resume();
+    const o = audio.createOscillator();
+    const g = audio.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = volume;
+    o.connect(g);
+    g.connect(audio.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+dur);
+    o.stop(audio.currentTime+dur);
+  } catch(e) {}
+}
+
+function reset() {
+  score = 0; energy = 0; timeLeft = 60;
+  elapsed = 0; dashCooldown = 0; invuln = 1;
+  player.x = 400; player.y = 250;
+  player.vx = 0; player.vy = 0;
+  player.faceX = 1; player.faceY = 0;
+  orbs = []; enemies = []; particles = [];
+  for (let i=0; i<7; i++) spawnOrb();
+  for (let i=0; i<3; i++) spawnEnemy();
+  updateHud();
+}
+
+function updateHud() {
+  scoreEl.textContent = score;
+  energyEl.textContent = energy;
+  timeEl.textContent = Math.max(0,Math.ceil(timeLeft));
+  bestEl.textContent = best;
+}
+
+function spawnOrb() {
+  orbs.push({x:rand(28,772),y:rand(28,472),r:7,phase:rand(0,6.28)});
+}
+
+function spawnEnemy() {
+  const a = rand(0,Math.PI*2);
+  const sp = rand(55,85) + elapsed*.45;
+  enemies.push({
+    x:rand(40,760), y:rand(40,460),
+    vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
+    r:rand(11,15), phase:rand(0,6.28)
+  });
+}
+
+function burst(x,y,color,n=12) {
+  for(let i=0;i<n;i++) {
+    const a=rand(0,Math.PI*2), s=rand(30,190);
+    particles.push({
+      x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+      life:rand(.25,.65),max:.65,color,r:rand(1,3)
+    });
+  }
+}
+
+function start() {
+  reset();
+  state = 'playing';
+  overlay.hidden = true;
+  last = performance.now();
+  beep(440,.12,'triangle');
+  if(!raf) raf = requestAnimationFrame(loop);
+}
+
+function finish(won) {
+  state = 'over';
+  best = Math.max(best,score);
+  updateHud();
+  overlay.hidden = false;
+  overlay.innerHTML = `
+    <div class="overlaybox">
+      <div style="font-size:2.5rem">${won?'✦ 🏆 ✦':'◈'}</div>
+      <h1>${won?'RIFT STABLE!':'RIFT COLLAPSED'}</h1>
+      <p>Score: <strong>${score}</strong> · Energy collected: <strong>${energy}</strong></p>
+      <p>${won?'You survived the breach. Excellent run!':'The sentinels caught you. Try another route and save your dash for danger.'}</p>
+      <button id="againBtn" type="button">Play Again</button>
+    </div>`;
+  $('againBtn').addEventListener('click',start);
+  beep(won?780:130,.25,'sawtooth');
+}
+
+function dash() {
+  if(state!=='playing'||dashCooldown>0) return;
+  let dx=player.faceX, dy=player.faceY;
+  if(!dx&&!dy) dx=1;
+  const len=Math.hypot(dx,dy)||1;
+  player.vx += dx/len*330;
+  player.vy += dy/len*330;
+  dashCooldown=1.25;
+  invuln=.35;
+  burst(player.x,player.y,'#f45bff',18);
+  beep(260,.1,'square');
+}
+
+function held(k) { return keys.has(k)||touchKeys.has(k); }
+
+function update(dt) {
+  elapsed += dt;
+  timeLeft -= dt;
+  dashCooldown = Math.max(0,dashCooldown-dt);
+  invuln = Math.max(0,invuln-dt);
+
+  let ix = (held('ArrowRight')||held('d')?1:0) -
+           (held('ArrowLeft')||held('a')?1:0);
+  let iy = (held('ArrowDown')||held('s')?1:0) -
+           (held('ArrowUp')||held('w')?1:0);
+
+  if(ix||iy) {
+    const l=Math.hypot(ix,iy);
+    ix/=l; iy/=l;
+    player.faceX=ix; player.faceY=iy;
+    player.vx+=ix*620*dt;
+    player.vy+=iy*620*dt;
+  }
+
+  const drag=Math.pow(.001,dt);
+  player.vx*=drag; player.vy*=drag;
+  player.x+=player.vx*dt; player.y+=player.vy*dt;
+  player.x=Math.max(player.r,Math.min(800-player.r,player.x));
+  player.y=Math.max(player.r,Math.min(500-player.r,player.y));
+
+  if(Math.floor(elapsed/8)>Math.floor((elapsed-dt)/8)&&enemies.length<10) spawnEnemy();
+  if(Math.floor(elapsed/3)>Math.floor((elapsed-dt)/3)&&orbs.length<10) spawnOrb();
+
+  for(const e of enemies) {
+    const dx=player.x-e.x,dy=player.y-e.y;
+    const l=Math.hypot(dx,dy)||1;
+    e.vx+=dx/l*22*dt; e.vy+=dy/l*22*dt;
+    const sp=Math.hypot(e.vx,e.vy),max=90+elapsed*.6;
+    if(sp>max){e.vx=e.vx/sp*max;e.vy=e.vy/sp*max}
+    e.x+=e.vx*dt; e.y+=e.vy*dt;
+    if(e.x<e.r||e.x>800-e.r)e.vx*=-1;
+    if(e.y<e.r||e.y>500-e.r)e.vy*=-1;
+
+    if(invuln<=0&&Math.hypot(player.x-e.x,player.y-e.y)<player.r+e.r) {
+      burst(player.x,player.y,'#ff5478',25);
+      finish(false);
+      return;
+    }
+  }
+
+  for(let i=orbs.length-1;i>=0;i--) {
+    const o=orbs[i];
+    o.phase+=dt*4;
+    if(Math.hypot(player.x-o.x,player.y-o.y)<player.r+o.r+3) {
+      energy++; score+=100;
+      burst(o.x,o.y,'#61f4ff',14);
+      orbs.splice(i,1); spawnOrb();
+      beep(660+energy%5*60,.07,'sine');
+    }
+  }
+
+  for(let i=particles.length-1;i>=0;i--) {
+    const p=particles[i];
+    p.life-=dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+    p.vx*=Math.pow(.05,dt); p.vy*=Math.pow(.05,dt);
+    if(p.life<=0)particles.splice(i,1);
+  }
+
+  score+=Math.floor(dt*2);
+  updateHud();
+  if(timeLeft<=0)finish(true);
+}
+
+function glowCircle(x,y,r,color,glow=12) {
+  ctx.save();
+  ctx.shadowBlur=glow; ctx.shadowColor=color;
+  ctx.fillStyle=color; ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0,0,800,500);
+  const g=ctx.createRadialGradient(400,250,10,400,250,550);
+  g.addColorStop(0,'#17102b'); g.addColorStop(1,'#070510');
+  ctx.fillStyle=g; ctx.fillRect(0,0,800,500);
+
+  ctx.strokeStyle='#211638'; ctx.lineWidth=1;
+  for(let x=0;x<=800;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,500);ctx.stroke()}
+  for(let y=0;y<=500;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(800,y);ctx.stroke()}
+
+  ctx.save();
+  ctx.translate(400,250); ctx.rotate(elapsed*.18);
+  ctx.strokeStyle='#52247a'; ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,100,0,Math.PI*1.5);ctx.stroke();
+  ctx.beginPath();ctx.arc(0,0,120,Math.PI,Math.PI*2.5);ctx.stroke();
+  ctx.restore();
+
+  for(const o of orbs) {
+    const r=o.r+Math.sin(o.phase)*1.5;
+    glowCircle(o.x,o.y,r,'#61f4ff',18);
+    ctx.fillStyle='#e7ffff';ctx.fillRect(o.x-1,o.y-4,2,8);
+  }
+
+  for(const e of enemies) {
+    ctx.save();ctx.translate(e.x,e.y);ctx.rotate(elapsed*1.2+e.phase);
+    ctx.shadowBlur=18;ctx.shadowColor='#ff4e91';ctx.fillStyle='#ff4e91';
+    ctx.beginPath();ctx.moveTo(0,-e.r-4);ctx.lineTo(e.r,0);
+    ctx.lineTo(0,e.r+4);ctx.lineTo(-e.r,0);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#ffd3e2';ctx.stroke();ctx.restore();
+  }
+
+  for(const p of particles) {
+    ctx.globalAlpha=Math.max(0,p.life/p.max);
+    glowCircle(p.x,p.y,p.r,p.color,8);
+  }
+  ctx.globalAlpha=1;
+
+  if(state!=='menu') {
+    ctx.save();ctx.translate(player.x,player.y);
+    ctx.rotate(Math.atan2(player.faceY,player.faceX));
+    ctx.shadowBlur=invuln>0?28:18;
+    ctx.shadowColor=invuln>0?'#ffffff':'#f45bff';
+    ctx.fillStyle='#f45bff';ctx.beginPath();
+    ctx.moveTo(17,0);ctx.lineTo(-10,-10);ctx.lineTo(-5,0);
+    ctx.lineTo(-10,10);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#ffe2ff';ctx.stroke();ctx.restore();
+  }
+
+  ctx.fillStyle='#a794c4';ctx.font='12px system-ui';
+  ctx.fillText('RIFT SECTOR 07',14,22);
+  ctx.fillText('DASH '+(dashCooldown<=0?'READY':dashCooldown.toFixed(1)+'s'),14,39);
+}
+
+function loop(now) {
+  raf=0;
+  const dt=Math.min(.033,(now-last)/1000||0);
+  last=now;
+  if(state==='playing')update(dt);
+  draw();
+  if(state==='playing'||state==='menu'||state==='paused')
+    raf=requestAnimationFrame(loop);
+}
+
+document.addEventListener('keydown',e=>{
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
+  keys.add(e.key.toLowerCase()===' '?' ':e.key);
+  if(e.code==='Space')dash();
+
+  if(e.key.toLowerCase()==='p') {
+    if(state==='playing') {
+      state='paused';overlay.hidden=false;
+      overlay.innerHTML='<div class="overlaybox"><h1>PAUSED</h1><p>Take a breath. The rift can wait.</p><button id="resumeBtn" type="button">Resume</button></div>';
+      $('resumeBtn').addEventListener('click',()=>{
+        state='playing';overlay.hidden=true;last=performance.now();
+      });
+    } else if(state==='paused') {
+      state='playing';overlay.hidden=true;last=performance.now();
+    }
+  }
+});
+
+document.addEventListener('keyup',e=>{
+  keys.delete(e.key);keys.delete(e.key.toLowerCase());
+});
+
+document.querySelectorAll('[data-key]').forEach(b=>{
+  const k=b.dataset.key;
+  const down=e=>{e.preventDefault();touchKeys.add(k)};
+  const up=e=>{e.preventDefault();touchKeys.delete(k)};
+  b.addEventListener('pointerdown',down);
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,up));
+});
+
+$('dashBtn').addEventListener('click',dash);
+startBtn.addEventListener('click',start);
+
+soundBtn.addEventListener('click',()=>{
+  soundOn=!soundOn;
+  soundBtn.textContent=soundOn?'🔊 Sound: On':'🔇 Sound: Off';
+  if(soundOn)beep(500,.05);
+});
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&state==='playing') {
+    state='paused';overlay.hidden=false;
+    overlay.innerHTML='<div class="overlaybox"><h1>PAUSED</h1><p>Game paused while this tab is hidden.</p><button id="resumeBtn" type="button">Resume</button></div>';
+    $('resumeBtn').addEventListener('click',()=>{
+      state='playing';overlay.hidden=true;last=performance.now();
+    });
+  }
+});
+
+reset();
+draw();
+raf=requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -420,7 +420,7 @@ function friendlyError(error) {
   const text = String(error?.message || "").toLowerCase();
 
   if (text.includes("invalid login credentials")) {
-    return "Email ya password sahi nahi hai. Details check karke dobara try karo.";
+    return "Check Your Email And Password. Try Again***";
   }
   if (text.includes("email not confirmed")) {
     return "Tumhara email abhi confirm nahi hua hai. Inbox mein Supabase ka confirmation email check karo, link par click karo, phir login karo.";
