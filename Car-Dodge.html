@@ -2,477 +2,585 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>GameForge - Car Dodge</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0b1a">
+<meta name="description" content="Car Dodge - swipe or use arrow keys to dodge traffic. A GameForge mini game.">
+<title>Car Dodge | GameForge</title>
 
 <style>
-* {
-    box-sizing: border-box;
+:root {
+    --bg: #0d0b1a;
+    --panel: #171428;
+    --panel-border: #2a2547;
+    --text: #f3f1ff;
+    --muted: #9a94bd;
+    --accent: #7c4dff;
+    --accent-hover: #9a74ff;
+    --asphalt: #26233a;
+    --danger: #ff4d5e;
+    --radius: 12px;
 }
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
 
 body {
     margin: 0;
-    background: #0b0b0f;
-    color: white;
-    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at 50% -10%, #231b4d 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
+}
+
+.app {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    padding: 16px;
     text-align: center;
 }
 
-.container {
-    width: 95%;
-    max-width: 450px;
-    margin: 20px auto;
-}
+h1 { margin: 4px 0 2px; font-size: clamp(1.6rem, 6vw, 2rem); letter-spacing: .5px; }
+.subtitle { margin: 0 0 14px; color: var(--muted); font-size: .95rem; }
 
-h1 {
-    margin-bottom: 5px;
-}
-
-.subtitle {
-    color: #aaa;
-    margin-bottom: 15px;
-}
-
-.info {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
     margin-bottom: 12px;
 }
-
-.info div {
-    background: #15151f;
-    padding: 10px 20px;
-    border-radius: 10px;
+.stat {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    padding: 8px 6px;
 }
+.stat span { display: block; color: var(--muted); font-size: .75rem; }
+.stat b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
 
-#road {
+.stage {
     position: relative;
     width: 100%;
-    max-width: 400px;
-    height: 600px;
-    margin: auto;
-    background: #292929;
-    border: 4px solid #6c2cff;
-    border-radius: 12px;
+    aspect-ratio: 2 / 3;
+    border: 3px solid var(--accent);
+    border-radius: var(--radius);
     overflow: hidden;
+    background: var(--asphalt);
+    box-shadow: 0 0 30px rgba(124, 77, 255, .25);
+    touch-action: none;
+    user-select: none;
 }
+canvas { display: block; width: 100%; height: 100%; }
 
-/* Road lines */
-
-.line {
+.overlay {
     position: absolute;
-    width: 8px;
-    height: 70px;
-    background: white;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 0.7;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    background: rgba(13, 11, 26, .78);
+    backdrop-filter: blur(3px);
+    transition: opacity .2s ease;
 }
-
-#player {
-    position: absolute;
-    width: 50px;
-    height: 85px;
-    background: #6c2cff;
-    border-radius: 10px;
-    bottom: 25px;
-    left: calc(50% - 25px);
-    box-shadow: 0 0 15px rgba(108,44,255,0.7);
-}
-
-#player::before {
-    content: "";
-    position: absolute;
-    width: 30px;
-    height: 25px;
-    background: #9f8cff;
-    border-radius: 5px;
-    top: 10px;
-    left: 10px;
-}
-
-.enemy {
-    position: absolute;
-    width: 50px;
-    height: 85px;
-    background: #ef4444;
-    border-radius: 10px;
-}
-
-.enemy::before {
-    content: "";
-    position: absolute;
-    width: 30px;
-    height: 25px;
-    background: #ff9999;
-    border-radius: 5px;
-    top: 10px;
-    left: 10px;
-}
+.overlay[hidden] { display: none; }
+.overlay h2 { margin: 0; font-size: 1.7rem; }
+.overlay p { margin: 0; color: var(--muted); line-height: 1.5; }
+.overlay .highlight { color: #ffd166; font-weight: 600; }
 
 button {
-    border: none;
-    background: #6c2cff;
-    color: white;
-    padding: 12px 25px;
-    border-radius: 8px;
-    font-size: 17px;
+    font: inherit;
+    border: 0;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    padding: 12px 26px;
+    font-size: 1.05rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: background .15s ease, transform .1s ease;
 }
+button:hover { background: var(--accent-hover); }
+button:active { transform: scale(.96); }
+button:focus-visible, a:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 
-button:hover {
-    background: #8b5cff;
+button.ghost {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    color: var(--text);
 }
-
-#start {
-    margin-top: 15px;
-}
+button.ghost:hover { background: #221d3d; }
 
 .controls {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    margin-top: 12px;
 }
+.controls .arrow { font-size: 1.6rem; padding: 10px; }
+.controls .tools { display: flex; gap: 8px; align-items: center; }
 
-.controls button {
-    font-size: 25px;
-    padding: 10px 25px;
-}
+.hint { min-height: 1.4em; margin: 12px 0 4px; color: var(--muted); font-size: .9rem; }
 
-#message {
-    min-height: 25px;
-    color: #ccc;
-}
+.back { color: var(--muted); text-decoration: none; font-size: .95rem; }
+.back:hover { color: var(--text); }
 
-.back {
-    display: inline-block;
-    margin-top: 10px;
-    color: #aaa;
-    text-decoration: none;
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
 }
 </style>
 </head>
 
 <body>
+<main class="app">
 
-<div class="container">
+    <h1>🚗 Car Dodge</h1>
+    <p class="subtitle">GameForge Mini Game</p>
 
-<h1>🚗 Car Dodge</h1>
+    <section class="stats" aria-label="Game stats">
+        <div class="stat"><span>Score</span><b id="score">0</b></div>
+        <div class="stat"><span>Level</span><b id="level">1</b></div>
+        <div class="stat"><span>Best</span><b id="best">0</b></div>
+    </section>
 
-<div class="subtitle">
-GameForge Mini Game
-</div>
+    <div class="stage" id="stage">
+        <canvas id="canvas" aria-label="Car Dodge game area" role="img"></canvas>
 
-<div class="info">
-
-    <div>
-        Score: <b id="score">0</b>
+        <div class="overlay" id="overlay">
+            <h2 id="overlayTitle">Car Dodge</h2>
+            <p id="overlayText">Dodge the red cars. Use ← → keys, the buttons, or swipe.</p>
+            <button id="startBtn" type="button">Start game</button>
+        </div>
     </div>
 
-    <div>
-        Best: <b id="best">0</b>
+    <div class="controls">
+        <button class="arrow" id="leftBtn" type="button" aria-label="Move left">⬅️</button>
+        <div class="tools">
+            <button class="ghost" id="pauseBtn" type="button" aria-label="Pause game">⏸</button>
+            <button class="ghost" id="soundBtn" type="button" aria-label="Toggle sound" aria-pressed="true">🔊</button>
+        </div>
+        <button class="arrow" id="rightBtn" type="button" aria-label="Move right">➡️</button>
     </div>
 
-</div>
+    <p class="hint" id="message" role="status" aria-live="polite">Keys: ← → or A D to move, P to pause.</p>
 
+    <a class="back" href="games.html">← Back to games</a>
 
-<div id="road">
-
-    <div class="line" style="top: 20px;"></div>
-    <div class="line" style="top: 180px;"></div>
-    <div class="line" style="top: 340px;"></div>
-    <div class="line" style="top: 500px;"></div>
-
-    <div id="player"></div>
-
-</div>
-
-
-<button id="start">
-Start Game
-</button>
-
-
-<div class="controls">
-
-    <button onclick="moveLeft()">⬅️</button>
-
-    <button onclick="moveRight()">➡️</button>
-
-</div>
-
-
-<p id="message">
-Avoid the red cars!
-</p>
-
-
-<a class="back" href="games.html">
-← Back to Games
-</a>
-
-</div>
-
+</main>
 
 <script>
+(() => {
+    "use strict";
 
-const road = document.getElementById("road");
-const player = document.getElementById("player");
+    /* ---------- Config ---------- */
+    const CONFIG = {
+        width: 400,
+        height: 600,
+        lanes: 3,
+        carWidth: 50,
+        carHeight: 85,
+        hitInset: 7,              // forgiving hitbox
+        baseSpeed: 280,           // px / second
+        speedPerLevel: 35,
+        maxSpeed: 720,
+        baseSpawn: 1.0,           // seconds between enemies
+        minSpawn: 0.45,
+        spawnDropPerLevel: 0.06,
+        dodgesPerLevel: 10,
+        storageKey: "carDodgeBest"
+    };
 
-const scoreText = document.getElementById("score");
-const bestText = document.getElementById("best");
+    const ENEMY_COLORS = ["#ef4444", "#f97316", "#ec4899", "#eab308"];
 
-const startButton = document.getElementById("start");
-const message = document.getElementById("message");
+    /* ---------- DOM ---------- */
+    const $ = id => document.getElementById(id);
+    const canvas = $("canvas");
+    const ctx = canvas.getContext("2d");
+    const stage = $("stage");
+    const overlay = $("overlay");
+    const overlayTitle = $("overlayTitle");
+    const overlayText = $("overlayText");
+    const startBtn = $("startBtn");
+    const pauseBtn = $("pauseBtn");
+    const soundBtn = $("soundBtn");
+    const scoreEl = $("score");
+    const levelEl = $("level");
+    const bestEl = $("best");
+    const messageEl = $("message");
 
-let playerX = 175;
+    /* ---------- Safe storage ---------- */
+    const storage = {
+        get() {
+            try { return Number(localStorage.getItem(CONFIG.storageKey)) || 0; }
+            catch { return 0; }
+        },
+        set(value) {
+            try { localStorage.setItem(CONFIG.storageKey, String(value)); }
+            catch { /* storage unavailable */ }
+        }
+    };
 
-let score = 0;
-let best = Number(localStorage.getItem("carDodgeBest")) || 0;
+    /* ---------- Sound (tiny synthesized beeps) ---------- */
+    const sound = {
+        enabled: true,
+        ctx: null,
+        beep(freq, duration, type = "square", volume = 0.05) {
+            if (!this.enabled) return;
+            try {
+                this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                osc.connect(gain).connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            } catch { /* audio unavailable */ }
+        },
+        point() { this.beep(660, 0.08); },
+        level() { this.beep(880, 0.25, "triangle", 0.08); },
+        crash() { this.beep(120, 0.5, "sawtooth", 0.12); }
+    };
 
-let gameRunning = false;
+    /* ---------- State ---------- */
+    const laneWidth = CONFIG.width / CONFIG.lanes;
+    const laneX = lane => lane * laneWidth + (laneWidth - CONFIG.carWidth) / 2;
 
-let enemies = [];
+    const state = {
+        status: "idle",           // idle | running | paused | over
+        score: 0,
+        level: 1,
+        best: storage.get(),
+        lane: 1,
+        playerX: laneX(1),
+        enemies: [],
+        spawnTimer: 0,
+        roadOffset: 0,
+        lastTime: 0,
+        rafId: 0,
+        shake: 0
+    };
 
-let gameTimer;
-let enemyTimer;
+    bestEl.textContent = state.best;
 
-bestText.textContent = best;
+    /* ---------- Canvas sizing (sharp on HiDPI) ---------- */
+    function resizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = CONFIG.width * dpr;
+        canvas.height = CONFIG.height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        render();
+    }
 
+    /* ---------- Helpers ---------- */
+    function roundRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
 
-/* START */
+    function drawCar(x, y, body, glass, isPlayer) {
+        const w = CONFIG.carWidth, h = CONFIG.carHeight;
 
-function startGame() {
-
-    clearInterval(gameTimer);
-    clearInterval(enemyTimer);
-
-    enemies.forEach(enemy => enemy.remove());
-
-    enemies = [];
-
-    playerX = 175;
-
-    player.style.left = playerX + "px";
-
-    score = 0;
-
-    scoreText.textContent = score;
-
-    gameRunning = true;
-
-    message.textContent =
-        "Avoid the red cars!";
-
-    startButton.textContent =
-        "Restart Game";
-
-
-    gameTimer = setInterval(
-        updateGame,
-        20
-    );
-
-
-    enemyTimer = setInterval(
-        createEnemy,
-        1000
-    );
-
-}
-
-
-/* CREATE ENEMY */
-
-function createEnemy() {
-
-    if (!gameRunning) return;
-
-
-    const enemy =
-        document.createElement("div");
-
-    enemy.className = "enemy";
-
-
-    const lane =
-        Math.floor(Math.random() * 3);
-
-
-    const positions = [
-        45,
-        175,
-        305
-    ];
-
-
-    enemy.style.left =
-        positions[lane] + "px";
-
-    enemy.style.top =
-        "-90px";
-
-
-    road.appendChild(enemy);
-
-    enemies.push(enemy);
-}
-
-
-/* UPDATE */
-
-function updateGame() {
-
-    if (!gameRunning) return;
-
-
-    enemies.forEach((enemy, index) => {
-
-        let y =
-            parseInt(enemy.style.top);
-
-
-        y += 5;
-
-
-        enemy.style.top =
-            y + "px";
-
-
-        /* Collision */
-
-        const playerRect =
-            player.getBoundingClientRect();
-
-        const enemyRect =
-            enemy.getBoundingClientRect();
-
-
-        if (
-            playerRect.left < enemyRect.right &&
-            playerRect.right > enemyRect.left &&
-            playerRect.top < enemyRect.bottom &&
-            playerRect.bottom > enemyRect.top
-        ) {
-
-            gameOver();
-
-            return;
+        if (isPlayer) {
+            ctx.shadowColor = "rgba(124, 77, 255, .8)";
+            ctx.shadowBlur = 18;
         }
 
+        // wheels
+        ctx.fillStyle = "#0a0912";
+        [[-4, 10], [-4, h - 28], [w - 4, 10], [w - 4, h - 28]].forEach(([dx, dy]) => {
+            roundRect(x + dx, y + dy, 8, 18, 3);
+            ctx.fill();
+        });
 
-        /* Passed */
+        // body
+        ctx.fillStyle = body;
+        roundRect(x, y, w, h, 11);
+        ctx.fill();
+        ctx.shadowBlur = 0;
 
-        if (y > 620) {
+        // windows
+        ctx.fillStyle = glass;
+        roundRect(x + 8, y + 18, w - 16, 20, 5);
+        ctx.fill();
+        roundRect(x + 10, y + h - 24, w - 20, 12, 4);
+        ctx.fill();
 
-            enemy.remove();
+        // lights (front = top for enemies moving down is the bottom; player faces up)
+        ctx.fillStyle = isPlayer ? "#fff6c2" : "#ffe0e0";
+        const ly = isPlayer ? y + 3 : y + h - 8;
+        roundRect(x + 5, ly, 11, 5, 2); ctx.fill();
+        roundRect(x + w - 16, ly, 11, 5, 2); ctx.fill();
+    }
 
-            enemies.splice(index, 1);
+    /* ---------- Rendering ---------- */
+    function render() {
+        const { width: W, height: H } = CONFIG;
 
-            score++;
+        ctx.save();
+        if (state.shake > 0) {
+            ctx.translate((Math.random() - .5) * state.shake, (Math.random() - .5) * state.shake);
+        }
 
-            scoreText.textContent =
-                score;
+        // asphalt
+        ctx.fillStyle = "#26233a";
+        ctx.fillRect(-10, -10, W + 20, H + 20);
 
+        // road edges
+        ctx.fillStyle = "#3b3560";
+        ctx.fillRect(0, 0, 6, H);
+        ctx.fillRect(W - 6, 0, 6, H);
 
-            if (score > best) {
-
-                best = score;
-
-                bestText.textContent =
-                    best;
-
-                localStorage.setItem(
-                    "carDodgeBest",
-                    best
-                );
+        // lane dividers (scrolling)
+        ctx.fillStyle = "rgba(255,255,255,.55)";
+        const dash = 60, gap = 50, period = dash + gap;
+        for (let i = 1; i < CONFIG.lanes; i++) {
+            const x = i * laneWidth - 3;
+            for (let y = -period + (state.roadOffset % period); y < H; y += period) {
+                ctx.fillRect(x, y, 6, dash);
             }
         }
 
+        // enemies
+        state.enemies.forEach(e => drawCar(e.x, e.y, e.color, "#2a1a1a", false));
+
+        // player
+        drawCar(state.playerX, H - CONFIG.carHeight - 25, "#7c4dff", "#cfc2ff", true);
+
+        ctx.restore();
+    }
+
+    /* ---------- UI ---------- */
+    function setStats() {
+        scoreEl.textContent = state.score;
+        levelEl.textContent = state.level;
+        bestEl.textContent = state.best;
+    }
+
+    function showOverlay(title, text, buttonLabel) {
+        overlayTitle.textContent = title;
+        overlayText.innerHTML = text;
+        startBtn.textContent = buttonLabel;
+        overlay.hidden = false;
+        startBtn.focus({ preventScroll: true });
+    }
+
+    function hideOverlay() { overlay.hidden = true; }
+
+    function say(text) { messageEl.textContent = text; }
+
+    /* ---------- Game flow ---------- */
+    function startGame() {
+        cancelAnimationFrame(state.rafId);
+
+        Object.assign(state, {
+            status: "running",
+            score: 0,
+            level: 1,
+            lane: 1,
+            playerX: laneX(1),
+            enemies: [],
+            spawnTimer: 0,
+            shake: 0,
+            lastTime: performance.now()
+        });
+
+        setStats();
+        hideOverlay();
+        say("Avoid the other cars!");
+        pauseBtn.textContent = "⏸";
+        state.rafId = requestAnimationFrame(loop);
+    }
+
+    function togglePause() {
+        if (state.status === "running") {
+            state.status = "paused";
+            pauseBtn.textContent = "▶";
+            showOverlay("Paused", "Take a breath. Press P or Resume to continue.", "Resume");
+        } else if (state.status === "paused") {
+            state.status = "running";
+            pauseBtn.textContent = "⏸";
+            hideOverlay();
+            state.lastTime = performance.now();
+            state.rafId = requestAnimationFrame(loop);
+        }
+    }
+
+    function gameOver() {
+        state.status = "over";
+        state.shake = 14;
+        sound.crash();
+
+        const isNewBest = state.score > 0 && state.score >= state.best && state.score > storage.get();
+        if (isNewBest) {
+            state.best = state.score;
+            storage.set(state.best);
+        }
+        setStats();
+
+        const extra = isNewBest ? '<br><span class="highlight">🏆 New best score!</span>' : "";
+        say("Crashed! Score: " + state.score);
+        showOverlay("💥 Game over", "Score: <b>" + state.score + "</b> &nbsp;|&nbsp; Best: <b>" + state.best + "</b>" + extra, "Play again");
+
+        // let the screen shake settle
+        (function settle() {
+            if (state.shake > 0) {
+                state.shake = Math.max(0, state.shake - 1);
+                render();
+                requestAnimationFrame(settle);
+            }
+        })();
+    }
+
+    /* ---------- Update ---------- */
+    function currentSpeed() {
+        return Math.min(CONFIG.maxSpeed, CONFIG.baseSpeed + (state.level - 1) * CONFIG.speedPerLevel);
+    }
+
+    function spawnEnemy() {
+        const lane = Math.floor(Math.random() * CONFIG.lanes);
+        state.enemies.push({
+            x: laneX(lane),
+            y: -CONFIG.carHeight - 10,
+            color: ENEMY_COLORS[Math.floor(Math.random() * ENEMY_COLORS.length)]
+        });
+    }
+
+    function isColliding(e) {
+        const inset = CONFIG.hitInset;
+        const pY = CONFIG.height - CONFIG.carHeight - 25;
+        return (
+            state.playerX + inset < e.x + CONFIG.carWidth - inset &&
+            state.playerX + CONFIG.carWidth - inset > e.x + inset &&
+            pY + inset < e.y + CONFIG.carHeight - inset &&
+            pY + CONFIG.carHeight - inset > e.y + inset
+        );
+    }
+
+    function update(dt) {
+        const speed = currentSpeed();
+
+        // smooth lane change
+        const targetX = laneX(state.lane);
+        state.playerX += (targetX - state.playerX) * Math.min(1, dt * 18);
+
+        // scrolling road
+        state.roadOffset += speed * dt;
+
+        // spawn
+        state.spawnTimer += dt;
+        const interval = Math.max(CONFIG.minSpawn, CONFIG.baseSpawn - (state.level - 1) * CONFIG.spawnDropPerLevel);
+        if (state.spawnTimer >= interval) {
+            state.spawnTimer = 0;
+            spawnEnemy();
+        }
+
+        // move enemies (iterate backwards so removal is safe)
+        for (let i = state.enemies.length - 1; i >= 0; i--) {
+            const e = state.enemies[i];
+            e.y += speed * dt;
+
+            if (isColliding(e)) {
+                gameOver();
+                return;
+            }
+
+            if (e.y > CONFIG.height) {
+                state.enemies.splice(i, 1);
+                state.score++;
+
+                const newLevel = Math.floor(state.score / CONFIG.dodgesPerLevel) + 1;
+                if (newLevel > state.level) {
+                    state.level = newLevel;
+                    sound.level();
+                    say("Level " + state.level + "! Speed increased.");
+                } else {
+                    sound.point();
+                }
+
+                if (state.score > state.best) {
+                    state.best = state.score;
+                    storage.set(state.best);
+                }
+                setStats();
+            }
+        }
+    }
+
+    function loop(now) {
+        if (state.status !== "running") return;
+        const dt = Math.min((now - state.lastTime) / 1000, 0.05);
+        state.lastTime = now;
+        update(dt);
+        render();
+        if (state.status === "running") state.rafId = requestAnimationFrame(loop);
+    }
+
+    /* ---------- Controls ---------- */
+    function move(direction) {
+        if (state.status !== "running") return;
+        state.lane = Math.max(0, Math.min(CONFIG.lanes - 1, state.lane + direction));
+    }
+
+    document.addEventListener("keydown", event => {
+        const key = event.key.toLowerCase();
+
+        if (["arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
+
+        if (key === "arrowleft" || key === "a") move(-1);
+        else if (key === "arrowright" || key === "d") move(1);
+        else if (key === "p" || key === "escape") togglePause();
+        else if ((key === "enter") && state.status !== "running" && document.activeElement !== startBtn) {
+            startBtn.click();
+        }
     });
 
-}
+    startBtn.addEventListener("click", () => {
+        if (state.status === "paused") togglePause();
+        else startGame();
+    });
 
+    pauseBtn.addEventListener("click", togglePause);
+    $("leftBtn").addEventListener("click", () => move(-1));
+    $("rightBtn").addEventListener("click", () => move(1));
 
-/* LEFT */
+    soundBtn.addEventListener("click", () => {
+        sound.enabled = !sound.enabled;
+        soundBtn.textContent = sound.enabled ? "🔊" : "🔇";
+        soundBtn.setAttribute("aria-pressed", String(sound.enabled));
+    });
 
-function moveLeft() {
+    // swipe support
+    let touchStartX = null;
+    stage.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener("touchend", e => {
+        if (touchStartX === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 25) move(dx > 0 ? 1 : -1);
+        touchStartX = null;
+    }, { passive: true });
 
-    if (!gameRunning) return;
+    // auto-pause when tab is hidden
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden && state.status === "running") togglePause();
+    });
 
-    playerX -= 130;
+    window.addEventListener("resize", resizeCanvas);
 
-    if (playerX < 45) {
-        playerX = 45;
-    }
-
-    player.style.left =
-        playerX + "px";
-}
-
-
-/* RIGHT */
-
-function moveRight() {
-
-    if (!gameRunning) return;
-
-    playerX += 130;
-
-    if (playerX > 305) {
-        playerX = 305;
-    }
-
-    player.style.left =
-        playerX + "px";
-}
-
-
-/* KEYBOARD */
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (event.key === "ArrowLeft") {
-            moveLeft();
-        }
-
-        if (event.key === "ArrowRight") {
-            moveRight();
-        }
-
-    }
-);
-
-
-/* GAME OVER */
-
-function gameOver() {
-
-    gameRunning = false;
-
-    clearInterval(gameTimer);
-    clearInterval(enemyTimer);
-
-    message.textContent =
-        "💥 Game Over! Score: " + score;
-
-    startButton.textContent =
-        "Play Again";
-}
-
-
-/* START BUTTON */
-
-startButton.addEventListener(
-    "click",
-    startGame
-);
-
+    /* ---------- Init ---------- */
+    resizeCanvas();
+})();
 </script>
 
 </body>
