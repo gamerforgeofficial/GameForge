@@ -1,352 +1,545 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08090d">
+<title>Login | GameForge</title>
 
-    <title>GameForge - Login</title>
+<style>
+:root {
+  --bg: #08090d;
+  --glass: rgba(15, 18, 25, 0.78);
+  --text: #f7f8fa;
+  --muted: #aeb5c2;
+  --accent: #b4ff38;
+  --border: rgba(255,255,255,.14);
+}
+* { box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+}
+button, input { font: inherit; }
+a { color: inherit; text-decoration: none; }
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+.page {
+  min-height: 100vh;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 100px 18px 40px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    url("https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=2000&q=85")
+    center / cover no-repeat;
+  transform: scale(1.03);
+}
+.page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(90,140,42,.15), transparent 55%),
+    linear-gradient(120deg, rgba(4,6,10,.87), rgba(4,6,10,.68)),
+    linear-gradient(0deg, #08090d 0%, transparent 45%);
+}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 74px;
+  padding: 17px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,9,13,.72);
+  backdrop-filter: blur(16px);
+}
+.logo {
+  font-size: 23px;
+  font-weight: 1000;
+  letter-spacing: 1px;
+}
+.logo span { color: var(--accent); }
+.home-link {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.home-link:hover { color: var(--accent); }
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: Arial, sans-serif;
-            background: #050816;
-            color: white;
-        }
+.card {
+  width: min(440px, 100%);
+  padding: clamp(24px, 6vw, 38px);
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,.19);
+  border-radius: 20px;
+  box-shadow: 0 25px 90px rgba(0,0,0,.4);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  animation: appear .65s ease-out both;
+}
+@keyframes appear {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.brand-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 23px;
+  border: 1px solid rgba(180,255,56,.5);
+  border-radius: 14px;
+  color: var(--accent);
+  background: rgba(180,255,56,.09);
+  font-size: 25px;
+}
+.eyebrow {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 12px 0 10px;
+  font-size: clamp(30px, 7vw, 38px);
+  letter-spacing: -1px;
+}
+.subtitle {
+  margin: 0 0 25px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
 
-        .box {
-            width: 90%;
-            max-width: 420px;
-            padding: 35px;
-            background: #10172a;
-            border: 1px solid #26365f;
-            border-radius: 20px;
-            box-shadow: 0 0 35px rgba(37, 99, 235, 0.3);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #9ca3af;
-            margin-bottom: 25px;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            margin: 8px 0;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            background: #080d1d;
-            color: white;
-            font-size: 16px;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #3b82f6;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 12px;
-            border: none;
-            border-radius: 10px;
-            background: #2563eb;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        .guest {
-            background: #374151;
-        }
-
-        .guest:hover {
-            background: #4b5563;
-        }
-
-        .switch {
-            text-align: center;
-            margin-top: 20px;
-            color: #9ca3af;
-        }
-
-        .switch span {
-            color: #60a5fa;
-            cursor: pointer;
-        }
-
-        #message {
-            text-align: center;
-            margin-top: 15px;
-            min-height: 22px;
-        }
-
-        .back {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #60a5fa;
-            text-decoration: none;
-        }
-    </style>
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  padding: 5px;
+  margin-bottom: 22px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(0,0,0,.18);
+}
+.tab {
+  min-height: 43px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.tab.active {
+  color: #11150c;
+  background: var(--accent);
+}
+.field { margin-bottom: 17px; }
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #e5e7eb;
+  font-size: 12px;
+  font-weight: 700;
+}
+.input-wrap { position: relative; }
+input {
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 14px;
+  color: white;
+  background: rgba(5,7,11,.56);
+  border: 1px solid rgba(255,255,255,.17);
+  border-radius: 8px;
+  outline: none;
+}
+input::placeholder { color: #777f8d; }
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(180,255,56,.08);
+}
+.password-input { padding-right: 78px; }
+.show-password {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 35px;
+  padding: 7px 8px;
+  color: var(--accent);
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.primary, .guest {
+  width: 100%;
+  min-height: 49px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: .2s;
+}
+.primary {
+  margin-top: 7px;
+  border: 1px solid var(--accent);
+  color: #10130b;
+  background: var(--accent);
+}
+.primary:hover { background: #d1ff8b; }
+.primary:disabled { opacity: .65; cursor: wait; }
+.guest {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  color: white;
+  background: rgba(255,255,255,.04);
+}
+.guest:hover { border-color: var(--accent); }
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 19px 0;
+  color: #9299a7;
+  font-size: 11px;
+}
+.divider::before, .divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+}
+.message {
+  display: none;
+  padding: 12px;
+  margin: 0 0 17px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.message.show { display: block; }
+.message.success {
+  color: #d5ffad;
+  border-color: rgba(180,255,56,.4);
+  background: rgba(180,255,56,.07);
+}
+.message.error {
+  color: #ffb9b9;
+  border-color: rgba(255,100,100,.35);
+  background: rgba(255,80,80,.06);
+}
+.note {
+  margin: 19px 0 0;
+  color: #9299a7;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: center;
+}
+.note a { color: var(--accent); }
+footer {
+  position: absolute;
+  bottom: 13px;
+  color: #858c98;
+  font-size: 10px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+@media(max-width:480px) {
+  .topbar { min-height: 65px; padding: 15px 5%; }
+  .logo { font-size: 20px; }
+  .card { border-radius: 15px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation: none !important; transition: none !important; }
+}
+</style>
 </head>
 
 <body>
+<div class="page">
+  <header class="topbar">
+    <a class="logo" href="index.html">GAME<span>FORGE</span></a>
+    <a class="home-link" href="index.html">← BACK TO HOME</a>
+  </header>
 
-<div class="box">
+  <main class="card">
+    <div class="brand-icon" aria-hidden="true">🎮</div>
+    <div class="eyebrow">YOUR NEXT LEVEL STARTS HERE</div>
+    <h1 id="heading">Welcome Back</h1>
+    <p class="subtitle" id="subtitle">Sign in and continue your GameForge journey.</p>
 
-    <h1>🎮 GameForge</h1>
-
-    <p class="subtitle" id="modeText">
-        Login to save your game progress
-    </p>
-
-    <div id="formArea">
-
-        <input
-            type="email"
-            id="email"
-            placeholder="Email address"
-            autocomplete="email"
-        >
-
-        <input
-            type="password"
-            id="password"
-            placeholder="Password"
-            autocomplete="current-password"
-        >
-
-        <button id="mainButton">Login</button>
-
-        <button class="guest" id="guestButton">
-            Play as Guest
-        </button>
-
-        <div class="switch">
-            Don't have an account?
-            <span id="switchMode">Create Account</span>
-        </div>
-
+    <div class="tabs" role="tablist" aria-label="Account options">
+      <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true">LOGIN</button>
+      <button class="tab" id="signupTab" type="button" role="tab" aria-selected="false">CREATE ACCOUNT</button>
     </div>
 
-    <div id="message"></div>
+    <div id="message" class="message" role="status" aria-live="polite"></div>
 
-    <a href="index.html" class="back">← Back to GameForge</a>
+    <form id="authForm">
+      <div class="field">
+        <label for="email">EMAIL ADDRESS</label>
+        <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+      </div>
 
+      <div class="field">
+        <label for="password">PASSWORD</label>
+        <div class="input-wrap">
+          <input class="password-input" id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" minlength="6" required>
+          <button class="show-password" id="togglePassword" type="button" aria-label="Show password" aria-pressed="false">SHOW</button>
+        </div>
+      </div>
+
+      <button class="primary" id="submitBtn" type="submit">LOGIN TO GAMEFORGE ↗</button>
+    </form>
+
+    <div class="divider">OR</div>
+
+    <button class="guest" id="guestBtn" type="button">CONTINUE AS GUEST →</button>
+
+    <p class="note">
+      By continuing, you agree to use GameForge respectfully.
+      <br>Need help? <a href="mailto:yadavji90801@gmail.com">Contact support</a>
+    </p>
+  </main>
+
+  <footer>© <span id="year"></span> GAMEFORGE · FORGE YOUR WORLD</footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ==============================
-    // SUPABASE CONNECTION
-    // ==============================
+/* Existing GameForge Supabase project credentials */
+const SUPABASE_URL = "https://tzjqlrpdvblbucxqsbtp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_aN0H5r-h8RRducZp79FNgA_URPgcNVg";
 
-    const SUPABASE_URL = "https://tzjqlrpdvblbucxqsbtp.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_aN0H5r-h8RRducZp79FNgA_URPgcNVg";
+/* Existing successful login redirect */
+const REDIRECT_URL = new URL("index.html", window.location.href).href;
 
-    const gameforgeSupabase = supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-    );
+const heading = document.getElementById("heading");
+const subtitle = document.getElementById("subtitle");
+const loginTab = document.getElementById("loginTab");
+const signupTab = document.getElementById("signupTab");
+const form = document.getElementById("authForm");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const submitBtn = document.getElementById("submitBtn");
+const guestBtn = document.getElementById("guestBtn");
+const togglePassword = document.getElementById("togglePassword");
+const message = document.getElementById("message");
 
+document.getElementById("year").textContent = new Date().getFullYear();
 
-    // ==============================
-    // ELEMENTS
-    // ==============================
+let mode = "login";
+let busy = false;
+let supabaseClient = null;
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const mainButton = document.getElementById("mainButton");
-    const guestButton = document.getElementById("guestButton");
-    const switchMode = document.getElementById("switchMode");
-    const modeText = document.getElementById("modeText");
-    const message = document.getElementById("message");
+function showMessage(text, type = "error") {
+  message.textContent = text;
+  message.className = "message show " + type;
+}
 
+function clearMessage() {
+  message.textContent = "";
+  message.className = "message";
+}
 
-    let isLoginMode = true;
+function setMode(nextMode) {
+  mode = nextMode;
+  clearMessage();
 
+  const isLogin = mode === "login";
+  loginTab.classList.toggle("active", isLogin);
+  signupTab.classList.toggle("active", !isLogin);
+  loginTab.setAttribute("aria-selected", String(isLogin));
+  signupTab.setAttribute("aria-selected", String(!isLogin));
 
-    // ==============================
-    // LOGIN / SIGNUP SWITCH
-    // ==============================
+  heading.textContent = isLogin ? "Welcome Back" : "Create Account";
+  subtitle.textContent = isLogin
+    ? "Sign in and continue your GameForge journey."
+    : "Join GameForge and start your gaming journey.";
 
-    switchMode.addEventListener("click", () => {
+  submitBtn.textContent = isLogin
+    ? "LOGIN TO GAMEFORGE ↗"
+    : "CREATE MY ACCOUNT ↗";
 
-        isLoginMode = !isLoginMode;
+  passwordInput.autocomplete = isLogin ? "current-password" : "new-password";
+}
 
-        if (isLoginMode) {
+loginTab.addEventListener("click", () => setMode("login"));
+signupTab.addEventListener("click", () => setMode("signup"));
 
-            mainButton.textContent = "Login";
+togglePassword.addEventListener("click", () => {
+  const show = passwordInput.type === "password";
+  passwordInput.type = show ? "text" : "password";
+  togglePassword.textContent = show ? "HIDE" : "SHOW";
+  togglePassword.setAttribute("aria-label", show ? "Hide password" : "Show password");
+  togglePassword.setAttribute("aria-pressed", String(show));
+});
 
-            modeText.textContent =
-                "Login to save your game progress";
+function setBusy(value) {
+  busy = value;
+  submitBtn.disabled = value;
+  guestBtn.disabled = value;
+  loginTab.disabled = value;
+  signupTab.disabled = value;
+  submitBtn.textContent = value
+    ? "PLEASE WAIT..."
+    : (mode === "login" ? "LOGIN TO GAMEFORGE ↗" : "CREATE MY ACCOUNT ↗");
+}
 
-            switchMode.textContent =
-                "Create Account";
+function friendlyError(error) {
+  const text = String(error?.message || "").toLowerCase();
 
-        } else {
+  if (text.includes("invalid login credentials")) {
+    return "Email ya password sahi nahi hai. Details check karke dobara try karo.";
+  }
+  if (text.includes("email not confirmed")) {
+    return "Tumhara email abhi confirm nahi hua hai. Inbox mein Supabase ka confirmation email check karo, link par click karo, phir login karo.";
+  }
+  if (text.includes("user already registered")) {
+    return "Is email se account pehle se bana hai. Login tab select karo.";
+  }
+  if (text.includes("password") && (text.includes("weak") || text.includes("least"))) {
+    return "Password aur strong rakho. Kam se kam 6 characters use karo.";
+  }
+  if (text.includes("rate limit") || text.includes("too many requests")) {
+    return "Bahut saari requests ho gayi hain. Thodi der baad dobara try karo.";
+  }
+  if (text.includes("failed to fetch") || text.includes("network")) {
+    return "Internet connection check karo aur phir try karo.";
+  }
+  return error?.message || "Abhi request complete nahi hui. Please dobara try karo.";
+}
 
-            mainButton.textContent = "Create Account";
+async function initSupabase() {
+  if (!window.supabase?.createClient) {
+    showMessage("Login service load nahi hui. Internet check karke page refresh karo.");
+    submitBtn.disabled = true;
+    return;
+  }
 
-            modeText.textContent =
-                "Create an account to save your progress";
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            switchMode.textContent =
-                "Already have an account?";
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
 
+    if (data.session?.user) {
+      window.location.replace(REDIRECT_URL);
+      return;
+    }
+
+    /* Show a helpful notice if the user returned after email confirmation. */
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("confirmed") === "true") {
+      showMessage("Email confirmation complete! Ab apne account mein login karo.", "success");
+    }
+  } catch (error) {
+    showMessage("Login service se connect nahi ho pa raha. Internet check karke refresh karo.");
+    console.error("Supabase initialisation:", error.message);
+  }
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (busy) return;
+
+  if (!supabaseClient) {
+    showMessage("Login service abhi ready nahi hai. Page refresh karke dobara try karo.");
+    return;
+  }
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    showMessage("Email aur password dono fill karo.");
+    return;
+  }
+
+  setBusy(true);
+  clearMessage();
+
+  try {
+    if (mode === "signup") {
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: REDIRECT_URL
         }
+      });
 
-        message.textContent = "";
-    });
+      if (error) throw error;
 
+      if (data.session) {
+        showMessage("Account create ho gaya! Ab GameForge open ho raha hai.", "success");
+        window.location.replace(REDIRECT_URL);
+        return;
+      }
 
-    // ==============================
-    // LOGIN / SIGNUP
-    // ==============================
+      showMessage(
+        "Account request successful! Apna email inbox check karo aur Supabase confirmation link par click karo. Confirmation ke baad is page par aakar login karo.",
+        "success"
+      );
+      setMode("login");
+    } else {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    mainButton.addEventListener("click", async () => {
+      if (error) throw error;
 
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
+      if (data.session) {
+        showMessage("Login successful! GameForge open ho raha hai...", "success");
+        window.location.replace(REDIRECT_URL);
+        return;
+      }
 
-        message.textContent = "";
+      showMessage("Login session nahi mili. Dobara try karo.");
+    }
+  } catch (error) {
+    showMessage(friendlyError(error));
+  } finally {
+    setBusy(false);
+  }
+});
 
-        if (!email || !password) {
+guestBtn.addEventListener("click", () => {
+  window.location.href = "games.html";
+});
 
-            message.textContent =
-                "Please enter email and password.";
-
-            return;
-        }
-
-        if (password.length < 6) {
-
-            message.textContent =
-                "Password must be at least 6 characters.";
-
-            return;
-        }
-
-
-        mainButton.disabled = true;
-        mainButton.textContent = "Please wait...";
-
-
-        // LOGIN
-        if (isLoginMode) {
-
-            const { data, error } =
-                await gameforgeSupabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-
-            if (error) {
-
-                message.textContent =
-                    error.message;
-
-                mainButton.disabled = false;
-                mainButton.textContent = "Login";
-
-                return;
-            }
-
-
-            message.textContent =
-                "✅ Login successful!";
-                setTimeout(() => {
-    window.location.href = "index.html";
-}, 500);
-
-           message.textContent = "✅ Login successful! Welcome to GameForge.";
-        }
-
-        // SIGN UP
-        else {
-
-            const { data, error } =
-                await gameforgeSupabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-
-
-            if (error) {
-
-                message.textContent =
-                    error.message;
-
-                mainButton.disabled = false;
-                mainButton.textContent = "Create Account";
-
-                return;
-            }
-
-
-           message.innerHTML = `
-    <div style="
-        padding:15px;
-        margin-top:10px;
-        border-radius:12px;
-        background:#102a43;
-        border:1px solid #2563eb;
-        line-height:1.6;
-    ">
-        <strong>✅ Account created successfully!</strong><br><br>
-        📧 Please check your email and click the
-        <strong>confirmation link</strong> to activate your account.<br><br>
-        💡 Don't see it? Check your
-        <strong>Spam</strong> or <strong>Promotions</strong> folder.
-    </div>
-`;
-
-            mainButton.disabled = false;
-            mainButton.textContent = "Create Account";
-        }
-
-    });
-
-
-    // ==============================
-    // GUEST MODE
-    // ==============================
-
-    guestButton.addEventListener("click", () => {
-
-        localStorage.setItem(
-            "gameforge_guest",
-            "true"
-        );
-
-        window.location.href = "games.html";
-
-    });
-
+initSupabase();
 </script>
-
 </body>
 </html>

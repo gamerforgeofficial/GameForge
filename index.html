@@ -1,596 +1,852 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameForge - Gaming Business</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090813">
+<meta name="description" content="GameForge — Forge Your World. Play Your Game. Discover games, challenges and new adventures.">
+<title>GameForge — Premium Gaming Universe</title>
 
-    <style>
-     
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #0b0b0f;
-            color: white;
-        }
-
-        header {
-            padding: 20px 8%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #111118;
-        }
-
-        .logo {
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 25px;
-        }
-
-         .hero {
-    min-height: 80vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 40px 20px;
-
-    background:
-        radial-gradient(circle at center, #24105c 0%, #0b0b0f 55%, #050507 100%);
+<style>
+:root {
+  --bg:#090813;
+  --bg2:#111027;
+  --panel:#15132b;
+  --purple:#8b5cf6;
+  --blue:#35c9ff;
+  --white:#f8f7ff;
+  --muted:#b5b1cb;
+  --line:rgba(167,139,250,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{
+  font-family:Inter,Arial,sans-serif;
+  background:var(--bg);color:var(--white);
+  overflow-x:hidden;line-height:1.6
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+img{max-width:100%;display:block}
+button,a{-webkit-tap-highlight-color:transparent}
+::selection{background:var(--purple);color:white}
+.container{width:min(1160px,calc(100% - 40px));margin:auto}
+section{scroll-margin-top:85px}
+.section{padding:95px 0}
+.section-title{
+  font-family:Orbitron,sans-serif;font-size:clamp(27px,4vw,42px);
+  font-weight:800;line-height:1.25;margin-bottom:14px
+}
+.gradient-text{
+  background:linear-gradient(100deg,#b794ff,#49d8ff);
+  color:transparent;background-clip:text;-webkit-background-clip:text
+}
+.section-intro{max-width:650px;margin:0 auto 40px;color:var(--muted);font-size:14px}
+.section-heading{text-align:center;margin-bottom:40px}
+.kicker{
+  display:inline-block;color:var(--blue);font-size:11px;
+  letter-spacing:3px;font-weight:800;text-transform:uppercase;margin-bottom:13px
 }
 
-        .hero h1 {
-    font-size: 70px;
-    margin-bottom: 20px;
-    letter-spacing: 6px;
-    text-shadow: 0 0 25px #6c2cff;
+/* Background atmosphere */
+.ambient{
+  position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden
+}
+.orb{
+  position:absolute;width:360px;height:360px;border-radius:50%;
+  filter:blur(110px);opacity:.15;animation:orbMove 15s ease-in-out infinite alternate
+}
+.orb.one{background:#7c3aed;top:5%;left:-180px}
+.orb.two{background:#087bbd;right:-180px;top:50%;animation-delay:-6s}
+.grid-overlay{
+  position:absolute;inset:0;opacity:.12;
+  background-image:linear-gradient(rgba(167,139,250,.13) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(167,139,250,.13) 1px,transparent 1px);
+  background-size:55px 55px;
+  mask-image:linear-gradient(to bottom,black,transparent 85%)
 }
 
-        .hero p {
-            font-size: 20px;
-            color: #bbbbbb;
-            margin-bottom: 30px;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 14px 30px;
-            background: #6c2cff;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-        }
-
-        .section {
-            padding: 70px 8%;
-            text-align: center;
-        }
-
-        .section h2 {
-            font-size: 40px;
-            margin-bottom: 20px;
-        }
-
-        footer {
-            padding: 25px;
-            text-align: center;
-            background: #111118;
-            color: #888;
-        }
-        .games-container {
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    flex-wrap: wrap;
-    margin-top: 40px;
+/* Navigation */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(9,8,19,.88);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line)
+}
+.nav{
+  min-height:76px;display:flex;align-items:center;
+  justify-content:space-between;gap:20px
+}
+.logo{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.logo-icon{
+  width:40px;height:40px;display:grid;place-items:center;
+  border:1px solid rgba(189,160,255,.7);border-radius:12px;
+  background:linear-gradient(135deg,#7542d7,#242c72);
+  box-shadow:0 0 22px rgba(139,92,246,.28);font-size:22px
+}
+.logo-name{font-family:Orbitron,sans-serif;font-size:19px;font-weight:900;letter-spacing:.3px}
+.logo-name span{color:var(--blue)}
+.nav-links{display:flex;align-items:center;gap:22px}
+.nav-links a{
+  color:#d0cde0;font-size:12px;font-weight:700;
+  transition:color .2s
+}
+.nav-links a:hover{color:var(--blue)}
+.nav-actions{display:flex;align-items:center;gap:9px}
+.user-area{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+.user-avatar{
+  width:34px;height:34px;display:grid;place-items:center;
+  border-radius:50%;background:linear-gradient(135deg,var(--purple),#126eac);
+  box-shadow:0 0 15px #8b5cf644
+}
+.menu-toggle{
+  display:none;width:42px;height:42px;border:1px solid var(--line);
+  border-radius:10px;background:#17132b;color:white;font-size:22px;cursor:pointer
 }
 
-.game-card {
-    width: 280px;
-    background: #15151f;
-    border: 1px solid #29293a;
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    transition: 0.3s;
+/* Buttons */
+.btn{
+  display:inline-flex;justify-content:center;align-items:center;gap:9px;
+  min-height:48px;padding:0 20px;border-radius:10px;
+  border:1px solid transparent;
+  background:linear-gradient(100deg,#8b5cf6,#536dff);
+  color:white;font-size:12px;font-weight:800;cursor:pointer;
+  box-shadow:0 5px 22px rgba(112,76,225,.18);
+  transition:transform .22s,box-shadow .22s,border-color .22s,background .22s
+}
+.btn:hover{transform:translateY(-3px);box-shadow:0 9px 28px #7949ed55}
+.btn-outline{background:rgba(255,255,255,.035);border-color:#64538f;box-shadow:none}
+.btn-outline:hover{border-color:var(--blue);background:#282047}
+.btn-small{min-height:39px;padding:0 13px;font-size:11px}
+.sound-btn{
+  min-width:42px;min-height:39px;padding:0 10px;border-radius:9px;
+  border:1px solid var(--line);background:#15132b;color:#eae5ff;
+  cursor:pointer;font-size:12px
+}
+.sound-btn[aria-pressed="true"]{border-color:var(--blue);color:var(--blue)}
+
+/* Hero */
+.hero{
+  min-height:660px;display:flex;align-items:center;position:relative;
+  overflow:hidden;isolation:isolate
+}
+.hero-image{
+  position:absolute;inset:0;z-index:-2;
+  background-image:url("https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=2000&q=85");
+  background-size:cover;background-position:center;
+  animation:heroZoom 22s ease-in-out infinite alternate
+}
+.hero:before{
+  content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(90deg,rgba(9,8,19,.98),rgba(9,8,19,.82) 46%,rgba(9,8,19,.34)),
+  linear-gradient(0deg,var(--bg),transparent 30%)
+}
+.hero-content{padding:90px 0;max-width:800px}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:9px 13px;border:1px solid #9b80e966;border-radius:50px;
+  background:#120e29bb;color:#ded3ff;font-size:10px;
+  font-weight:800;letter-spacing:1.5px;text-transform:uppercase
+}
+.status-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--blue);
+  box-shadow:0 0 12px var(--blue)
+}
+.hero h1{
+  font-family:Orbitron,sans-serif;font-size:clamp(43px,8vw,94px);
+  line-height:1.12;font-weight:900;letter-spacing:-2px;margin:27px 0 20px;
+  animation:titleIn .9s ease both
+}
+.hero h1 .second-line{display:block;color:var(--blue)}
+.hero-copy{
+  max-width:560px;color:#d0cce0;font-size:15px;line-height:1.9;
+  animation:fadeUp 1s .15s both
+}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px;animation:fadeUp 1s .3s both}
+.hero-stats{
+  display:flex;gap:35px;flex-wrap:wrap;margin-top:48px;padding-top:24px;
+  border-top:1px solid #ffffff25;animation:fadeUp 1s .45s both
+}
+.stat strong{display:block;font-family:Orbitron,sans-serif;font-size:16px;color:white}
+.stat span{display:block;font-size:10px;color:#c0bad5;margin-top:5px}
+.hero-side-label{
+  position:absolute;right:25px;bottom:90px;writing-mode:vertical-rl;
+  color:#d6cfff;font-size:9px;letter-spacing:3px
 }
 
-.game-card:hover {
-    transform: translateY(-10px);
-    border-color: #6c2cff;
+/* Scrolling brand strip */
+.marquee{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#100e21}
+.marquee-track{
+  width:max-content;display:flex;gap:28px;align-items:center;padding:17px 0;
+  animation:marquee 30s linear infinite
+}
+.marquee-track span{
+  font-family:Orbitron,sans-serif;font-size:12px;font-weight:800;letter-spacing:2px
+}
+.marquee-track b{color:var(--blue);padding-left:28px}
+
+/* Game cards */
+.games-container{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px
+}
+.game-card{
+  min-width:0;overflow:hidden;position:relative;
+  background:linear-gradient(145deg,#19152e,#100f20);
+  border:1px solid var(--line);border-radius:17px;
+  transition:transform .3s,border-color .3s,box-shadow .3s
+}
+.game-card:hover{
+  transform:translateY(-8px);
+  border-color:#8d76e8;
+  box-shadow:0 15px 45px #5e37b32b
+}
+.game-image{
+  height:175px;display:grid;place-items:center;position:relative;
+  overflow:hidden;background:
+    radial-gradient(circle at 30% 20%,#3e2d70,transparent 60%),#101021;
+  border-bottom:1px solid var(--line)
+}
+.game-image img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.game-card:hover .game-image img{transform:scale(1.06)}
+.game-emoji{
+  font-size:65px;filter:drop-shadow(0 0 20px #9a7aff99);
+  transition:transform .35s
+}
+.game-card:hover .game-emoji{transform:scale(1.12) rotate(-4deg)}
+.game-tag{
+  position:absolute;top:13px;left:13px;z-index:2;
+  padding:5px 9px;border:1px solid #c1a7ff55;border-radius:50px;
+  background:#100c21df;color:#d9c9ff;font-size:9px;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase
+}
+.game-body{padding:22px}
+.game-body h3{font-family:Orbitron,sans-serif;font-size:17px;margin-bottom:9px}
+.game-body p{min-height:62px;color:var(--muted);font-size:12px;line-height:1.8}
+.game-body .btn{width:100%;margin-top:16px}
+.game-body .btn:focus-visible,.btn:focus-visible,a:focus-visible,button:focus-visible{
+  outline:2px solid var(--blue);outline-offset:4px
+}
+.card-coming{opacity:.91}
+.card-coming .btn{background:transparent;border-color:#554778;color:#c7b9e9;box-shadow:none}
+.card-coming .btn:hover{background:#27203f;border-color:var(--purple)}
+.small-note{font-size:11px;color:var(--muted);margin-top:24px;text-align:center}
+
+/* Services */
+.services-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.service-card{
+  padding:28px 24px;border:1px solid var(--line);border-radius:15px;
+  background:linear-gradient(140deg,#17142b,#0e0d1a);
+  transition:transform .25s,border-color .25s
+}
+.service-card:hover{transform:translateY(-5px);border-color:#7461c7}
+.service-icon{
+  width:52px;height:52px;display:grid;place-items:center;margin-bottom:20px;
+  border:1px solid #8b5cf655;border-radius:14px;
+  background:#8b5cf619;font-size:24px
+}
+.service-card h3{font-family:Orbitron,sans-serif;font-size:14px;margin-bottom:12px}
+.service-card p{font-size:12px;color:var(--muted);line-height:1.9}
+
+/* Coming soon */
+.coming-box{
+  position:relative;overflow:hidden;text-align:center;padding:65px 30px;
+  border:1px solid #8b5cf655;border-radius:20px;
+  background:radial-gradient(ellipse at top,#37226970,transparent 65%),#100e20
+}
+.coming-box:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(110deg,transparent 25%,#ffffff06 50%,transparent 75%);
+  transform:translateX(-100%);animation:shine 7s ease-in-out infinite
+}
+.coming-box h2{font-family:Orbitron,sans-serif;font-size:clamp(27px,5vw,48px);margin:15px 0}
+.coming-box p{max-width:610px;margin:0 auto 25px;color:var(--muted);font-size:13px;line-height:1.9}
+.coming-label{color:var(--blue);font-size:10px;font-weight:900;letter-spacing:3px}
+
+/* About and contact */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:25px;align-items:stretch}
+.about-card,.contact-card{
+  padding:32px;border:1px solid var(--line);border-radius:17px;
+  background:linear-gradient(145deg,#17142b,#0f0e1b)
+}
+.about-card h3,.contact-card h3{font-family:Orbitron,sans-serif;font-size:22px;margin:12px 0 18px}
+.about-card p,.contact-card p{font-size:13px;color:var(--muted);line-height:1.95}
+.profile-photo{text-align:center;margin:28px auto 0}
+.profile-photo img{
+  width:min(270px,100%);margin:auto;aspect-ratio:4/3;object-fit:cover;
+  border-radius:16px;border:1px solid #8b5cf677;
+  box-shadow:0 0 35px #8b5cf622;
+  animation:photoFloat 5s ease-in-out infinite
+}
+.profile-note{font-size:10px!important;margin-top:12px}
+.contact-item{padding:16px 0;border-bottom:1px solid var(--line)}
+.contact-item:last-child{border-bottom:0}
+.contact-item span{
+  display:block;color:var(--blue);font-size:10px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px
+}
+.contact-item a{font-size:13px;overflow-wrap:anywhere}
+.contact-item a:hover{color:var(--blue)}
+.contact-actions{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+footer{padding:26px 0;border-top:1px solid var(--line);background:#080710}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.footer-copy{color:#928da8;font-size:11px}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.footer-links a{font-size:11px;color:#c0bad3}
+.footer-links a:hover{color:var(--blue)}
+
+/* Scroll reveal and animations */
+.reveal{opacity:0;transform:translateY(25px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+@keyframes titleIn{from{opacity:0;transform:translateY(28px);filter:blur(8px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes heroZoom{from{transform:scale(1)}to{transform:scale(1.08)}}
+@keyframes orbMove{from{transform:translate(0,0)}to{transform:translate(80px,55px)}}
+@keyframes photoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes marquee{to{transform:translateX(-50%)}}
+@keyframes shine{0%,65%,100%{transform:translateX(-100%)}85%{transform:translateX(100%)}}
+
+@media(max-width:950px){
+  .nav-links{gap:13px}
+  .nav-links a{font-size:11px}
+  .games-container,.services-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero{min-height:610px}
+}
+@media(max-width:760px){
+  .container{width:calc(100% - 30px)}
+  .section{padding:72px 0}
+  .nav{min-height:70px;gap:10px}
+  .logo-name{font-size:16px}
+  .logo-icon{width:35px;height:35px}
+  .menu-toggle{display:block}
+  .nav-links{
+    display:none;position:absolute;top:70px;left:0;right:0;
+    padding:15px 22px 22px;background:#0c0a19;
+    border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;gap:0
+  }
+  .nav-links.open{display:flex}
+  .nav-links a{padding:13px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .nav-links a:last-child{border-bottom:0}
+  .nav-actions{margin-left:auto}
+  .nav-actions .desktop-only{display:none}
+  .hero{min-height:620px}
+  .hero-content{padding:75px 0}
+  .hero h1{font-size:clamp(40px,9vw,68px);letter-spacing:-1px}
+  .hero-copy{font-size:13px}
+  .hero-side-label{display:none}
+  .hero-stats{gap:24px;margin-top:36px}
+  .section-intro{font-size:13px}
+  .about-grid{grid-template-columns:1fr}
+  .coming-box{padding:45px 22px}
+}
+@media(max-width:480px){
+  .container{width:calc(100% - 26px)}
+  .nav-actions .btn-small{padding:0 10px;font-size:10px}
+  .sound-btn{min-width:38px}
+  .hero{min-height:620px}
+  .hero-image{background-position:57% center}
+  .hero:before{background:linear-gradient(90deg,#090813f5,#090813b8),linear-gradient(0deg,var(--bg),transparent)}
+  .hero h1{font-size:clamp(36px,10.2vw,49px);line-height:1.25}
+  .hero-actions{flex-direction:column}
+  .hero-actions .btn{width:100%}
+  .hero-stats{gap:17px}
+  .stat strong{font-size:13px}
+  .stat span{font-size:9px}
+  .games-container,.services-grid{grid-template-columns:1fr}
+  .game-image{height:185px}
+  .game-body p{min-height:0}
+  .about-card,.contact-card{padding:23px}
+  .footer-inner{align-items:flex-start;flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;animation:none!important;transition:none!important
+  }
+  .reveal{opacity:1;transform:none}
+}
+/* GAMEFORGE — Original Purple Neon Atmosphere */
+body {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(108,44,255,.30), transparent 48%),
+    radial-gradient(ellipse at 0% 38%, rgba(92,45,220,.20), transparent 42%),
+    radial-gradient(ellipse at 100% 68%, rgba(0,153,255,.14), transparent 40%),
+    #090813;
+  background-attachment: fixed;
 }
 
-.game-image {
-    height: 150px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 70px;
-    background: #0b0b0f;
-    border-radius: 10px;
-    margin-bottom: 20px;
+/* Soft ambient lighting across the page */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 22%, rgba(139,92,246,.16), transparent 32%),
+    radial-gradient(circle at 82% 72%, rgba(53,201,255,.10), transparent 34%);
+  animation: neonAmbient 10s ease-in-out infinite alternate;
 }
 
-.game-card h3 {
-    font-size: 24px;
-    margin-bottom: 10px;
+@keyframes neonAmbient {
+  from { opacity: .55; }
+  to   { opacity: 1; }
 }
 
-.game-card p {
-    color: #aaaaaa;
-    line-height: 1.5;
-    margin-bottom: 20px;
+/* Hero — no stock photo, only purple neon lighting */
+.hero {
+  min-height: 680px;
+  background:
+    radial-gradient(ellipse at 72% 40%, rgba(108,44,255,.24), transparent 38%),
+    radial-gradient(ellipse at 88% 70%, rgba(0,153,255,.13), transparent 35%),
+    radial-gradient(ellipse at 45% 20%, #24105c 0%, #111027 42%, #090813 78%);
+  border-bottom: 1px solid rgba(139,92,246,.18);
 }
 
-.game-button {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #6c2cff;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
+/* Replace the existing gaming photo with atmospheric light */
+.hero-image {
+  background-image:
+    radial-gradient(circle at 75% 45%, rgba(139,92,246,.18), transparent 32%),
+    radial-gradient(circle at 90% 65%, rgba(53,201,255,.10), transparent 30%);
+  animation: none;
 }
 
-.game-button:hover {
-    background: #8b5cff;
+.hero::before {
+  background:
+    linear-gradient(90deg, rgba(9,8,19,.15), rgba(9,8,19,.02) 65%, rgba(9,8,19,.20)),
+    linear-gradient(0deg, #090813, transparent 30%);
 }
-@media (max-width: 768px) {
 
-    header {
-        flex-direction: column;
-        gap: 15px;
-        padding: 20px;
-    }
-
-    nav {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 12px;
-    }
-
-    nav a {
-        margin-left: 0;
-    }
-
-    .hero {
-        min-height: 70vh;
-        padding: 30px 15px;
-    }
-
-    .hero h1 {
-        font-size: 45px;
-        letter-spacing: 3px;
-    }
-
-    .hero p {
-        font-size: 17px;
-    }
-
-    .section {
-        padding: 50px 20px;
-    }
-
-    .section h2 {
-        font-size: 32px;
-    }
-
-    .game-card {
-        width: 100%;
-        max-width: 350px;
-    }
-}
-/* ✨ Hero Animation */
+/* More prominent title glow */
 .hero h1 {
-    animation: heroTitle 1s ease-out;
+  text-shadow: 0 0 28px rgba(108,44,255,.30);
 }
 
-.hero p {
-    animation: heroText 1.3s ease-out;
+.hero h1 .second-line {
+  color: #35c9ff;
+  text-shadow: 0 0 28px rgba(53,201,255,.25);
 }
 
-.hero .button,
-.hero a {
-    animation: heroButton 1.6s ease-out;
+.hero-badge {
+  box-shadow: 0 0 24px rgba(139,92,246,.13);
 }
 
-@keyframes heroTitle {
-    from {
-        opacity: 0;
-        transform: translateY(-40px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.hero .btn {
+  box-shadow: 0 0 25px rgba(108,44,255,.24);
 }
 
-@keyframes heroText {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Purple neon glow on section headings */
+.section-title {
+  text-shadow: 0 0 24px rgba(108,44,255,.18);
 }
 
-@keyframes heroButton {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-/* 🎮 Game Card Hover Animation */
-.game-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* Game and service card lighting */
+.game-card:hover,
+.service-card:hover {
+  box-shadow:
+    0 0 20px rgba(108,44,255,.20),
+    0 12px 35px rgba(0,153,255,.10);
+  border-color: #8b5cf6;
 }
 
-.game-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.45);
-}
-/* 🔵 Button Hover Animation */
-button,
-.game-button,
-a.button,
-nav a {
-    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+@media (max-width: 760px) {
+  .hero {
+    min-height: 620px;
+  }
 }
 
-button:hover,
-.game-button:hover,
-a.button:hover,
-nav a:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
 }
-/* 🖼️ Photo Floating Animation */
-.profile-photo img {
-    animation: photoFloat 3s ease-in-out infinite;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-    box-shadow: 0 0 25px rgba(37, 99, 235, 0.45);
-}
-
-.profile-photo img:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 40px rgba(37, 99, 235, 0.75);
-}
-
-@keyframes photoFloat {
-    0%, 100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-8px);
-    }
-}
-
-
-    /* tumhara purana CSS */
-
-    .profile-photo {
-        text-align: center;
-        margin: 35px auto 25px;
-    }
-
-    .profile-photo img {
-        width: 300px;
-        max-width: 90%;
-        border-radius: 20px;
-        box-shadow: 0 0 30px rgba(37, 99, 235, 0.7);
-    }
-
-/* 📱 Better Mobile Layout */
-
-@media (max-width: 600px) {
-
-    body {
-        width: 100%;
-        overflow-x: hidden;
-    }
-
-    header {
-        width: 100%;
-        padding: 15px 12px;
-    }
-
-    .logo {
-        font-size: 24px;
-    }
-
-    nav {
-        width: 100%;
-        gap: 8px;
-    }
-
-    nav a {
-        font-size: 14px;
-        padding: 6px 4px;
-    }
-
-    .hero {
-        min-height: 65vh;
-        padding: 40px 15px;
-    }
-
-    .hero h1 {
-        font-size: clamp(38px, 12vw, 55px);
-        letter-spacing: 2px;
-        line-height: 1.1;
-    }
-
-    .hero p {
-        font-size: 16px;
-        line-height: 1.5;
-    }
-
-    .button,
-    .game-button {
-        padding: 12px 20px;
-        font-size: 15px;
-    }
-
-    .section {
-        padding: 45px 15px;
-    }
-
-    .section h2 {
-        font-size: 30px;
-    }
-
-    .section > p {
-        font-size: 16px;
-        line-height: 1.6;
-    }
-
-    .games-container {
-        width: 100%;
-        gap: 18px;
-    }
-
-    .game-card {
-        width: 100%;
-        max-width: 340px;
-        padding: 18px;
-    }
-
-    .game-image {
-        height: 130px;
-        font-size: 60px;
-    }
-
-    .game-card h3 {
-        font-size: 21px;
-    }
-
-    .game-card p {
-        font-size: 15px;
-    }
-
-    .profile-photo img {
-        width: min(280px, 90vw);
-    }
-
-    footer {
-        font-size: 14px;
-        padding: 20px 10px;
-    }
-}
-.user-area {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: white;
-    font-weight: bold;
-    margin-left: 15px;
-}
-
-.user-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 17px;
-    box-shadow: 0 0 15px rgba(37, 99, 235, 0.6);
-}
-
-    </style>
+</style>
 </head>
 
 <body>
-
-    <header>
-        <div class="logo">🎮 GameForge</div>
-
-        <nav>
-            <a href="#">Home</a>
-            <a href="#services">Services</a>
-            <a href="#about">About</a>
-            <a href="#games">Games</a>
-            <a href="#contact">Contact</a>
-            <a href="login.html">🔐 Login</a>
-<a href="login.html">📝 Create Account</a>
-        </nav>
-        <div class="user-area" id="userArea">
-    <div class="user-avatar">U</div>
-    <span>User</span>
-</div>
-    </header>
-
-    <section class="hero">
-        <div>
-            <h1>GAMEFORGE</h1>
-            <p>Forge Your World. Play Your Game.</p>
-            <p>(CREATE YOUR DAY HAPPY)</p>
-            <a href="#games" class="button">Explore Games</a>
-        </div>
-    </section>
-
-    <section class="section" id="about">
-        <h2>About GameForge</h2>
-        <p>We create exciting gaming experiences for players around the world.</p>
-        <p>GameForge is a gaming platform built for gamers who love to play, explore, and discover new experiences.
-We create fun and engaging games across different genres and styles.
-From racing and strategy to classic games like Ludo, Chess, and Snake — there’s something for everyone.
-Our goal is to make gaming simple, exciting, and accessible to everyone.
-We’re constantly building new games, features, and experiences for our community.
-GameForge — Forge Your World. Play Your Game. 🔥</p>
-    </section>
-
-    <section class="section" id="games">
-    <h2>Our Games</h2>
-
-    <div class="games-container">
-
-        <div class="game-card">
-    <div class="game-image">🎮</div>
-    <h3>GameForge Racing</h3>
-    <p>Experience exciting racing and build your ultimate garage.</p>
-    <p>100+ Games coming soon</p>
-    <a href="games.html" class="game-button">Play Now</a>
-
+<div class="ambient" aria-hidden="true">
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+  <div class="grid-overlay"></div>
 </div>
 
-
-
-        <div class="game-card">
-            <div class="game-image">⚔️</div>
-            <h3>Forge Warriors</h3>
-            <p>Enter the battlefield and become the strongest warrior.</p>
-            <a href="#" class="game-button">Coming Soon</a>
-        </div>
-
-        <div class="game-card">
-            <div class="game-image">🏙️</div>
-            <h3>City Builder</h3>
-            <p>Create, manage and grow your own powerful city.</p>
-            <a href="#" class="game-button">Coming Soon</a>
-        </div>
-        <section class="section" id="mini-games">
-    
-
-    </div>
-</section>
-<p>🔥 Option 1 — Premium
-COMING SOON 🚀
-Something exciting is being forged behind the scenes.
-Get ready for a brand-new gaming experience.
-Stay tuned — the game is almost ready! 🎮
-⚡ Option 2 — Short & Cool
-COMING SOON 🎮
-The next adventure is loading...
-Get ready to play. 🔥
-🏆 Option 3 — Gamer Style
-NEW GAME INCOMING 🚨
-The wait is almost over!
-A new GameForge experience is currently in development.
-Prepare yourself. The game is coming soon! 🎮🔥
-💎 Option 4 — Best for Website
-COMING SOON
-Your next favorite game is being forged.
-Stay tuned for updates, new features, and an exciting gaming experience.
-GameForge — Forge Your World. Play Your Game.</p>
-</section>
-<section class="section" id="services">
-    <h2>Our Services</h2>
-
-    <div class="games-container">
-
-        <div class="game-card">
-            <div class="game-image">🎮</div>
-            <h3>Game Development</h3>
-            <p>We create exciting and engaging games for players.</p>
-        </div>
-
-        <div class="game-card">
-            <div class="game-image">💻</div>
-            <h3>Game Design</h3>
-            <p>Creative worlds, gameplay systems and unique experiences.</p>
-        </div>
-
-        <div class="game-card">
-            <div class="game-image">🚀</div>
-            <h3>Game Publishing</h3>
-            <p>We bring our games to players and grow our gaming community.</p>
-        </div>
-
-    </div>
-</section>
-    <section class="section" id="contact">
-    <h2>Contact GameForge</h2>
-
-    <p class="contact-text">
-        Have a question, business idea or collaboration opportunity?
-        Get in touch with us.
-    </p>
-
-    <div class="contact-box">
-        <p>📧 Email: yadavji90801@gmail.com</p>
-        <p>🎮 Gaming & Development</p>
-        <p>🌐 GameForge</p>
-        <p>@_navneet._.07</p>
-    </div>
-     <div class="profile-photo">
-      <img src="my-photo.jpg.jpeg" alt="GameForge Creator">
-     </div>
-    <a href="mailto:yadavji90801@gmail.com" class="button">
-        Contact Us
+<header>
+  <div class="container nav">
+    <a href="index.html" class="logo" aria-label="GameForge Home">
+      <span class="logo-icon">🎮</span>
+      <span class="logo-name">GAME<span>FORGE</span></span>
     </a>
-</section>
-    <footer>
-        © 2026 GameForge. Welcome To Our Website
-    </footer>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <nav class="nav-links" id="navLinks" aria-label="Main navigation">
+      <a href="#home">Home</a>
+      <a href="#services">Services</a>
+      <a href="#about">About</a>
+      <a href="#games">Games</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="sound-btn" id="soundToggle" type="button" aria-pressed="false" title="Toggle interface click sounds">🔇</button>
+      <a href="games.html" class="btn btn-small desktop-only">🎮 Play</a>
+      <a href="login.html" class="btn btn-small btn-outline desktop-only" id="loginLink">Login ↗</a>
+      <div class="user-area" id="userArea" style="display:none" aria-live="polite">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <span id="userName">Player</span>
+      </div>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="home">
+    <div class="hero-image" aria-hidden="true"></div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge"><span class="status-dot"></span> Welcome to the gaming universe</div>
+        <h1>GAME<span class="gradient-text">FORGE</span><span class="second-line">PLAY BEYOND LIMITS.</span></h1>
+        <p class="hero-copy">
+          Forge Your World. Play Your Game. Discover exciting challenges,
+          explore different games and create your own gaming experience.
+          Your next adventure starts here.
+        </p>
+        <div class="hero-actions">
+          <a href="#games" class="btn">Explore Games <span>↗</span></a>
+          <a href="#about" class="btn btn-outline">Discover GameForge ↓</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><strong>GAME ON</strong><span>Find your next challenge</span></div>
+          <div class="stat"><strong>YOUR STYLE</strong><span>Play your way</span></div>
+          <div class="stat"><strong>LEVEL UP</strong><span>Explore new experiences</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-side-label">FORGE YOUR WORLD • PLAY YOUR GAME</div>
+  </section>
+
+  <div class="marquee" aria-label="GameForge motto">
+    <div class="marquee-track">
+      <span>GAMEFORGE <b>✦</b> FORGE YOUR WORLD <b>✦</b> PLAY YOUR GAME <b>✦</b> ENTER THE ARENA <b>✦</b></span>
+      <span aria-hidden="true">GAMEFORGE <b>✦</b> FORGE YOUR WORLD <b>✦</b> PLAY YOUR GAME <b>✦</b> ENTER THE ARENA <b>✦</b></span>
+    </div>
+  </div>
+
+  <section class="section" id="games">
+    <div class="container">
+      <div class="section-heading reveal">
+        <span class="kicker">Choose your adventure</span>
+        <h2 class="section-title">OUR <span class="gradient-text">GAMES</span></h2>
+        <p class="section-intro">From racing action to timeless classics, find a challenge that matches your style.</p>
+      </div>
+
+      <div class="games-container">
+        <article class="game-card reveal">
+          <div class="game-image">
+            <span class="game-tag">Featured</span>
+            <span class="game-emoji" aria-hidden="true">🏎️</span>
+          </div>
+          <div class="game-body">
+            <h3>GameForge Racing</h3>
+            <p>Explore our gaming collection, jump into challenges and discover your next favourite game.</p>
+            <a href="games.html" class="btn">Play Now ↗</a>
+          </div>
+        </article>
+
+        <article class="game-card card-coming reveal">
+          <div class="game-image">
+            <span class="game-tag">In Development</span>
+            <span class="game-emoji" aria-hidden="true">⚔️</span>
+          </div>
+          <div class="game-body">
+            <h3>Forge Warriors</h3>
+            <p>A new action-inspired gaming world is on the drawing board. More details coming soon.</p>
+            <a href="#coming" class="btn">Coming Soon</a>
+          </div>
+        </article>
+
+        <article class="game-card card-coming reveal">
+          <div class="game-image">
+            <span class="game-tag">In Development</span>
+            <span class="game-emoji" aria-hidden="true">🏙️</span>
+          </div>
+          <div class="game-body">
+            <h3>City Builder</h3>
+            <p>Imagine, create and manage your own city in a future GameForge experience.</p>
+            <a href="#coming" class="btn">Coming Soon</a>
+          </div>
+        </article>
+      </div>
+      <p class="small-note reveal">Explore the current collection. New experiences will be announced here as they become available.</p>
+      <div style="text-align:center;margin-top:28px" class="reveal">
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-heading reveal">
+        <span class="kicker">What we're building</span>
+        <h2 class="section-title">THE <span class="gradient-text">GAMEPLAN</span></h2>
+        <p class="section-intro">GameForge brings together gaming, creativity and new ideas under one roof.</p>
+      </div>
+
+      <div class="services-grid">
+        <article class="service-card reveal">
+          <div class="service-icon">🎮</div>
+          <h3>Game Experiences</h3>
+          <p>Discover different types of games, from quick challenges to familiar classics.</p>
+        </article>
+        <article class="service-card reveal">
+          <div class="service-icon">🎨</div>
+          <h3>Creative Design</h3>
+          <p>Explore a growing gaming brand shaped by creative ideas and thoughtful design.</p>
+        </article>
+        <article class="service-card reveal">
+          <div class="service-icon">🚀</div>
+          <h3>What's Next</h3>
+          <p>Follow the journey as new concepts and gaming experiences are developed.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="coming">
+    <div class="container">
+      <div class="coming-box reveal">
+        <span class="coming-label">NEXT LEVEL LOADING...</span>
+        <h2>THE NEXT ADVENTURE<br><span class="gradient-text">IS BEING FORGED.</span></h2>
+        <p>
+          Something exciting is in development. Keep exploring GameForge and
+          check back for new games, features and future experiences.
+        </p>
+        <a href="games.html" class="btn">Play Available Games ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="about">
+    <div class="container">
+      <div class="section-heading reveal">
+        <span class="kicker">The story behind the forge</span>
+        <h2 class="section-title">ABOUT <span class="gradient-text">GAMEFORGE</span></h2>
+      </div>
+
+      <div class="about-grid">
+        <article class="about-card reveal">
+          <span class="kicker">Our mission</span>
+          <h3>Built Around The Love Of Play.</h3>
+          <p>
+            GameForge is a gaming platform for people who love to play, explore
+            and discover different experiences. From racing and strategy to
+            classics like Ludo, Chess and Snake, our goal is to make gaming
+            simple and enjoyable.
+          </p>
+          <p style="margin-top:20px">
+            We're building the platform step by step, with new ideas and
+            experiences planned for the future.
+          </p>
+          <div class="profile-photo">
+            <img src="my-photo.jpg.jpeg" alt="GameForge creator" loading="lazy"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <p class="profile-note" style="display:none">Creator photo: place your image file named <strong>my-photo.jpg.jpeg</strong> in the same folder as index.html.</p>
+          </div>
+        </article>
+
+        <article class="contact-card reveal" id="contact">
+          <span class="kicker">Let's connect</span>
+          <h3>Contact GameForge</h3>
+          <p>Have a question, an idea or a suggestion? Reach out through the links below.</p>
+
+          <div class="contact-item">
+            <span>Email</span>
+            <a href="mailto:yadavji90801@gmail.com">yadavji90801@gmail.com</a>
+          </div>
+          <div class="contact-item">
+            <span>Instagram</span>
+            <a href="https://www.instagram.com/_navneet._.07/" target="_blank" rel="noopener noreferrer">@_navneet._.07 ↗</a>
+          </div>
+          <div class="contact-item">
+            <span>Gaming Brand</span>
+            <a href="#home">GameForge — Forge Your World. Play Your Game.</a>
+          </div>
+          <div class="contact-actions">
+            <a class="btn" href="mailto:yadavji90801@gmail.com">Contact Us ↗</a>
+            <a class="btn btn-outline" href="login.html" id="aboutLogin">Join GameForge</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <a href="#home" class="logo">
+      <span class="logo-icon">🎮</span>
+      <span class="logo-name">GAME<span>FORGE</span></span>
+    </a>
+    <p class="footer-copy">© <span id="year"></span> GameForge. Forge Your World. Play Your Game.</p>
+    <div class="footer-links">
+      <a href="login.html">Login / Create Account</a>
+      <a href="mailto:yadavji90801@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+"use strict";
+
+/* Footer year */
+document.getElementById("year").textContent = new Date().getFullYear();
+
+/* Mobile navigation */
+const menuToggle = document.getElementById("menuToggle");
+const navLinks = document.getElementById("navLinks");
+
+menuToggle.addEventListener("click", () => {
+  const open = navLinks.classList.toggle("open");
+  menuToggle.setAttribute("aria-expanded", String(open));
+  menuToggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+  menuToggle.textContent = open ? "×" : "☰";
+});
+
+navLinks.querySelectorAll("a").forEach(link => {
+  link.addEventListener("click", () => {
+    navLinks.classList.remove("open");
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Open navigation");
+    menuToggle.textContent = "☰";
+  });
+});
+
+/* Scroll reveal */
+const revealItems = document.querySelectorAll(".reveal");
+if ("IntersectionObserver" in window) {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealItems.forEach(item => observer.observe(item));
+} else {
+  revealItems.forEach(item => item.classList.add("visible"));
+}
+
+/* Optional interface click sound — generated in the browser, no audio file needed */
+const soundToggle = document.getElementById("soundToggle");
+let soundEnabled = false;
+let audioContext = null;
+
+soundToggle.addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  soundToggle.setAttribute("aria-pressed", String(soundEnabled));
+  soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+  soundToggle.title = soundEnabled ? "Turn interface sounds off" : "Turn interface sounds on";
+
+  if (soundEnabled) {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        audioContext = audioContext || new AudioCtx();
+        if (audioContext.state === "suspended") audioContext.resume();
+        playClickSound();
+      }
+    } catch (error) {
+      soundEnabled = false;
+      soundToggle.setAttribute("aria-pressed", "false");
+      soundToggle.textContent = "🔇";
+    }
+  }
+});
+
+function playClickSound() {
+  if (!soundEnabled || !audioContext) return;
+  try {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const now = audioContext.currentTime;
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(680, now);
+    oscillator.frequency.exponentialRampToValueAtTime(430, now + 0.045);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.045, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.065);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.07);
+  } catch (error) {
+    /* Audio is optional; the site still works if audio is unavailable. */
+  }
+}
+
+/* Sound only on deliberate interface clicks; no automatic background audio. */
+document.addEventListener("click", event => {
+  const target = event.target.closest("a, button");
+  if (!target || target.id === "soundToggle") return;
+  playClickSound();
+});
+
+/* Supabase session status. Login and account creation stay on login.html. */
 const SUPABASE_URL = "https://tzjqlrpdvblbucxqsbtp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_aN0H5r-h8RRducZp79FNgA_URPgcNVg";
 
-const gameforgeSupabase = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-);
-</script>
-<script>
-async function showUser() {
-    const userArea = document.getElementById("userArea");
+const userArea = document.getElementById("userArea");
+const userAvatar = document.getElementById("userAvatar");
+const userName = document.getElementById("userName");
+const loginLink = document.getElementById("loginLink");
+const aboutLogin = document.getElementById("aboutLogin");
 
-    const { data: { user } } =
-        await gameforgeSupabase.auth.getUser();
-
-    if (user) {
-        const email = user.email || "User";
-        const name = email.split("@")[0];
-        const initial = name.charAt(0).toUpperCase();
-
-        userArea.innerHTML = `
-            <div class="user-avatar">${initial}</div>
-            <span>${name}</span>
-        `;
-    }
+function showSignedOut() {
+  userArea.style.display = "none";
+  loginLink.style.display = "";
+  loginLink.textContent = "Login ↗";
+  loginLink.href = "login.html";
+  aboutLogin.textContent = "Join GameForge";
+  aboutLogin.href = "login.html";
 }
 
-showUser();
+function showSignedIn(user) {
+  const email = user.email || "Player";
+  const name = email.split("@")[0] || "Player";
+  userName.textContent = name;
+  userAvatar.textContent = name.charAt(0).toUpperCase();
+  userArea.style.display = "flex";
+  loginLink.style.display = "none";
+  aboutLogin.textContent = "Play Games ↗";
+  aboutLogin.href = "games.html";
+}
+
+if (window.supabase && window.supabase.createClient) {
+  try {
+    const gameforgeSupabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    gameforgeSupabase.auth.getUser().then(({ data, error }) => {
+      if (!error && data && data.user) showSignedIn(data.user);
+      else showSignedOut();
+    }).catch(showSignedOut);
+
+    gameforgeSupabase.auth.onAuthStateChange((_event, session) => {
+      if (session && session.user) showSignedIn(session.user);
+      else showSignedOut();
+    });
+  } catch (error) {
+    showSignedOut();
+  }
+} else {
+  showSignedOut();
+}
 </script>
 </body>
 </html>
