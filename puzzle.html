@@ -2,404 +2,448 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>GameForge - Puzzle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0b14">
+<meta name="description" content="Sliding number puzzle with four difficulty levels, timer and best scores. A GameForge mini game.">
+<title>Puzzle | GameForge</title>
 
 <style>
-* {
-    box-sizing: border-box;
+:root {
+    --bg: #0c0b14;
+    --panel: #161425;
+    --border: #2b2745;
+    --text: #f3f1ff;
+    --muted: #9a94bd;
+    --accent: #7c4dff;
+    --accent-2: #5b34d6;
+    --good: #46d68c;
 }
+
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
     min-height: 100vh;
-    background: #0b0b0f;
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: center;
+    background: radial-gradient(circle at 50% -10%, #231b4d 0%, var(--bg) 55%) fixed;
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color: transparent;
 }
 
-.container {
-    width: 95%;
-    max-width: 500px;
-    margin: 30px auto;
-}
+.app { width: min(100%, 500px); margin: 0 auto; text-align: center; }
+h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 2.4rem); letter-spacing: .5px; }
+.subtitle { margin: 4px 0 16px; color: var(--muted); }
 
-h1 {
-    margin-bottom: 5px;
-    font-size: 40px;
-}
-
-.subtitle {
-    color: #aaa;
-    margin-bottom: 20px;
-}
-
-.info {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.info-box {
-    background: #15151f;
-    padding: 12px 22px;
+.levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+.level {
+    appearance: none;
+    padding: 9px 4px;
+    border: 1px solid var(--border);
     border-radius: 10px;
+    background: var(--panel);
+    color: var(--muted);
+    font: inherit;
+    font-size: .85rem;
+    font-weight: 600;
+    line-height: 1.25;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
+.level small { display: block; font-weight: 400; opacity: .8; }
+.level:hover { color: var(--text); }
+.level[aria-pressed="true"] { background: linear-gradient(145deg, var(--accent), var(--accent-2)); border-color: var(--accent); color: #fff; }
 
-#puzzle {
-    width: min(90vw, 400px);
-    height: min(90vw, 400px);
-    margin: auto;
-    padding: 5px;
-    background: #15151f;
-    border: 3px solid #6c2cff;
-    border-radius: 12px;
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+.stat { padding: 8px 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
+.stat span { display: block; color: var(--muted); font-size: .7rem; }
+.stat b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
 
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
+.frame {
+    position: relative;
+    container-type: inline-size;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: linear-gradient(145deg, #1b1830, #11101d);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .05);
 }
-
+.puzzle {
+    --gap: 3px;
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, .35);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, .6);
+}
+.tile-wrap {
+    position: absolute;
+    width: calc(100% / var(--n));
+    height: calc(100% / var(--n));
+    left: calc(var(--c) * 100% / var(--n));
+    top: calc(var(--r) * 100% / var(--n));
+    padding: var(--gap);
+    transition: left .14s ease, top .14s ease;
+}
 .tile {
-    border: none;
-    border-radius: 8px;
-    background: #6c2cff;
-    color: white;
-    font-size: clamp(20px, 7vw, 32px);
-    font-weight: bold;
+    appearance: none;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #8c63ff, var(--accent-2));
+    color: #fff;
+    font: inherit;
+    font-size: calc(30cqw / var(--n));
+    font-weight: 700;
+    text-shadow: 0 2px 3px rgba(0, 0, 0, .4);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .35), inset 0 -3px 5px rgba(0, 0, 0, .25);
     cursor: pointer;
+    transition: filter .12s ease, transform .1s ease;
 }
+.tile:hover { filter: brightness(1.12); }
+.tile:active { transform: scale(.95); }
+.tile:focus-visible { outline: 3px solid #ffd166; outline-offset: 1px; }
+.puzzle.peek .tile-wrap { transition-duration: .3s; }
+.puzzle.peek .tile { background: linear-gradient(145deg, #3b3560, #2a2547); }
 
-.tile:hover {
-    background: #8b5cff;
+.overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    border-radius: 16px;
+    background: rgba(12, 11, 20, .88);
+    backdrop-filter: blur(3px);
 }
+.overlay[hidden] { display: none; }
+.overlay h2 { margin: 0; font-size: 1.7rem; color: var(--good); }
+.overlay p { margin: 0; color: var(--muted); line-height: 1.6; }
+.overlay .record { color: #ffd166; font-weight: 700; }
 
-.empty {
-    background: #0b0b0f;
-    cursor: default;
-}
-
-.empty:hover {
-    background: #0b0b0f;
-}
-
-button#shuffle {
-    margin-top: 20px;
-    padding: 12px 28px;
-    border: none;
-    border-radius: 8px;
-    background: #6c2cff;
-    color: white;
-    font-size: 17px;
+.controls { display: flex; justify-content: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.btn {
+    appearance: none;
+    padding: 11px 22px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(145deg, var(--accent), var(--accent-2));
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(124, 77, 255, .35);
+    transition: transform .15s ease, filter .15s ease;
 }
+.btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.12); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.ghost { background: var(--panel); border: 1px solid var(--border); box-shadow: none; }
+.btn:focus-visible, .level:focus-visible, .back:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 
-button#shuffle:hover {
-    background: #8b5cff;
-}
+.message { min-height: 1.5em; margin: 14px 0 6px; color: var(--muted); font-size: .92rem; }
+.back { color: var(--muted); text-decoration: none; }
+.back:hover { color: var(--text); }
 
-#message {
-    min-height: 25px;
-    color: #ccc;
-    margin-top: 15px;
-}
-
-.back {
-    display: inline-block;
-    margin-top: 10px;
-    color: #aaa;
-    text-decoration: none;
-}
-
-.back:hover {
-    color: white;
-}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 
 <body>
+<main class="app">
 
-<div class="container">
+    <h1>🧩 Sliding Puzzle</h1>
+    <p class="subtitle">GameForge mini game</p>
 
-    <h1>🧩 Puzzle</h1>
+    <div class="levels" id="levels" role="group" aria-label="Difficulty"></div>
 
-    <div class="subtitle">
-        GameForge Mini Game
+    <section class="stats" aria-label="Game stats">
+        <div class="stat"><span>Moves</span><b id="moves">0</b></div>
+        <div class="stat"><span>Time</span><b id="time">0:00</b></div>
+        <div class="stat"><span>Best time</span><b id="bestTime">-</b></div>
+        <div class="stat"><span>Best moves</span><b id="bestMoves">-</b></div>
+    </section>
+
+    <div class="frame">
+        <div class="puzzle" id="puzzle"></div>
+        <div class="overlay" id="overlay" hidden>
+            <h2>🎉 Solved!</h2>
+            <p id="summary"></p>
+            <button class="btn" id="againBtn" type="button">Play again</button>
+        </div>
     </div>
 
-    <div class="info">
-        <div class="info-box">
-            Moves: <b id="moves">0</b>
-        </div>
-
-        <div class="info-box">
-            Best: <b id="best">-</b>
-        </div>
+    <div class="controls">
+        <button class="btn" id="newBtn" type="button">🔀 New puzzle</button>
+        <button class="btn ghost" id="peekBtn" type="button">👁 Peek (+10s)</button>
     </div>
 
-    <div id="puzzle"></div>
+    <p class="message" id="message" role="status" aria-live="polite"></p>
 
-    <button id="shuffle">
-        🔀 New Puzzle
-    </button>
+    <a class="back" href="games.html">← Back to games</a>
 
-    <p id="message">
-        Arrange the numbers from 1 to 15.
-    </p>
-
-    <a href="games.html" class="back">
-        ← Back to Games
-    </a>
-
-</div>
+</main>
 
 <script>
+(() => {
+    "use strict";
 
-const puzzle = document.getElementById("puzzle");
-const movesText = document.getElementById("moves");
-const bestText = document.getElementById("best");
-const message = document.getElementById("message");
-const shuffleButton = document.getElementById("shuffle");
+    const LEVELS = [
+        { size: 3, name: "Easy" },
+        { size: 4, name: "Normal" },
+        { size: 5, name: "Hard" },
+        { size: 6, name: "Expert" }
+    ];
+    const PEEK_PENALTY = 10;      // seconds added to the clock
+    const PEEK_DURATION = 1500;   // ms the solved layout is shown
 
-let board = [];
-let moves = 0;
+    const $ = id => document.getElementById(id);
+    const puzzleEl = $("puzzle"), overlay = $("overlay"), messageEl = $("message");
+    const movesEl = $("moves"), timeEl = $("time"), bestTimeEl = $("bestTime"), bestMovesEl = $("bestMoves");
+    const peekBtn = $("peekBtn");
 
-let best = localStorage.getItem("puzzleBest");
+    /* ---------- Storage ---------- */
+    const store = {
+        read(size) {
+            try { return JSON.parse(localStorage.getItem("puzzleBest-" + size)) || {}; }
+            catch { return {}; }
+        },
+        write(size, data) {
+            try { localStorage.setItem("puzzleBest-" + size, JSON.stringify(data)); }
+            catch { /* storage unavailable */ }
+        }
+    };
 
-if (best !== null) {
-    bestText.textContent = best;
-}
+    /* ---------- State ---------- */
+    let n = 5;
+    let board = [];
+    let moves = 0;
+    let startedAt = null;
+    let penalty = 0;
+    let timerId = null;
+    let solved = false;
+    let peeking = false;
+    const tiles = new Map();
 
+    const solvedLayout = total => Array.from({ length: total }, (_, i) => (i === total - 1 ? 0 : i + 1));
+    const isSolved = arr => arr.every((v, i) => v === (i === arr.length - 1 ? 0 : i + 1));
+    const randInt = max => Math.floor(Math.random() * (max + 1));
 
-/* CREATE BOARD */
-
-function createBoard() {
-
-    board = [];
-
-    for (let i = 1; i <= 15; i++) {
-        board.push(i);
+    function formatTime(seconds) {
+        const s = Math.floor(seconds);
+        return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
     }
 
-    board.push(0);
+    const elapsed = () => (startedAt === null ? 0 : (performance.now() - startedAt) / 1000) + penalty;
 
-    moves = 0;
-    movesText.textContent = moves;
+    /* ---------- Puzzle generation ---------- */
+    // A random layout is solvable only if its inversion count has the right parity.
+    function isSolvable(arr) {
+        const list = arr.filter(Boolean);
+        let inversions = 0;
+        for (let i = 0; i < list.length; i++)
+            for (let j = i + 1; j < list.length; j++)
+                if (list[i] > list[j]) inversions++;
+        if (n % 2 === 1) return inversions % 2 === 0;
+        const rowFromBottom = n - Math.floor(arr.indexOf(0) / n);
+        return (inversions + rowFromBottom) % 2 === 1;
+    }
 
-    message.textContent =
-        "Arrange the numbers from 1 to 15.";
+    function generate() {
+        const total = n * n;
+        let arr;
+        do {
+            arr = Array.from({ length: total }, (_, i) => i);
+            for (let i = total - 1; i > 0; i--) {
+                const j = randInt(i);
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        } while (!isSolvable(arr) || isSolved(arr));
+        return arr;
+    }
 
-    render();
-}
+    /* ---------- Rendering ---------- */
+    function buildTiles() {
+        puzzleEl.textContent = "";
+        tiles.clear();
+        puzzleEl.style.setProperty("--n", n);
+        puzzleEl.style.setProperty("--gap", n > 4 ? "2px" : "3px");
 
-
-/* RENDER */
-
-function render() {
-
-    puzzle.innerHTML = "";
-
-    board.forEach((number, index) => {
-
-        const tile = document.createElement("button");
-
-        tile.className = "tile";
-
-        if (number === 0) {
-
-            tile.classList.add("empty");
-
-        } else {
-
-            tile.textContent = number;
-
-            tile.addEventListener(
-                "click",
-                function() {
-                    moveTile(index);
-                }
-            );
+        for (let value = 1; value < n * n; value++) {
+            const wrap = document.createElement("div");
+            wrap.className = "tile-wrap";
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "tile";
+            btn.textContent = value;
+            btn.setAttribute("aria-label", "Tile " + value);
+            btn.addEventListener("click", () => slide(board.indexOf(value)));
+            wrap.appendChild(btn);
+            puzzleEl.appendChild(wrap);
+            tiles.set(value, wrap);
         }
+    }
 
-        puzzle.appendChild(tile);
+    function place(layout = board) {
+        layout.forEach((value, index) => {
+            if (!value) return;
+            const wrap = tiles.get(value);
+            wrap.style.setProperty("--r", Math.floor(index / n));
+            wrap.style.setProperty("--c", index % n);
+        });
+    }
+
+    function updateStats() {
+        movesEl.textContent = moves;
+        timeEl.textContent = formatTime(elapsed());
+        const best = store.read(n);
+        bestTimeEl.textContent = best.time !== undefined ? formatTime(best.time) : "-";
+        bestMovesEl.textContent = best.moves !== undefined ? best.moves : "-";
+    }
+
+    function renderLevels() {
+        const box = $("levels");
+        box.textContent = "";
+        LEVELS.forEach(level => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "level";
+            btn.setAttribute("aria-pressed", String(level.size === n));
+            btn.innerHTML = `${level.name}<small>${level.size}×${level.size}</small>`;
+            btn.addEventListener("click", () => { n = level.size; newGame(); });
+            box.appendChild(btn);
+        });
+    }
+
+    /* ---------- Game flow ---------- */
+    function stopTimer() {
+        clearInterval(timerId);
+        timerId = null;
+    }
+
+    function newGame() {
+        stopTimer();
+        board = generate();
+        moves = 0;
+        penalty = 0;
+        startedAt = null;
+        solved = false;
+        peeking = false;
+        overlay.hidden = true;
+        peekBtn.disabled = false;
+        puzzleEl.classList.remove("peek");
+        renderLevels();
+        buildTiles();
+        place();
+        updateStats();
+        messageEl.textContent = `Put the tiles in order from 1 to ${n * n - 1}. Click a tile, use arrow keys, or swipe a row.`;
+    }
+
+    // Slides the whole run of tiles between the clicked tile and the empty cell.
+    function slide(index) {
+        if (solved || peeking || index < 0) return;
+        const blank = board.indexOf(0);
+        if (index === blank) return;
+
+        const sameRow = Math.floor(index / n) === Math.floor(blank / n);
+        const sameCol = index % n === blank % n;
+        if (!sameRow && !sameCol) return;
+
+        const dir = sameRow ? (index > blank ? 1 : -1) : (index > blank ? n : -n);
+        let i = blank;
+        while (i !== index) {
+            board[i] = board[i + dir];
+            i += dir;
+        }
+        board[index] = 0;
+        moves += Math.abs(index - blank) / Math.abs(dir);
+
+        if (startedAt === null) {
+            startedAt = performance.now();
+            timerId = setInterval(updateStats, 250);
+        }
+        place();
+        updateStats();
+        if (isSolved(board)) finish();
+    }
+
+    function finish() {
+        solved = true;
+        stopTimer();
+        const time = elapsed();
+        const best = store.read(n);
+        const records = [];
+
+        if (best.time === undefined || time < best.time) { best.time = Math.round(time * 10) / 10; records.push("time"); }
+        if (best.moves === undefined || moves < best.moves) { best.moves = moves; records.push("moves"); }
+        store.write(n, best);
+        updateStats();
+
+        $("summary").innerHTML =
+            `${moves} moves in ${formatTime(time)}` +
+            (records.length ? `<br><span class="record">🏆 New best ${records.join(" and ")}!</span>` : "");
+        messageEl.textContent = "Puzzle solved.";
+        setTimeout(() => { overlay.hidden = false; $("againBtn").focus({ preventScroll: true }); }, 350);
+    }
+
+    function peek() {
+        if (solved || peeking) return;
+        peeking = true;
+        peekBtn.disabled = true;
+        if (startedAt === null) startedAt = performance.now();
+        if (!timerId) timerId = setInterval(updateStats, 250);
+        penalty += PEEK_PENALTY;
+        puzzleEl.classList.add("peek");
+        place(solvedLayout(n * n));
+        updateStats();
+        messageEl.textContent = `Peeking costs ${PEEK_PENALTY} seconds.`;
+
+        setTimeout(() => {
+            peeking = false;
+            peekBtn.disabled = solved;
+            puzzleEl.classList.remove("peek");
+            place();
+            messageEl.textContent = "";
+        }, PEEK_DURATION);
+    }
+
+    /* ---------- Input ---------- */
+    document.addEventListener("keydown", e => {
+        const blank = board.indexOf(0), r = Math.floor(blank / n), c = blank % n;
+        // arrow = direction the tile moves into the empty cell
+        const source = {
+            ArrowLeft: c < n - 1 ? blank + 1 : -1,
+            ArrowRight: c > 0 ? blank - 1 : -1,
+            ArrowUp: r < n - 1 ? blank + n : -1,
+            ArrowDown: r > 0 ? blank - n : -1
+        }[e.key];
+        if (source === undefined) return;
+        e.preventDefault();
+        slide(source);
     });
-}
 
-
-/* MOVE TILE */
-
-function moveTile(index) {
-
-    const emptyIndex = board.indexOf(0);
-
-    const row = Math.floor(index / 4);
-    const col = index % 4;
-
-    const emptyRow = Math.floor(emptyIndex / 4);
-    const emptyCol = emptyIndex % 4;
-
-
-    const isAdjacent =
-        Math.abs(row - emptyRow) +
-        Math.abs(col - emptyCol) === 1;
-
-
-    if (!isAdjacent) {
-        return;
-    }
-
-
-    board[emptyIndex] = board[index];
-    board[index] = 0;
-
-    moves++;
-
-    movesText.textContent = moves;
-
-    render();
-
-    checkWin();
-}
-
-
-/* CHECK WIN */
-
-function checkWin() {
-
-    for (let i = 0; i < 15; i++) {
-
-        if (board[i] !== i + 1) {
-            return;
-        }
-    }
-
-    message.textContent =
-        "🎉 Congratulations! Puzzle Solved!";
-
-
-    if (
-        best === null ||
-        moves < Number(best)
-    ) {
-
-        best = moves;
-
-        localStorage.setItem(
-            "puzzleBest",
-            best
-        );
-
-        bestText.textContent = best;
-    }
-}
-
-
-/* SHUFFLE */
-
-function shuffleBoard() {
-
-    /*
-       Start from solved board.
-       Make many valid moves.
-       This guarantees the puzzle
-       remains solvable.
-    */
-
-    board = [];
-
-    for (let i = 1; i <= 15; i++) {
-        board.push(i);
-    }
-
-    board.push(0);
-
-
-    let previousEmpty = -1;
-
-
-    for (let i = 0; i < 300; i++) {
-
-        const emptyIndex = board.indexOf(0);
-
-        const possibleMoves = [];
-
-
-        const row = Math.floor(emptyIndex / 4);
-        const col = emptyIndex % 4;
-
-
-        if (row > 0) {
-            possibleMoves.push(emptyIndex - 4);
-        }
-
-        if (row < 3) {
-            possibleMoves.push(emptyIndex + 4);
-        }
-
-        if (col > 0) {
-            possibleMoves.push(emptyIndex - 1);
-        }
-
-        if (col < 3) {
-            possibleMoves.push(emptyIndex + 1);
-        }
-
-
-        const filteredMoves =
-            possibleMoves.filter(
-                move => move !== previousEmpty
-            );
-
-
-        const randomIndex =
-            Math.floor(
-                Math.random() *
-                filteredMoves.length
-            );
-
-
-        const selected =
-            filteredMoves[randomIndex];
-
-
-        previousEmpty = emptyIndex;
-
-
-        board[emptyIndex] =
-            board[selected];
-
-        board[selected] = 0;
-    }
-
-
-    moves = 0;
-
-    movesText.textContent = moves;
-
-    message.textContent =
-        "Arrange the numbers from 1 to 15.";
-
-    render();
-}
-
-
-/* BUTTON */
-
-shuffleButton.addEventListener(
-    "click",
-    shuffleBoard
-);
-
-
-/* START */
-
-createBoard();
-
-shuffleBoard();
-
+    let touch = null;
+    puzzleEl.addEventListener("touchstart", e => { touch = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, { passive: true });
+    puzzleEl.addEventListener("touchend", e => {
+        if (!touch) return;
+        const dx = e.changedTouches[0].clientX - touch.x, dy = e.changedTouches[0].clientY - touch.y;
+        touch = null;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+        const blank = board.indexOf(0), r = Math.floor(blank / n), c = blank % n;
+        if (Math.abs(dx) > Math.abs(dy)) slide(dx < 0 ? (c < n - 1 ? blank + 1 : -1) : (c > 0 ? blank - 1 : -1));
+        else slide(dy < 0 ? (r < n - 1 ? blank + n : -1) : (r > 0 ? blank - n : -1));
+    }, { passive: true });
+
+    $("newBtn").addEventListener("click", newGame);
+    $("againBtn").addEventListener("click", newGame);
+    peekBtn.addEventListener("click", peek);
+
+    newGame();
+})();
 </script>
 
 </body>

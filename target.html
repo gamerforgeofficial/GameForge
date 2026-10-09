@@ -1,400 +1,483 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0b14">
+<meta name="description" content="Aim trainer with shrinking targets, combos and four difficulty levels. A GameForge mini game.">
+<title>Click the Target | GameForge</title>
 
-    <title>GameForge - Click the Target</title>
+<style>
+:root {
+    --bg: #0c0b14;
+    --panel: #161425;
+    --border: #2b2745;
+    --text: #f3f1ff;
+    --muted: #9a94bd;
+    --accent: #7c4dff;
+    --accent-2: #5b34d6;
+}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+* { box-sizing: border-box; }
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0f172a;
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 50% -10%, #231b4d 0%, var(--bg) 55%) fixed;
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color: transparent;
+}
 
-        .game {
-            width: 95%;
-            max-width: 700px;
-            text-align: center;
-        }
+.app { width: min(100%, 720px); margin: 0 auto; text-align: center; }
+h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 2.4rem); }
+.subtitle { margin: 4px 0 14px; color: var(--muted); }
 
-        h1 {
-            margin-bottom: 5px;
-        }
+.levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.level {
+    appearance: none;
+    padding: 9px 4px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--muted);
+    font: inherit;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+.level:hover { color: var(--text); }
+.level[aria-pressed="true"] { background: linear-gradient(145deg, var(--accent), var(--accent-2)); border-color: var(--accent); color: #fff; }
 
-        .subtitle {
-            color: #9ca3af;
-            margin-bottom: 20px;
-        }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.stat { padding: 8px 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
+.stat span { display: block; color: var(--muted); font-size: .7rem; }
+.stat b { font-size: 1.15rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-        /* SCORE */
+.stage {
+    position: relative;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: linear-gradient(145deg, #1b1830, #11101d);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .55);
+}
+.area {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 7 / 5;
+    min-height: 280px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(124, 77, 255, .12), transparent 65%),
+        linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px) 0 0 / 40px 40px,
+        #14121f;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, .6);
+}
+.area.hurt { animation: hurt .35s ease-out; }
+@keyframes hurt { 0% { box-shadow: inset 0 0 0 4px rgba(255, 60, 70, .9), inset 0 0 60px rgba(255, 60, 70, .6); } 100% { box-shadow: inset 0 2px 10px rgba(0, 0, 0, .6); } }
 
-        .info {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+.target { position: absolute; width: var(--s); height: var(--s); transform: translate(-50%, -50%); pointer-events: none; animation: pop .15s ease-out; }
+.ring {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ef4444 0 14%, #fff 14% 32%, #ef4444 32% 52%, #fff 52% 72%, #ef4444 72% 100%);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .55), 0 0 0 2px #fff, 0 0 16px rgba(239, 68, 68, .6);
+    animation: life var(--life) linear forwards;
+}
+.area.paused .ring { animation-play-state: paused; }
+@keyframes life { to { transform: scale(.3); } }
+@keyframes pop { from { opacity: 0; transform: translate(-50%, -50%) scale(.4); } }
 
-        .box {
-            flex: 1;
-            background: #1f2937;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 18px;
-        }
+.burst { position: absolute; border: 3px solid var(--c, #fff); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; animation: burst .4s ease-out forwards; }
+@keyframes burst { from { width: 10px; height: 10px; opacity: 1; } to { width: 74px; height: 74px; opacity: 0; } }
+.float { position: absolute; transform: translate(-50%, -50%); font-weight: 800; font-size: 1.05rem; color: var(--c, #fff); text-shadow: 0 2px 4px rgba(0, 0, 0, .8); pointer-events: none; white-space: nowrap; animation: float .8s ease-out forwards; }
+@keyframes float { to { transform: translate(-50%, -170%); opacity: 0; } }
 
-        /* GAME AREA */
+.overlay {
+    position: absolute;
+    inset: 6px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(12, 11, 20, .86);
+    backdrop-filter: blur(3px);
+}
+.overlay[hidden] { display: none; }
+.overlay h2 { margin: 0; font-size: 1.6rem; }
+.overlay p { margin: 0; color: var(--muted); line-height: 1.6; max-width: 460px; }
+.overlay .record { color: #ffd166; font-weight: 700; }
+.result { display: grid; grid-template-columns: repeat(3, auto); gap: 6px 22px; margin: 4px 0; }
+.result span { display: block; color: var(--muted); font-size: .7rem; }
+.result b { font-size: 1.1rem; }
 
-        #gameArea {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            background: #1e293b;
-            border: 5px solid #374151;
-            border-radius: 15px;
-            overflow: hidden;
-        }
+.btn {
+    appearance: none;
+    padding: 11px 26px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(145deg, var(--accent), var(--accent-2));
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(124, 77, 255, .35);
+    transition: transform .15s ease, filter .15s ease;
+}
+.btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.12); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.ghost { background: var(--panel); border: 1px solid var(--border); box-shadow: none; padding: 9px 14px; }
+.btn:focus-visible, .level:focus-visible, .back:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 
-        /* TARGET */
-
-        #target {
-            position: absolute;
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            border: 5px solid white;
-            background: #ef4444;
-            cursor: pointer;
-            display: none;
-
-            transform: translate(-50%, -50%);
-
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-        }
-
-        #target::before {
-            content: "";
-            position: absolute;
-
-            width: 35px;
-            height: 35px;
-
-            background: white;
-
-            border-radius: 50%;
-
-            left: 50%;
-            top: 50%;
-
-            transform: translate(-50%, -50%);
-        }
-
-        #target::after {
-            content: "";
-
-            position: absolute;
-
-            width: 15px;
-            height: 15px;
-
-            background: #ef4444;
-
-            border-radius: 50%;
-
-            left: 50%;
-            top: 50%;
-
-            transform: translate(-50%, -50%);
-        }
-
-        /* BUTTON */
-
-        button {
-            margin-top: 20px;
-
-            padding: 13px 30px;
-
-            font-size: 18px;
-
-            border: none;
-
-            border-radius: 10px;
-
-            background: #2563eb;
-
-            color: white;
-
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        button:disabled {
-            background: #4b5563;
-            cursor: not-allowed;
-        }
-
-        #message {
-            margin-top: 15px;
-            color: #d1d5db;
-            min-height: 25px;
-        }
-
-        /* MOBILE */
-
-        @media (max-width: 500px) {
-
-            #gameArea {
-                height: 330px;
-            }
-
-            .box {
-                font-size: 16px;
-                padding: 12px;
-            }
-
-            #target {
-                width: 55px;
-                height: 55px;
-            }
-        }
-    </style>
+.tools { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+.hint { min-height: 1.5em; margin: 12px 0 6px; color: var(--muted); font-size: .9rem; }
+.back { color: var(--muted); text-decoration: none; }
+.back:hover { color: var(--text); }
+@media (prefers-reduced-motion: reduce) { .ring { animation-duration: 0s !important; } * { transition: none !important; } }
+</style>
 </head>
 
 <body>
-
-<div class="game">
+<main class="app">
 
     <h1>🎯 Click the Target</h1>
+    <p class="subtitle">GameForge mini game</p>
 
-    <div class="subtitle">
-        GameForge Mini Game
-    </div>
+    <div class="levels" id="levels" role="group" aria-label="Difficulty"></div>
 
-    <!-- SCORE -->
+    <section class="stats" aria-label="Game stats">
+        <div class="stat"><span>Score</span><b id="score">0</b></div>
+        <div class="stat"><span>Time</span><b id="time">30s</b></div>
+        <div class="stat"><span>Lives</span><b id="lives"></b></div>
+        <div class="stat"><span>Combo</span><b id="combo">x1</b></div>
+    </section>
 
-    <div class="info">
-
-        <div class="box">
-            Score:
-            <strong id="score">0</strong>
+    <div class="stage">
+        <div class="area" id="area" aria-label="Game area"></div>
+        <div class="overlay" id="overlay">
+            <h2 id="ovTitle">Click the Target</h2>
+            <p id="ovText"></p>
+            <div class="result" id="result" hidden></div>
+            <button class="btn" id="startBtn" type="button">Start game</button>
         </div>
-
-        <div class="box">
-            Time:
-            <strong id="time">20</strong>s
-        </div>
-
     </div>
 
-
-    <!-- GAME AREA -->
-
-    <div id="gameArea">
-
-        <button id="target"></button>
-
+    <div class="tools">
+        <button class="btn ghost" id="pauseBtn" type="button" disabled>⏸ Pause</button>
+        <button class="btn ghost" id="soundBtn" type="button" aria-pressed="true" aria-label="Toggle sound">🔊</button>
     </div>
 
+    <p class="hint" id="message" role="status" aria-live="polite">Press Esc or P to pause.</p>
+    <a class="back" href="games.html">← Back to games</a>
 
-    <!-- START BUTTON -->
-
-    <button id="startButton">
-        Start Game
-    </button>
-
-    <div id="message">
-        Start the game and click the target!
-    </div>
-
-</div>
-
+</main>
 
 <script>
+(() => {
+    "use strict";
 
-    // =========================
-    // GAME VARIABLES
-    // =========================
+    /* ---------- Config ---------- */
+    const DURATION = 30000;   // ms
+    const MISS_PENALTY = 3;
+    const DIFFS = {
+        easy:   { name: "Easy",   size: 74, life: 1800, active: 1, spawn: 900, lives: 5 },
+        normal: { name: "Normal", size: 64, life: 1400, active: 2, spawn: 750, lives: 4 },
+        hard:   { name: "Hard",   size: 52, life: 1100, active: 3, spawn: 600, lives: 3 },
+        insane: { name: "Insane", size: 42, life: 850,  active: 4, spawn: 450, lives: 3 }
+    };
 
-    let score = 0;
+    /* ---------- DOM ---------- */
+    const $ = id => document.getElementById(id);
+    const area = $("area"), overlay = $("overlay"), ovTitle = $("ovTitle"), ovText = $("ovText"), resultEl = $("result");
+    const startBtn = $("startBtn"), pauseBtn = $("pauseBtn"), soundBtn = $("soundBtn");
+    const scoreEl = $("score"), timeEl = $("time"), livesEl = $("lives"), comboEl = $("combo"), messageEl = $("message");
 
-    let time = 20;
+    /* ---------- Storage & sound ---------- */
+    const store = {
+        get(id) { try { return Number(localStorage.getItem("targetBest-" + id)) || 0; } catch { return 0; } },
+        set(id, v) { try { localStorage.setItem("targetBest-" + id, String(v)); } catch { /* unavailable */ } }
+    };
+    const sound = {
+        on: true, ctx: null,
+        tone(freq, dur = 0.08, type = "triangle", vol = 0.06, slideTo = null) {
+            if (!this.on) return;
+            try {
+                const a = this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+                const t = a.currentTime, osc = a.createOscillator(), g = a.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, t);
+                if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+                g.gain.setValueAtTime(vol, t);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                osc.connect(g).connect(a.destination);
+                osc.start(t);
+                osc.stop(t + dur);
+            } catch { /* audio unavailable */ }
+        }
+    };
 
-    let gameRunning = false;
+    /* ---------- State ---------- */
+    let diff = "normal";
+    let status = "idle";      // idle | running | paused | over
+    let targets = [];
+    let score, combo, bestCombo, hits, shots, expired, lives, reactions, gameTime, spawnAcc, lastFrame = 0;
+    const cfg = () => DIFFS[diff];
+    const multiplier = () => Math.min(5, 1 + Math.floor(combo / 5));
 
-    let timer;
-
-
-    // =========================
-    // ELEMENTS
-    // =========================
-
-    const gameArea = document.getElementById("gameArea");
-
-    const target = document.getElementById("target");
-
-    const startButton = document.getElementById("startButton");
-
-    const scoreText = document.getElementById("score");
-
-    const timeText = document.getElementById("time");
-
-    const message = document.getElementById("message");
-
-
-    // =========================
-    // MOVE TARGET
-    // =========================
-
-    function moveTarget() {
-
-        const areaWidth = gameArea.clientWidth;
-
-        const areaHeight = gameArea.clientHeight;
-
-        const targetSize = target.offsetWidth;
-
-
-        const x =
-            targetSize / 2 +
-            Math.random() *
-            (areaWidth - targetSize);
-
-
-        const y =
-            targetSize / 2 +
-            Math.random() *
-            (areaHeight - targetSize);
-
-
-        target.style.left = x + "px";
-
-        target.style.top = y + "px";
+    /* ---------- UI helpers ---------- */
+    function updateHud() {
+        scoreEl.textContent = score;
+        timeEl.textContent = Math.max(0, Math.ceil((DURATION - gameTime) / 1000)) + "s";
+        livesEl.textContent = "❤️".repeat(lives) + "🖤".repeat(cfg().lives - lives);
+        comboEl.textContent = "x" + multiplier() + (combo ? ` (${combo})` : "");
     }
 
+    function showOverlay(title, text, button, resultHtml = "") {
+        ovTitle.textContent = title;
+        ovText.innerHTML = text;
+        resultEl.innerHTML = resultHtml;
+        resultEl.hidden = !resultHtml;
+        startBtn.textContent = button;
+        overlay.hidden = false;
+        startBtn.focus({ preventScroll: true });
+    }
 
-    // =========================
-    // START GAME
-    // =========================
+    function renderLevels() {
+        const box = $("levels");
+        box.textContent = "";
+        Object.entries(DIFFS).forEach(([id, d]) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "level";
+            btn.textContent = d.name;
+            btn.setAttribute("aria-pressed", String(id === diff));
+            btn.addEventListener("click", () => { diff = id; toIdle(); });
+            box.appendChild(btn);
+        });
+    }
+
+    function effect(cls, x, y, text, color) {
+        const el = document.createElement("div");
+        el.className = cls;
+        el.style.left = x + "px";
+        el.style.top = y + "px";
+        el.style.setProperty("--c", color);
+        if (text) el.textContent = text;
+        el.addEventListener("animationend", () => el.remove());
+        area.appendChild(el);
+    }
+
+    /* ---------- Game flow ---------- */
+    function resetRound() {
+        targets.forEach(t => t.el.remove());
+        targets = [];
+        score = 0; combo = 0; bestCombo = 0; hits = 0; shots = 0; expired = 0;
+        lives = cfg().lives; reactions = []; gameTime = 0; spawnAcc = 0;
+    }
+
+    function toIdle() {
+        status = "idle";
+        resetRound();
+        renderLevels();
+        updateHud();
+        area.classList.remove("paused");
+        pauseBtn.disabled = true;
+        const d = cfg();
+        showOverlay("Click the Target",
+            `Hit targets before they shrink away. Fast hits and bullseyes score more, and streaks build a multiplier.<br>` +
+            `Missed clicks cost ${MISS_PENALTY} points. Each escaped target costs a life.<br><b>${d.name}</b>: ${d.lives} lives, up to ${d.active} target${d.active > 1 ? "s" : ""} at once. Best: <b>${store.get(diff)}</b>`,
+            "Start game");
+    }
 
     function startGame() {
-
-        score = 0;
-
-        time = 20;
-
-        gameRunning = true;
-
-
-        scoreText.textContent = score;
-
-        timeText.textContent = time;
-
-
-        target.style.display = "block";
-
-
-        startButton.disabled = true;
-
-        startButton.textContent = "Game Running...";
-
-
-        message.textContent = "Quick! Click the target!";
-
-
-        moveTarget();
-
-
-        // TIMER
-
-        timer = setInterval(function() {
-
-            time--;
-
-            timeText.textContent = time;
-
-
-            if (time <= 0) {
-
-                endGame();
-
-            }
-
-        }, 1000);
+        if (status === "paused") return resume();
+        resetRound();
+        status = "running";
+        overlay.hidden = true;
+        pauseBtn.disabled = false;
+        pauseBtn.textContent = "⏸ Pause";
+        messageEl.textContent = "";
+        updateHud();
     }
 
+    function pause() {
+        if (status !== "running") return;
+        status = "paused";
+        area.classList.add("paused");
+        pauseBtn.textContent = "▶ Resume";
+        showOverlay("Paused", "Press Esc or P to continue.", "Resume");
+    }
 
-    // =========================
-    // CLICK TARGET
-    // =========================
+    function resume() {
+        if (status !== "paused") return;
+        status = "running";
+        area.classList.remove("paused");
+        pauseBtn.textContent = "⏸ Pause";
+        overlay.hidden = true;
+    }
 
-    target.addEventListener("click", function() {
+    function endGame(reason) {
+        status = "over";
+        pauseBtn.disabled = true;
+        targets.forEach(t => t.el.remove());
+        targets = [];
+        sound.tone(300, 0.4, "sawtooth", 0.07, 90);
 
-        if (!gameRunning) {
+        const best = store.get(diff), record = score > best;
+        if (record) store.set(diff, score);
+        const accuracy = shots ? Math.round((hits / shots) * 100) : 0;
+        const avg = reactions.length ? Math.round(reactions.reduce((a, b) => a + b, 0) / reactions.length) : 0;
+        const cell = (label, value) => `<div><span>${label}</span><b>${value}</b></div>`;
 
-            return;
+        showOverlay(reason, record ? '<span class="record">🏆 New best score!</span>' : `Best: <b>${best}</b>`, "Play again",
+            cell("Score", score) + cell("Hits", hits) + cell("Accuracy", accuracy + "%") +
+            cell("Avg reaction", avg ? avg + " ms" : "-") + cell("Best combo", bestCombo) + cell("Escaped", expired));
+        messageEl.textContent = "Pick a harder level when you are ready.";
+    }
 
+    /* ---------- Targets ---------- */
+    function spawnTarget() {
+        const d = cfg(), ramp = gameTime / DURATION;
+        const size = d.size, life = d.life * (1 - 0.25 * ramp);
+        const w = area.clientWidth, h = area.clientHeight, margin = size / 2 + 8;
+
+        let x, y, tries = 0;
+        do {
+            x = margin + Math.random() * (w - margin * 2);
+            y = margin + Math.random() * (h - margin * 2);
+            tries++;
+        } while (tries < 25 && targets.some(t => Math.hypot(t.x - x, t.y - y) < size * 1.3));
+
+        const el = document.createElement("div");
+        el.className = "target";
+        el.style.cssText = `left:${x}px;top:${y}px;--s:${size}px;--life:${life}ms`;
+        el.innerHTML = '<div class="ring"></div>';
+        area.appendChild(el);
+        targets.push({ el, x, y, size, born: gameTime, life });
+    }
+
+    const scaleOf = t => 1 - 0.7 * Math.min(1, (gameTime - t.born) / t.life);
+
+    function removeTarget(t) {
+        t.el.remove();
+        targets = targets.filter(o => o !== t);
+    }
+
+    function expireTarget(t) {
+        removeTarget(t);
+        expired++;
+        combo = 0;
+        lives--;
+        sound.tone(160, 0.25, "sawtooth", 0.07, 80);
+        area.classList.remove("hurt");
+        void area.offsetWidth;
+        area.classList.add("hurt");
+        updateHud();
+        if (lives <= 0) endGame("Out of lives");
+    }
+
+    function hitTarget(t, dist, radius) {
+        const age = gameTime - t.born;
+        const bullseye = dist <= radius * 0.28;
+        const speed = (1 - age / t.life) * 10;
+
+        combo++;
+        bestCombo = Math.max(bestCombo, combo);
+        hits++; shots++;
+        reactions.push(age);
+
+        const points = Math.round((10 + speed) * multiplier() * (bullseye ? 2 : 1));
+        score += points;
+        sound.tone(480 + Math.min(combo, 20) * 28, 0.08);
+        effect("burst", t.x, t.y, "", bullseye ? "#ffd166" : "#ffffff");
+        effect("float", t.x, t.y - 10, (bullseye ? "Bullseye +" : "+") + points, bullseye ? "#ffd166" : "#ffffff");
+        removeTarget(t);
+        updateHud();
+    }
+
+    function missClick(x, y) {
+        shots++;
+        combo = 0;
+        score = Math.max(0, score - MISS_PENALTY);
+        sound.tone(140, 0.12, "square", 0.04);
+        effect("float", x, y, "-" + MISS_PENALTY, "#ff6b7a");
+        updateHud();
+    }
+
+    /* ---------- Loop ---------- */
+    function frame(now) {
+        requestAnimationFrame(frame);
+        const dt = Math.min(now - lastFrame, 100);
+        lastFrame = now;
+        if (status !== "running") return;
+
+        gameTime += dt;
+        if (gameTime >= DURATION) { gameTime = DURATION; updateHud(); endGame("Time's up!"); return; }
+
+        for (const t of [...targets]) {
+            if (status === "running" && gameTime - t.born >= t.life) expireTarget(t);
         }
+        if (status !== "running") return;
 
-
-        score++;
-
-        scoreText.textContent = score;
-
-
-        moveTarget();
-
-    });
-
-
-    // =========================
-    // END GAME
-    // =========================
-
-    function endGame() {
-
-        gameRunning = false;
-
-
-        clearInterval(timer);
-
-
-        target.style.display = "none";
-
-
-        startButton.disabled = false;
-
-        startButton.textContent = "Play Again";
-
-
-        message.textContent =
-            "Game Over! Your score is " + score + " 🎉";
+        spawnAcc += dt;
+        const interval = cfg().spawn * (1 - 0.3 * (gameTime / DURATION));
+        if (targets.length === 0 || (spawnAcc >= interval && targets.length < cfg().active)) {
+            spawnAcc = 0;
+            spawnTarget();
+        }
+        updateHud();
     }
 
+    /* ---------- Input ---------- */
+    area.addEventListener("pointerdown", e => {
+        if (status !== "running") return;
+        const rect = area.getBoundingClientRect();
+        const x = e.clientX - rect.left, y = e.clientY - rect.top;
 
-    // =========================
-    // START BUTTON
-    // =========================
-
-    startButton.addEventListener("click", function() {
-
-        startGame();
-
+        let best = null;
+        targets.forEach(t => {
+            const dist = Math.hypot(t.x - x, t.y - y), radius = (t.size / 2) * scaleOf(t);
+            if (dist <= radius * 1.15 && (!best || dist / radius < best.dist / best.radius)) best = { t, dist, radius };
+        });
+        if (best) hitTarget(best.t, best.dist, best.radius);
+        else missClick(x, y);
     });
 
+    document.addEventListener("keydown", e => {
+        const key = e.key.toLowerCase();
+        if (key === "escape" || key === "p") {
+            if (status === "running") pause();
+            else if (status === "paused") resume();
+        }
+    });
+
+    startBtn.addEventListener("click", startGame);
+    pauseBtn.addEventListener("click", () => (status === "running" ? pause() : resume()));
+    soundBtn.addEventListener("click", () => {
+        sound.on = !sound.on;
+        soundBtn.textContent = sound.on ? "🔊" : "🔇";
+        soundBtn.setAttribute("aria-pressed", String(sound.on));
+    });
+    document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
+    window.addEventListener("blur", pause);
+
+    /* ---------- Init ---------- */
+    toIdle();
+    requestAnimationFrame(t => { lastFrame = t; frame(t); });
+})();
 </script>
 
 </body>
