@@ -87,6 +87,13 @@ header{
   background:linear-gradient(135deg,#7542d7,#242c72);
   box-shadow:0 0 22px rgba(139,92,246,.28);font-size:22px
 }
+.logo-image {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    display: block;
+    flex-shrink: 0;
+}
 .logo-name{font-family:Orbitron,sans-serif;font-size:19px;font-weight:900;letter-spacing:.3px}
 .logo-name span{color:var(--blue)}
 .nav-links{display:flex;align-items:center;gap:22px}
@@ -474,9 +481,9 @@ body::before {
 <header>
   <div class="container nav">
     <a href="index.html" class="logo" aria-label="GameForge Home">
-      <span class="logo-icon">🎮</span>
-      <span class="logo-name">GAME<span>FORGE</span></span>
-    </a>
+    <img src="gameforge-logo.png.jpeg" alt="GameForge Logo" class="logo-image">
+    <span class="logo-name">GAME<span>FORGE</span></span>
+</a>
 
     <nav class="nav-links" id="navLinks" aria-label="Main navigation">
       <a href="#home">Home</a>
@@ -685,7 +692,7 @@ body::before {
 <footer>
   <div class="container footer-inner">
     <a href="#home" class="logo">
-      <span class="logo-icon">🎮</span>
+      <img src="gameforge-logo.png" alt="GameForge Logo" class="logo-image">
       <span class="logo-name">GAME<span>FORGE</span></span>
     </a>
     <p class="footer-copy">© <span id="year"></span> GameForge. Forge Your World. Play Your Game.</p>
