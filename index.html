@@ -469,6 +469,21 @@ body::before {
     animation: none;
   }
 }
+.logout-btn {
+  background: transparent;
+  color: #00f7ff;
+  border: 1px solid #00f7ff;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.logout-btn:hover {
+  background: #00f7ff;
+  color: #000;
+  box-shadow: 0 0 15px #00f7ff;
+}
 </style>
 </head>
 
@@ -492,7 +507,7 @@ body::before {
       <a href="#about">About</a>
       <a href="#games">Games</a>
       <a href="#contact">Contact</a>
-      <a href="login.html" class="btn btn-small btn-outline desktop-only" id="loginLink">Login ↗</a>
+      
     </nav>
 
     <div class="nav-actions">
@@ -808,12 +823,29 @@ document.addEventListener("click", event => {
 /* Supabase session status. Login and account creation stay on login.html. */
 const SUPABASE_URL = "https://tzjqlrpdvblbucxqsbtp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_aN0H5r-h8RRducZp79FNgA_URPgcNVg";
+let gameforgeSupabase = null;
+if (window.supabase && window.supabase.createClient) {
+  gameforgeSupabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+}
 
 const userArea = document.getElementById("userArea");
 const userAvatar = document.getElementById("userAvatar");
 const userName = document.getElementById("userName");
 const loginLink = document.getElementById("loginLink");
 const aboutLogin = document.getElementById("aboutLogin");
+async function logoutUser() {
+  const { error } = await gameforgeSupabase.auth.signOut();
+
+  if (error) {
+    alert("Logout failed: " + error.message);
+    return;
+  }
+ showSignedOut();
+  window.location.href = "index.html";
+}
 
 function showSignedOut() {
   userArea.style.display = "none";
@@ -822,6 +854,7 @@ function showSignedOut() {
   loginLink.href = "login.html";
   aboutLogin.textContent = "Join GameForge";
   aboutLogin.href = "login.html";
+  
 }
 
 function showSignedIn(user) {
@@ -833,11 +866,21 @@ function showSignedIn(user) {
   loginLink.style.display = "none";
   aboutLogin.textContent = "Play Games ↗";
   aboutLogin.href = "games.html";
+  let logoutBtn = document.getElementById("logoutBtn");
+
+if (!logoutBtn) {
+  logoutBtn = document.createElement("button");
+  logoutBtn.id = "logoutBtn";
+  logoutBtn.textContent = "Logout";
+  logoutBtn.className = "logout-btn";
+  logoutBtn.addEventListener("click", logoutUser);
+  userArea.appendChild(logoutBtn);
+}
 }
 
 if (window.supabase && window.supabase.createClient) {
   try {
-    const gameforgeSupabase = window.supabase.createClient(
+    gameforgeSupabase = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY
     );
