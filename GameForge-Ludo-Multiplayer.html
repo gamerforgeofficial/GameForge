@@ -62,6 +62,15 @@ body {
 select { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid #6a4a2e; background: #2a1a10; color: var(--text); }
 select:disabled { opacity: .45; }
 
+.ranking-panel { margin: 12px 0; padding: 14px; border: 1px solid #6a4a2e; border-radius: 12px; background: rgba(35, 22, 14, .92); }
+.ranking-head { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.ranking-head h2 { margin:0; color:#ecd6a6; font-size:1.1rem; }
+.ranking-table { width:100%; border-collapse:collapse; font-size:.9rem; }
+.ranking-table th,.ranking-table td { padding:9px 6px; text-align:left; border-bottom:1px solid rgba(201,161,90,.22); }
+.ranking-table th { color:var(--muted); font-size:.76rem; }
+.ranking-table tr.me { background:rgba(201,161,90,.12); }
+.rank-note { color:var(--muted); font-size:.82rem; margin:8px 0 0; }
+.ranking-empty { color:var(--muted); padding:12px 0; }
 .status { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 10px; font-weight: 700; font-size: 1.1rem; }
 .timer { color: #f4c95d; font-variant-numeric: tabular-nums; }
 
@@ -152,11 +161,15 @@ select:disabled { opacity: .45; }
     z-index: 10;
     cursor: default;
     filter: drop-shadow(0 .5cqw .4cqw rgba(0, 0, 0, .55));
-    transition: translate .12s ease;
+    transition: translate .12s ease, filter .12s ease;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 .token svg { display: block; width: 100%; height: 100%; }
 .token .num { position: absolute; left: 0; right: 0; top: 18%; text-align: center; font-size: 2.2cqw; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .8); pointer-events: none; }
 .token.movable { cursor: pointer; z-index: 20; animation: hop .55s ease-in-out infinite alternate; }
+.token.step-land { animation: token-land .12s ease-out; }
+@keyframes token-land { 0% { transform: scale(.92); } 55% { transform: translateY(-7%) scale(1.08); } 100% { transform: scale(1); } }
 .token.movable:focus-visible { outline: 3px solid #fff; border-radius: 50%; }
 @keyframes hop { to { transform: translateY(-14%); } }
 
@@ -210,6 +223,16 @@ select:disabled { opacity: .45; }
     .board-wrap { padding: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
+@media (max-width: 560px) {
+    .setup { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .board-wrap { padding: 8px; }
+    .ranking-panel { padding: 10px; }
+    .ranking-table th, .ranking-table td { padding: 8px 5px; white-space: nowrap; }
+    .btn { padding: 9px 11px; }
+}
 </style>
 </head>
 
@@ -296,6 +319,21 @@ select:disabled { opacity: .45; }
         <div class="field" style="grid-column:1/-1">
             <div id="onlineStatus" role="status" aria-live="polite" style="font-size:.9rem;color:var(--muted)">Online mode requires a signed-in GameForge account.</div>
         </div>
+    </section>
+
+    <section class="ranking-panel" aria-label="Ludo leaderboard">
+        <div class="ranking-head">
+            <h2>🏆 GameForge Ludo Rankings</h2>
+            <button class="btn" id="refreshRankings" type="button">Refresh rankings</button>
+        </div>
+        <div id="rankingStatus" class="ranking-empty" role="status" aria-live="polite">Sign in and refresh to load online rankings.</div>
+        <div style="overflow-x:auto">
+            <table class="ranking-table" id="rankingTable" style="display:none">
+                <thead><tr><th>Rank</th><th>Player</th><th>Rating</th><th>Wins</th><th>Losses</th><th>Games</th></tr></thead>
+                <tbody id="rankingRows"></tbody>
+            </table>
+        </div>
+        <p class="rank-note">Online matches only · Win +25 rating · Participation +5 rating</p>
     </section>
 
     <div class="status">
@@ -405,6 +443,8 @@ select:disabled { opacity: .45; }
     let timerId = null;
     const cells = new Map();
     const slots = {};
+    // Keep token DOM nodes alive between renders to reduce flicker and layout work.
+    const tokenNodes = Object.create(null);
 
     function newState() {
         return {
@@ -534,32 +574,51 @@ select:disabled { opacity: .45; }
     }
 
     function render() {
-        board.querySelectorAll(".token").forEach(t => t.remove());
         const stack = new Map();
 
         state.players.forEach(color => {
             state.tokens[color].forEach((pos, i) => {
+                const tokenKey = `${color}-${i}`;
+                let token = tokenNodes[tokenKey];
+                if (!token) {
+                    token = document.createElement("button");
+                    token.type = "button";
+                    token.innerHTML = `<svg viewBox="0 0 100 120" aria-hidden="true"><use href="#pawn"/></svg><span class="num">${i + 1}</span>`;
+                    token.setAttribute("aria-label", `${NAMES[color]} token ${i + 1}`);
+                    token.addEventListener("click", () => onToken(color, i));
+                    tokenNodes[tokenKey] = token;
+                }
+
                 const parent = parentFor(color, i);
-                if (!parent) return;
+                if (!parent) {
+                    token.remove();
+                    return;
+                }
 
                 const movable = state.rolled && !state.busy && !state.winner &&
                     color === current() && isHuman(color) && canMove(color, i, state.dice);
-
-                const token = document.createElement("button");
-                token.type = "button";
                 token.className = `token ${color}` + (movable ? " movable" : "");
                 token.tabIndex = movable ? 0 : -1;
-                token.setAttribute("aria-label", `${NAMES[color]} token ${i + 1}`);
-                token.innerHTML = `<svg viewBox="0 0 100 120" aria-hidden="true"><use href="#pawn"/></svg><span class="num">${i + 1}</span>`;
 
                 if (pos !== -1) {
                     const n = stack.get(parent) || 0;
                     stack.set(parent, n + 1);
                     const [x, y] = OFFSETS[Math.min(n, 4)];
                     token.style.translate = `${x}% ${y}%`;
+                } else {
+                    token.style.translate = "0% 0%";
                 }
-                token.addEventListener("click", () => onToken(color, i));
-                parent.appendChild(token);
+                // Re-parent the same node instead of destroying/recreating it every frame.
+                if (token.parentElement !== parent) {
+                    const wasOnBoard = !!token.parentElement;
+                    parent.appendChild(token);
+                    if (wasOnBoard) {
+                        token.classList.remove("step-land");
+                        void token.offsetWidth;
+                        token.classList.add("step-land");
+                        setTimeout(() => token.classList.remove("step-land"), 140);
+                    }
+                }
             });
         });
 
@@ -677,7 +736,10 @@ select:disabled { opacity: .45; }
             stopTimer();
             sound.win();
             render();
-            if (state.mode === "online") await syncOnlineState();
+            if (state.mode === "online") {
+                await syncOnlineState();
+                await recordOnlineResult(color);
+            }
             say(`${NAMES[color]} wins! Press New game to play again.`);
             return;
         }
@@ -888,6 +950,7 @@ select:disabled { opacity: .45; }
         if (state.winner) {
             stopTimer();
             say(`${NAMES[state.winner]} wins!`);
+            if (state.mode === "online") recordOnlineResult(state.winner);
         } else {
             startTimer();
             say(state.rolled ? `${NAMES[current()]} rolled ${state.dice}. Choose a highlighted token.` : `${NAMES[current()]}'s turn.`);
@@ -919,6 +982,64 @@ select:disabled { opacity: .45; }
             setOnlineStatus(`Game started in room ${onlineRoomCode}. You are ${NAMES[myColor]}.`);
             say("Online game started. Roll when it is your turn.");
         } catch (e) { setOnlineStatus(e.message || "Could not start online game."); }
+    }
+
+    /* ---------- Online rankings ---------- */
+    let rankingRequestBusy = false;
+
+    async function recordOnlineResult(winnerColor) {
+        if (!sb || !onlineRoomId || !winnerColor || rankingRequestBusy) return;
+        try {
+            const { data: userData } = await sb.auth.getUser();
+            if (!userData || !userData.user) return;
+            const { error } = await sb.rpc("record_ludo_ranked_result", {
+                p_room_id: onlineRoomId,
+                p_winner_color: winnerColor
+            });
+            if (error) {
+                console.warn("Ranking update failed:", error.message);
+                $("rankingStatus").textContent = "Ranking update pending: " + error.message;
+                return;
+            }
+            await loadRankings();
+        } catch (e) {
+            console.warn("Could not update ranking", e);
+        }
+    }
+
+    async function loadRankings() {
+        const statusEl = $("rankingStatus");
+        const tableEl = $("rankingTable");
+        const rowsEl = $("rankingRows");
+        if (!sb) { statusEl.textContent = "Supabase is not configured."; tableEl.style.display = "none"; return; }
+        try {
+            const { data: userData, error: userError } = await sb.auth.getUser();
+            if (userError) throw userError;
+            if (!userData.user) { statusEl.textContent = "Please log in to GameForge to view online rankings."; tableEl.style.display = "none"; return; }
+            const { data, error } = await sb.from("ludo_rankings")
+                .select("user_id, display_name, rating, wins, losses, games_played")
+                .order("rating", { ascending: false }).order("wins", { ascending: false }).limit(20);
+            if (error) throw error;
+            rowsEl.innerHTML = "";
+            if (!data || !data.length) {
+                statusEl.textContent = "No ranked matches yet. Finish an online match to start the leaderboard.";
+                tableEl.style.display = "none";
+                return;
+            }
+            data.forEach((player, index) => {
+                const tr = document.createElement("tr");
+                if (player.user_id === userData.user.id) tr.className = "me";
+                const values = [String(index + 1), player.display_name || "GameForge Player", String(player.rating ?? 1000), String(player.wins || 0), String(player.losses || 0), String(player.games_played || 0)];
+                values.forEach(value => { const td = document.createElement("td"); td.textContent = value; tr.appendChild(td); });
+                rowsEl.appendChild(tr);
+            });
+            tableEl.style.display = "table";
+            const myIndex = data.findIndex(player => player.user_id === userData.user.id);
+            statusEl.textContent = myIndex >= 0 ? `Your leaderboard position: #${myIndex + 1}` : "Top 20 players · Finish an online match to get ranked.";
+        } catch (e) {
+            statusEl.textContent = "Could not load rankings. Run the ranking SQL setup in Supabase first. " + (e.message || "");
+            tableEl.style.display = "none";
+        }
     }
 
     /* ---------- Timer ---------- */
@@ -981,6 +1102,8 @@ select:disabled { opacity: .45; }
             if (myUserId) startOnlineGame();
         } else resetGame();
     });
+    $("refreshRankings").addEventListener("click", loadRankings);
+
     $("soundBtn").addEventListener("click", e => {
         sound.on = !sound.on;
         e.currentTarget.textContent = sound.on ? "🔊" : "🔇";
@@ -998,6 +1121,9 @@ select:disabled { opacity: .45; }
             if (data && data.user) {
                 myUserId = data.user.id;
                 setOnlineStatus("Signed in. Choose Online multiplayer to create/join a room.");
+                loadRankings();
+            } else {
+                loadRankings();
             }
         }).catch(() => {});
     }
