@@ -1,16 +1,294 @@
-<p class="helper tap">Hover over the tap to fill the mug</p>
-<h1>Fill the mug <span id="target">0</span>%</h1>
-<h2 id="percent-filled"></h2>
-<h3 id="result"></h3>
-<div id="tap-container">
-  <div id="tap"></div>
-  <div id="handle"></div>
-  <div id="pour"></div>
-</div>
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Chess: The Grid War</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
 
-<div id="mug-container">
-  <div id="mug">
-  <div id="beer"></div>
-</div>  
+        body {
+            background-color: #050508;
+            color: #00ffcc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-<p class="helper mug">Click the mug to reset</p>
+        h1 {
+            font-size: 2rem;
+            color: #ff007f;
+            text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: #00ffcc;
+            text-shadow: 0 0 5px #00ffcc;
+        }
+
+        #game-board {
+            width: 400px;
+            height: 400px;
+            background: #0d0e15;
+            border: 3px solid #00ffcc;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.4), inset 0 0 15px rgba(0, 255, 204, 0.2);
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            position: relative;
+        }
+
+        .cell {
+            border: 1px solid rgba(0, 255, 204, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            user-select: none;
+        }
+
+        .cell.dark {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Neon Entities */
+        .player {
+            color: #00ffcc;
+            text-shadow: 0 0 12px #00ffcc, 0 0 25px #00ffcc;
+            animation: pulse 1s infinite alternate;
+        }
+
+        .target {
+            color: #ff007f;
+            text-shadow: 0 0 12px #ff007f, 0 0 25px #ff007f;
+        }
+
+        .glitch {
+            color: #ffe600;
+            text-shadow: 0 0 10px #ffe600;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(0.9); }
+            to { transform: scale(1.1); }
+        }
+
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        button {
+            background: #00ffcc;
+            color: #050508;
+            border: none;
+            padding: 10px 18px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ffcc;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+            background: #ff007f;
+            color: #fff;
+            box-shadow: 0 0 10px #ff007f;
+        }
+
+        .instructions {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>THE GRID WAR</h1>
+    
+    <div class="hud">
+        <div>SCORE: <span id="score">0</span></div>
+        <div>GRID: <span id="level">1</span></div>
+    </div>
+
+    <div id="game-board"></div>
+
+    <div class="controls">
+        <button onclick="movePlayer(0, -1)">▲</button>
+        <div class="btn-row">
+            <button onclick="movePlayer(-1, 0)">◄</button>
+            <button onclick="movePlayer(0, 1)">▼</button>
+            <button onclick="movePlayer(1, 0)">►</button>
+        </div>
+    </div>
+
+    <div class="instructions">
+        PC: Arrow Keys se khelo | Goal: Red Pawn (♟) ko capture karo, Yellow Glitches (⚡) se bacho!
+    </div>
+
+    <script>
+        const boardSize = 8;
+        const board = document.getElementById('game-board');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+
+        let playerPos = { x: 0, y: 7 };
+        let targetPos = { x: 7, y: 0 };
+        let glitches = [];
+        let score = 0;
+        let level = 1;
+
+        function createBoard() {
+            board.innerHTML = '';
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    if ((r + c) % 2 === 1) cell.classList.add('dark');
+                    cell.dataset.x = c;
+                    cell.dataset.y = r;
+                    board.appendChild(cell);
+                }
+            }
+            render();
+        }
+
+        function spawnTarget() {
+            targetPos = {
+                x: Math.floor(Math.random() * boardSize),
+                y: Math.floor(Math.random() * boardSize)
+            };
+            if (targetPos.x === playerPos.x && targetPos.y === playerPos.y) {
+                spawnTarget();
+            }
+        }
+
+        function spawnGlitches() {
+            glitches = [];
+            for (let i = 0; i < level; i++) {
+                let gPos = {
+                    x: Math.floor(Math.random() * boardSize),
+                    y: Math.floor(Math.random() * boardSize)
+                };
+                if ((gPos.x !== playerPos.x || gPos.y !== playerPos.y) && 
+                    (gPos.x !== targetPos.x || gPos.y !== targetPos.y)) {
+                    glitches.push(gPos);
+                }
+            }
+        }
+
+        function render() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.innerHTML = '';
+                cell.className = 'cell' + ((parseInt(cell.dataset.x) + parseInt(cell.dataset.y)) % 2 === 1 ? ' dark' : '');
+            });
+
+            // Draw Player (King)
+            const playerCell = getCell(playerPos.x, playerPos.y);
+            if (playerCell) {
+                playerCell.innerHTML = '♚';
+                playerCell.classList.add('player');
+            }
+
+            // Draw Target (Enemy Pawn)
+            const targetCell = getCell(targetPos.x, targetPos.y);
+            if (targetCell) {
+                targetCell.innerHTML = '♟';
+                targetCell.classList.add('target');
+            }
+
+            // Draw Glitches
+            glitches.forEach(g => {
+                const gCell = getCell(g.x, g.y);
+                if (gCell) {
+                    gCell.innerHTML = '⚡';
+                    gCell.classList.add('glitch');
+                }
+            });
+        }
+
+        function getCell(x, y) {
+            return document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+        }
+
+        function movePlayer(dx, dy) {
+            const newX = playerPos.x + dx;
+            const newY = playerPos.y + dy;
+
+            if (newX >= 0 && newX < boardSize && newY >= 0 && newY < boardSize) {
+                playerPos.x = newX;
+                playerPos.y = newY;
+
+                // Check Glitch Collision
+                if (glitches.some(g => g.x === playerPos.x && g.y === playerPos.y)) {
+                    alert(`SYSTEM CRASH! Game Over. Final Score: ${score}`);
+                    score = 0;
+                    level = 1;
+                    playerPos = { x: 0, y: 7 };
+                    scoreEl.innerText = score;
+                    levelEl.innerText = level;
+                    spawnTarget();
+                    spawnGlitches();
+                    render();
+                    return;
+                }
+
+                // Check Target Capture
+                if (playerPos.x === targetPos.x && playerPos.y === targetPos.y) {
+                    score += 100;
+                    scoreEl.innerText = score;
+                    if (score % 300 === 0) {
+                        level++;
+                        levelEl.innerText = level;
+                    }
+                    spawnTarget();
+                    spawnGlitches();
+                }
+
+                render();
+            }
+        }
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') movePlayer(0, -1);
+            if (e.key === 'ArrowDown') movePlayer(0, 1);
+            if (e.key === 'ArrowLeft') movePlayer(-1, 0);
+            if (e.key === 'ArrowRight') movePlayer(1, 0);
+        });
+
+        // Initialize Game
+        spawnTarget();
+        spawnGlitches();
+        createBoard();
+    </script>
+</body>
+</html>

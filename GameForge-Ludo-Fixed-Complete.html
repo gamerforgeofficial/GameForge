@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#24160d">
+<meta name="description" content="Ludo - play with friends on one device or against robots. A GameForge mini game.">
+<title>Ludo | GameForge</title>
+
+<style>
+:root { --text: #f4ead8; --muted: #b9a58a; --brass: #c9a15a; }
+.red { --tc: #e0262d; --tcd: #9e1218; }
+.green { --tc: #2fb32a; --tcd: #1c7a18; }
+.yellow { --tc: #f4b81a; --tcd: #b98400; }
+.blue { --tc: #1a85e6; --tcd: #0e56a0; }
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 50% 0%, #4d3321 0%, #26170e 55%, #120a05 100%) fixed;
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    padding: max(12px, env(safe-area-inset-top)) 10px max(12px, env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color: transparent;
+}
+.wrap { width: min(100%, 780px); margin: 0 auto; }
+
+.top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.brand { font-family: Georgia, serif; font-size: 1.6rem; font-weight: 700; color: #ecd6a6; text-shadow: 0 2px 6px rgba(0, 0, 0, .7); }
+.actions { display: flex; gap: 8px; }
+
+.btn {
+    appearance: none;
+    border: 1px solid var(--brass);
+    border-radius: 8px;
+    padding: 9px 16px;
+    background: linear-gradient(#7d5430, #4f311b);
+    color: var(--text);
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 230, 170, .25);
+    transition: transform .15s ease, filter .15s ease;
+}
+.btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+.btn:focus-visible, select:focus-visible, .die:focus-visible { outline: 3px solid #1e6bff; outline-offset: 2px; }
+
+.setup {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: rgba(35, 22, 14, .88);
+    border: 1px solid #6a4a2e;
+    border-radius: 12px;
+}
+.field label { display: block; margin-bottom: 4px; font-size: .75rem; font-weight: 700; color: var(--muted); }
+.field select, .field .btn { width: 100%; }
+select { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid #6a4a2e; background: #2a1a10; color: var(--text); }
+select:disabled { opacity: .45; }
+
+.ranking-panel { margin: 12px 0; padding: 14px; border: 1px solid #6a4a2e; border-radius: 12px; background: rgba(35, 22, 14, .92); }
+.ranking-head { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.ranking-head h2 { margin:0; color:#ecd6a6; font-size:1.1rem; }
+.ranking-table { width:100%; border-collapse:collapse; font-size:.9rem; }
+.ranking-table th,.ranking-table td { padding:9px 6px; text-align:left; border-bottom:1px solid rgba(201,161,90,.22); }
+.ranking-table th { color:var(--muted); font-size:.76rem; }
+.ranking-table tr.me { background:rgba(201,161,90,.12); }
+.rank-note { color:var(--muted); font-size:.82rem; margin:8px 0 0; }
+.ranking-empty { color:var(--muted); padding:12px 0; }
+.status { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 10px; font-weight: 700; font-size: 1.1rem; }
+.timer { color: #f4c95d; font-variant-numeric: tabular-nums; }
+
+/* ---------- Board ---------- */
+.board-wrap {
+    container-type: inline-size;
+    padding: 14px;
+    border-radius: 10px;
+    background:
+        repeating-linear-gradient(92deg, rgba(0, 0, 0, .10) 0 2px, transparent 2px 7px),
+        linear-gradient(135deg, #7a4f2d, #4d2f19 55%, #6a4326);
+    box-shadow: 0 22px 45px rgba(0, 0, 0, .65), inset 0 0 0 2px #2d1a0d, inset 0 0 0 4px rgba(255, 220, 160, .18);
+}
+.board {
+    position: relative;
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    background: linear-gradient(145deg, #fbf7ea, #e9e2cc);
+    box-shadow: 0 0 0 2px #2d1a0d, inset 0 0 18px rgba(0, 0, 0, .3);
+}
+.cell { position: relative; display: flex; align-items: center; justify-content: center; }
+.track {
+    background: linear-gradient(145deg, #fffefb, #e7e3d8);
+    border: 1px solid rgba(70, 50, 30, .35);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, .15);
+}
+.lane { background: linear-gradient(145deg, var(--tc), var(--tcd)); border: 1px solid rgba(0, 0, 0, .3); box-shadow: inset 0 1px 3px rgba(255, 255, 255, .4); }
+.start { background: linear-gradient(145deg, var(--tc), var(--tcd)); }
+.safe::after { content: "★"; font-size: 3.4cqw; color: rgba(40, 30, 20, .5); }
+.start.safe::after { color: rgba(255, 255, 255, .9); }
+
+.home {
+    position: absolute;
+    width: 40%;
+    height: 40%;
+    padding: 3.2%;
+    z-index: 2;
+    border-radius: 2.2cqw;
+    background: linear-gradient(145deg, var(--tc), var(--tcd));
+    box-shadow: inset 0 2px 6px rgba(255, 255, 255, .35), inset 0 -4px 10px rgba(0, 0, 0, .35);
+}
+.home.off { filter: grayscale(1) brightness(.55); }
+.home.red { left: 0; top: 0; }
+.home.green { right: 0; top: 0; }
+.home.blue { left: 0; bottom: 0; }
+.home.yellow { right: 0; bottom: 0; }
+.home-inner {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template: 1fr 1fr / 1fr 1fr;
+    gap: 12%;
+    padding: 14%;
+    border-radius: 1.6cqw;
+    background: #faf6ea;
+    box-shadow: inset 0 3px 8px rgba(0, 0, 0, .3);
+}
+.slot {
+    position: relative;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, rgba(0, 0, 0, .3), rgba(0, 0, 0, .05) 70%);
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, .45), 0 0 0 .6cqw var(--tc);
+}
+.center {
+    position: absolute;
+    left: 40%;
+    top: 40%;
+    width: 20%;
+    height: 20%;
+    z-index: 3;
+    background: conic-gradient(from -45deg, #2fb32a 0 25%, #f4b81a 25% 50%, #1a85e6 50% 75%, #e0262d 75% 100%);
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, .4), 0 0 0 1px rgba(0, 0, 0, .3);
+}
+
+/* ---------- Tokens ---------- */
+.token {
+    position: absolute;
+    left: 12%;
+    top: -4%;
+    width: 76%;
+    height: 96%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tc);
+    z-index: 10;
+    cursor: default;
+    filter: drop-shadow(0 .5cqw .4cqw rgba(0, 0, 0, .55));
+    transition: translate .12s ease, filter .12s ease;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.token svg { display: block; width: 100%; height: 100%; }
+.token .num { position: absolute; left: 0; right: 0; top: 18%; text-align: center; font-size: 2.2cqw; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .8); pointer-events: none; }
+.token.movable { cursor: pointer; z-index: 20; animation: hop .55s ease-in-out infinite alternate; }
+.token.step-land { animation: token-land .12s ease-out; }
+@keyframes token-land { 0% { transform: scale(.92); } 55% { transform: translateY(-7%) scale(1.08); } 100% { transform: scale(1); } }
+.token.movable:focus-visible { outline: 3px solid #fff; border-radius: 50%; }
+@keyframes hop { to { transform: translateY(-14%); } }
+
+/* ---------- Dice ---------- */
+.dice-row { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 8px; margin-top: 14px; }
+.dice {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 12px;
+    background: rgba(35, 22, 14, .88);
+    border: 2px solid #4a3220;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+.dice.active { border-color: var(--tc); box-shadow: 0 0 16px var(--tc); }
+.dice-name { font-size: .8rem; font-weight: 700; }
+.dice small { display: block; color: var(--muted); font-size: .7rem; }
+.die {
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin: 6px auto;
+    padding: 9px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #fff, #d6d6d0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .5), inset 0 -3px 5px rgba(0, 0, 0, .2), inset 0 2px 3px #fff;
+    cursor: pointer;
+}
+.die i { width: 9px; height: 9px; border-radius: 50%; }
+.die i.on { background: radial-gradient(circle at 35% 30%, #555, #000); }
+.die:disabled { cursor: default; opacity: .6; }
+.die.rolling { opacity: 1; animation: tumble .5s linear infinite; }
+.die.ready { animation: nudge .9s ease-in-out infinite alternate; }
+@keyframes tumble { 25% { transform: rotate(90deg) translateY(-6px); } 50% { transform: rotate(180deg); } 75% { transform: rotate(270deg) translateY(-6px); } 100% { transform: rotate(360deg); } }
+@keyframes nudge { to { transform: translateY(-4px) rotate(4deg); } }
+
+.arrow { color: rgba(255, 255, 255, .92); font-size: 3.6cqw; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); }
+.die-stage { display: flex; flex-direction: column; align-items: center; margin-top: 18px; }
+.die.big { width: 84px; height: 84px; padding: 13px; margin: 0; border-radius: 16px; }
+.die.big i { width: 13px; height: 13px; }
+.die-label { margin-top: 10px; font-weight: 700; color: var(--tc); text-shadow: 0 1px 4px rgba(0, 0, 0, .6); }
+.help { min-height: 1.4em; margin: 12px 0 0; text-align: center; color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 640px) {
+    .setup { grid-template-columns: 1fr 1fr; }
+    .brand { font-size: 1.25rem; }
+    .die.big { width: 70px; height: 70px; padding: 10px; }
+    .die.big i { width: 11px; height: 11px; }
+    .board-wrap { padding: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
+@media (max-width: 560px) {
+    .setup { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .board-wrap { padding: 8px; }
+    .ranking-panel { padding: 10px; }
+    .ranking-table th, .ranking-table td { padding: 8px 5px; white-space: nowrap; }
+    .btn { padding: 9px 11px; }
+}
+
+/* First-screen mode picker */
+.start-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,8,18,.86);backdrop-filter:blur(12px)}
+.start-card{width:min(680px,100%);max-height:92vh;overflow:auto;background:linear-gradient(145deg,#171b2d,#101321);border:1px solid rgba(110,231,255,.32);border-radius:22px;padding:clamp(20px,4vw,34px);box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 36px rgba(87,124,255,.13)}
+.start-card h1{margin:0 0 8px;font-size:clamp(1.6rem,4vw,2.3rem);text-align:center}.start-sub{color:var(--muted);text-align:center;margin:0 0 22px}.mode-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mode-option{min-height:125px;border:1px solid rgba(255,255,255,.12);border-radius:15px;background:rgba(255,255,255,.04);color:var(--text);padding:16px 10px;cursor:pointer;text-align:center;transition:transform .18s,border-color .18s,background .18s}.mode-option:hover{transform:translateY(-3px);border-color:#6ee7ff;background:rgba(110,231,255,.09)}.mode-option .mode-icon{display:block;font-size:2rem;margin-bottom:8px}.mode-option strong{display:block;margin-bottom:5px}.mode-option small{color:var(--muted);line-height:1.35}.how-toggle{display:block;margin:18px auto 0;background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--text);border-radius:10px;padding:10px 16px;cursor:pointer}.how-rules{display:none;margin-top:16px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.045);color:var(--muted);line-height:1.65}.how-rules.open{display:block}.start-foot{text-align:center;color:var(--muted);font-size:.82rem;margin:16px 0 0}
+@media(max-width:560px){.mode-options{grid-template-columns:1fr}.mode-option{min-height:0;display:grid;grid-template-columns:42px 1fr;column-gap:10px;text-align:left;align-items:center;padding:12px}.mode-option .mode-icon{grid-row:span 2;margin:0;font-size:1.7rem}.mode-option strong{margin:0}.mode-option small{display:block}}
+
+</style>
+</head>
+
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <radialGradient id="shine" cx="35%" cy="28%" r="75%">
+            <stop offset="0" stop-color="#fff" stop-opacity=".85"/>
+            <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
+            <stop offset="1" stop-color="#000" stop-opacity=".5"/>
+        </radialGradient>
+        <g id="pawn-shape">
+            <ellipse cx="50" cy="108" rx="34" ry="9"/>
+            <path d="M30 106 Q34 72 44 58 H56 Q66 72 70 106Z"/>
+            <ellipse cx="50" cy="58" rx="19" ry="6"/>
+            <circle cx="50" cy="34" r="23"/>
+        </g>
+        <symbol id="pawn" viewBox="0 0 100 120">
+            <use href="#pawn-shape" fill="currentColor" stroke="rgba(0,0,0,.45)" stroke-width="2"/>
+            <use href="#pawn-shape" fill="url(#shine)"/>
+        </symbol>
+    </defs>
+</svg>
+
+<div class="wrap">
+
+    <header class="top">
+        <div class="brand">🎲 GameForge Ludo</div>
+        <div class="actions">
+            <button class="btn" id="soundBtn" type="button" aria-pressed="true" aria-label="Toggle sound">🔊</button>
+            <button class="btn" id="newGame" type="button">New game</button>
+            <a class="btn" href="games.html">← Games</a>
+        </div>
+    </header>
+
+    <section class="setup" aria-label="Game settings">
+        <div class="field">
+            <label for="mode">Mode</label>
+            <select id="mode">
+                <option value="local">Pass &amp; play</option>
+                <option value="robot">Vs robots</option>
+                <option value="online">Online multiplayer</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="playerCount">Players</label>
+            <select id="playerCount">
+                <option value="2">2 players</option>
+                <option value="3">3 players</option>
+                <option value="4" selected>4 players</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="difficulty">Robot level</label>
+            <select id="difficulty" disabled>
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn" id="apply" type="button">Start game</button>
+        </div>
+    </section>
+
+    <section id="onlinePanel" class="setup" style="display:none;grid-template-columns:1fr 1fr; margin-top:-2px;" aria-label="Online multiplayer">
+        <div class="field">
+            <label for="roomCode">Room code</label>
+            <input id="roomCode" maxlength="6" autocomplete="off" placeholder="Enter code" style="width:100%;padding:9px;border-radius:8px;border:1px solid #6a4a2e;background:#2a1a10;color:var(--text);text-transform:uppercase;">
+        </div>
+        <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn" id="createRoom" type="button">Create room</button>
+        </div>
+        <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn" id="joinRoom" type="button">Join with code</button>
+        </div>
+        <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn" id="randomMatch" type="button">Random matchmaking</button>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+            <div id="onlineStatus" role="status" aria-live="polite" style="font-size:.9rem;color:var(--muted)">Online mode requires a signed-in GameForge account.</div>
+        </div>
+    </section>
+
+    <section class="ranking-panel" aria-label="Ludo leaderboard">
+        <div class="ranking-head">
+            <h2>🏆 GameForge Ludo Rankings</h2>
+            <button class="btn" id="refreshRankings" type="button">Refresh rankings</button>
+        </div>
+        <div id="rankingStatus" class="ranking-empty" role="status" aria-live="polite">Sign in and refresh to load online rankings.</div>
+        <div style="overflow-x:auto">
+            <table class="ranking-table" id="rankingTable" style="display:none">
+                <thead><tr><th>Rank</th><th>Player</th><th>Rating</th><th>Wins</th><th>Losses</th><th>Games</th></tr></thead>
+                <tbody id="rankingRows"></tbody>
+            </table>
+        </div>
+        <p class="rank-note">Online matches only · Win +25 rating · Participation +5 rating</p>
+    </section>
+
+    <div class="status">
+        <div id="turnText">Red's turn</div>
+        <div class="timer" id="timer">15s</div>
+    </div>
+
+    <div class="board-wrap"><div class="board" id="board" aria-label="Ludo board"></div></div>
+
+    <div class="die-stage" id="dieStage">
+        <button class="die big" id="die" type="button" aria-label="Roll the dice" disabled></button>
+        <div class="die-label" id="dieLabel"></div>
+    </div>
+
+    <div class="dice-row" id="diceRow" aria-label="Players"></div>
+    <p class="help" id="help" role="status" aria-live="polite"></p>
+
+</div>
+
+
+<div class="start-overlay" id="startOverlay" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="start-card">
+    <h1 id="startTitle">🎲 GameForge Ludo</h1>
+    <p class="start-sub">How would you like to play?</p>
+    <div class="mode-options">
+      <button class="mode-option" type="button" data-start-mode="local"><span class="mode-icon">👥</span><strong>Pass &amp; Play</strong><small>Play together on one device</small></button>
+      <button class="mode-option" type="button" data-start-mode="robot"><span class="mode-icon">🤖</span><strong>Vs Robots</strong><small>Play against computer players</small></button>
+      <button class="mode-option" type="button" data-start-mode="online"><span class="mode-icon">🌐</span><strong>Online Multiplayer</strong><small>Play with friends or find a room</small></button>
+    </div>
+    <button class="how-toggle" id="howToggle" type="button" aria-expanded="false">📖 How to play</button>
+    <div class="how-rules" id="howRules"><strong>Quick rules</strong><br>1. Roll the dice on your turn.<br>2. You need a 6 to bring a token out of your base.<br>3. Move a token by the number shown on the dice.<br>4. Landing on an unprotected opponent token sends it back to base.<br>5. Get all four of your tokens home first to win.<br><br><strong>Online:</strong> sign in, create a room or join using a room code. The host starts once at least two players have joined.</div>
+    <p class="start-foot">Choose a mode to begin — the game will not start automatically.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(() => {
+    "use strict";
+
+    // Paste your Supabase Project URL and anon/public key here.
+    // Never use a service_role/secret key in a browser file.
+    const SUPABASE_URL = "https://tzjqlrpdvblbucxqsbtp.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_aN0H5r-h8RRducZp79FNgA_URPgcNVg";
+    const supabaseReady = !!(window.supabase && SUPABASE_URL.startsWith("https://") &&
+        !SUPABASE_URL.includes("PASTE_") && SUPABASE_ANON_KEY &&
+        !SUPABASE_ANON_KEY.includes("PASTE_"));
+    const sb = supabaseReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    /* ---------- Board data ---------- */
+    // 52 shared track cells as [row, col], clockwise from Red's start.
+    const TRACK = [
+        [6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],
+        [1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],
+        [8,14],[8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
+        [14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0]
+    ];
+    const START = { red: 1, green: 14, yellow: 27, blue: 40 };
+    const SAFE = [1, 9, 14, 22, 27, 35, 40, 48];
+    const HOME_LANE = {
+        red: [[7,1],[7,2],[7,3],[7,4],[7,5]],
+        green: [[1,7],[2,7],[3,7],[4,7],[5,7]],
+        yellow: [[7,13],[7,12],[7,11],[7,10],[7,9]],
+        blue: [[13,7],[12,7],[11,7],[10,7],[9,7]]
+    };
+    const COLORS = ["red", "green", "yellow", "blue"];
+    const NAMES = { red: "Red", green: "Green", yellow: "Yellow", blue: "Blue" };
+    const PLAYER_SETS = { 2: ["red", "yellow"], 3: ["red", "green", "yellow"], 4: COLORS };
+    const LANE_START = 52;   // positions 0-51 are the 52 shared track cells; 52-56 are home lane
+    const FINISH = 57;       // -1 base | 0-51 shared track | 52-56 home lane | 57 finished
+    const ARROW = { red: "▶", green: "▼", yellow: "◀", blue: "▲" };
+    const TURN_TIME = 15;
+    const OFFSETS = [[0, 0], [-24, -14], [24, -14], [-24, 14], [24, 14]];
+    const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+
+    /* ---------- Helpers ---------- */
+    const $ = id => document.getElementById(id);
+    const sleep = ms => new Promise(res => setTimeout(res, ms));
+    const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+    const key = (r, c) => r + "," + c;
+    const globalPos = (color, pos) => (START[color] + pos) % 52;
+
+    const board = $("board"), diceRow = $("diceRow"), turnText = $("turnText");
+    const timerEl = $("timer"), help = $("help");
+    const dieEl = $("die"), dieLabelEl = $("dieLabel");
+    const modeEl = $("mode"), countEl = $("playerCount"), difficultyEl = $("difficulty");
+    const onlinePanel = $("onlinePanel"), onlineStatus = $("onlineStatus"), roomCodeEl = $("roomCode");
+    let onlineRoomId = null, onlineRoomCode = null, myUserId = null, myColor = null;
+    let onlineChannel = null, onlineRevision = 0, onlineApplying = false;
+
+    const COLOR_ORDER = { 2: ["red", "yellow"], 3: ["red", "green", "yellow"], 4: COLORS };
+    const setOnlineStatus = msg => { onlineStatus.textContent = msg; };
+
+    /* ---------- Sound ---------- */
+    const sound = {
+        on: true,
+        ctx: null,
+        tone(freq, dur = 0.1, type = "sine", vol = 0.08, delay = 0, slideTo = null) {
+            if (!this.on) return;
+            try {
+                const a = this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+                const t = a.currentTime + delay, osc = a.createOscillator(), g = a.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, t);
+                if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+                g.gain.setValueAtTime(vol, t);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                osc.connect(g).connect(a.destination);
+                osc.start(t);
+                osc.stop(t + dur);
+            } catch { /* audio unavailable */ }
+        },
+        roll() { for (let i = 0; i < 6; i++) this.tone(randInt(180, 420), 0.05, "triangle", 0.07, i * 0.07); },
+        step() { this.tone(520, 0.06, "triangle", 0.06); },
+        capture() { this.tone(420, 0.3, "sawtooth", 0.07, 0, 90); },
+        home() { [660, 880].forEach((f, i) => this.tone(f, 0.15, "sine", 0.08, i * 0.1)); },
+        win() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.25, "sine", 0.09, i * 0.14)); }
+    };
+
+    /* ---------- State ---------- */
+    let state = null;
+    let session = 0;          // incremented on reset; stale async work stops itself
+    let timerId = null;
+    const cells = new Map();
+    const slots = {};
+    // Keep token DOM nodes alive between renders to reduce flicker and layout work.
+    const tokenNodes = Object.create(null);
+
+    function newState() {
+        return {
+            players: PLAYER_SETS[Number(countEl.value)],
+            turn: 0, dice: null, rolled: false, busy: false,
+            time: TURN_TIME, winner: null, sixes: 0,
+            mode: modeEl.value, difficulty: difficultyEl.value,
+            tokens: { red: [-1, -1, -1, -1], green: [-1, -1, -1, -1], yellow: [-1, -1, -1, -1], blue: [-1, -1, -1, -1] }
+        };
+    }
+
+    const current = () => state.players[state.turn];
+    const isHuman = color => state.mode === "local" ||
+        (state.mode === "robot" && color === state.players[0]) ||
+        (state.mode === "online" && color === myColor);
+    const say = text => { help.textContent = text; };
+    const wait = async (ms, id) => { await sleep(ms); return id === session; };
+
+    /* ---------- Rules ---------- */
+    function canMove(color, i, dice) {
+        const p = state.tokens[color][i];
+        if (dice === null || p === FINISH) return false;
+        if (p === -1) return dice === 6;
+        return p + dice <= FINISH;
+    }
+    const legalMoves = color => [0, 1, 2, 3].filter(i => canMove(color, i, state.dice));
+
+    // Sends home any enemy token sitting on this token's (unsafe) cell.
+    function captureAt(color, i) {
+        const pos = state.tokens[color][i];
+        if (pos < 0 || pos >= LANE_START) return 0;
+        const g = globalPos(color, pos);
+        if (SAFE.includes(g)) return 0;
+        let hits = 0;
+        state.players.filter(e => e !== color).forEach(enemy => {
+            state.tokens[enemy] = state.tokens[enemy].map(ep => {
+                if (ep >= 0 && ep < LANE_START && globalPos(enemy, ep) === g) { hits++; return -1; }
+                return ep;
+            });
+        });
+        return hits;
+    }
+
+    /* ---------- Robot ---------- */
+    function scoreMove(color, i, level) {
+        const p = state.tokens[color][i], d = state.dice, np = p === -1 ? 0 : p + d;
+        let score = np;
+        if (p === -1) score += 80;
+        if (np === FINISH) score += 200;
+        else if (np >= LANE_START) score += 30;
+
+        if (level === "hard" && np < LANE_START) {
+            const g = globalPos(color, np), safe = SAFE.includes(g);
+            if (safe) score += 40;
+            state.players.filter(e => e !== color).forEach(enemy => {
+                state.tokens[enemy].forEach(ep => {
+                    if (ep < 0 || ep >= LANE_START || safe) return;
+                    const eg = globalPos(enemy, ep), gap = (g - eg + 52) % 52;
+                    if (gap === 0) score += 350;             // capture
+                    else if (gap <= 6) score -= 35;          // would be exposed
+                });
+            });
+        }
+        return score;
+    }
+
+    function pickMove(color, moves, level = state.difficulty) {
+        if (level === "easy") return moves[randInt(0, moves.length - 1)];
+        return moves.reduce((best, i) => (scoreMove(color, i, level) > scoreMove(color, best, level) ? i : best), moves[0]);
+    }
+
+    /* ---------- Board building ---------- */
+    function buildBoard() {
+        board.textContent = "";
+        cells.clear();
+
+        for (let r = 0; r < 15; r++) {
+            for (let c = 0; c < 15; c++) {
+                const el = document.createElement("div");
+                el.className = "cell";
+                board.appendChild(el);
+                cells.set(key(r, c), el);
+            }
+        }
+        TRACK.forEach(([r, c], i) => {
+            const el = cells.get(key(r, c));
+            el.classList.add("track");
+            if (SAFE.includes(i)) el.classList.add("safe");
+        });
+        Object.entries(START).forEach(([color, i]) => cells.get(key(...TRACK[i])).classList.add("start", color));
+        Object.entries(HOME_LANE).forEach(([color, list]) => list.forEach(([r, c], k) => {
+            const el = cells.get(key(r, c));
+            el.classList.add("lane", color);
+            if (k === 0) el.innerHTML = `<span class="arrow">${ARROW[color]}</span>`;
+        }));
+
+        const center = document.createElement("div");
+        center.className = "center";
+        board.appendChild(center);
+
+        COLORS.forEach(color => {
+            const home = document.createElement("div");
+            home.className = `home ${color}` + (state.players.includes(color) ? "" : " off");
+            home.innerHTML = '<div class="home-inner">' + [0, 1, 2, 3].map(() => '<div class="slot"></div>').join("") + "</div>";
+            board.appendChild(home);
+            slots[color] = [...home.querySelectorAll(".slot")];
+        });
+    }
+
+    /* ---------- Rendering ---------- */
+    function parentFor(color, i) {
+        const p = state.tokens[color][i];
+        if (p === -1) return slots[color][i];
+        if (p === FINISH) return null;
+        const [r, c] = p >= LANE_START ? HOME_LANE[color][p - LANE_START] : TRACK[globalPos(color, p)];
+        return cells.get(key(r, c));
+    }
+
+    function dieHtml(value) {
+        const on = PIPS[value] || [];
+        return Array.from({ length: 9 }, (_, k) => `<i class="${on.includes(k) ? "on" : ""}"></i>`).join("");
+    }
+
+    function setPips(die, value) {
+        const on = PIPS[value] || [];
+        die.querySelectorAll("i").forEach((el, k) => el.classList.toggle("on", on.includes(k)));
+    }
+
+    function render() {
+        const stack = new Map();
+
+        state.players.forEach(color => {
+            state.tokens[color].forEach((pos, i) => {
+                const tokenKey = `${color}-${i}`;
+                let token = tokenNodes[tokenKey];
+                if (!token) {
+                    token = document.createElement("button");
+                    token.type = "button";
+                    token.innerHTML = `<svg viewBox="0 0 100 120" aria-hidden="true"><use href="#pawn"/></svg><span class="num">${i + 1}</span>`;
+                    token.setAttribute("aria-label", `${NAMES[color]} token ${i + 1}`);
+                    token.addEventListener("click", () => onToken(color, i));
+                    tokenNodes[tokenKey] = token;
+                }
+
+                const parent = parentFor(color, i);
+                if (!parent) {
+                    token.remove();
+                    return;
+                }
+
+                const movable = state.rolled && !state.busy && !state.winner &&
+                    color === current() && isHuman(color) && canMove(color, i, state.dice);
+                token.className = `token ${color}` + (movable ? " movable" : "");
+                token.tabIndex = movable ? 0 : -1;
+
+                if (pos !== -1) {
+                    const n = stack.get(parent) || 0;
+                    stack.set(parent, n + 1);
+                    const [x, y] = OFFSETS[Math.min(n, 4)];
+                    token.style.translate = `${x}% ${y}%`;
+                } else {
+                    token.style.translate = "0% 0%";
+                }
+                // Re-parent the same node instead of destroying/recreating it every frame.
+                if (token.parentElement !== parent) {
+                    const wasOnBoard = !!token.parentElement;
+                    parent.appendChild(token);
+                    if (wasOnBoard) {
+                        token.classList.remove("step-land");
+                        void token.offsetWidth;
+                        token.classList.add("step-land");
+                        setTimeout(() => token.classList.remove("step-land"), 140);
+                    }
+                }
+            });
+        });
+
+        renderDice();
+
+        const cur = current();
+        turnText.textContent = state.winner ? `🏆 ${NAMES[state.winner]} wins!` : `${NAMES[cur]}'s turn` + (isHuman(cur) ? "" : " 🤖");
+        timerEl.textContent = state.winner ? "" : isHuman(cur) ? state.time + "s" : "🤖";
+        timerEl.style.visibility = state.winner ? "hidden" : "visible";
+    }
+
+    function renderDice() {
+        const cur = current(), human = isHuman(cur);
+        const canRoll = !state.winner && human && !state.rolled && !state.busy;
+
+        // one shared die for the whole table
+        $("dieStage").className = "die-stage " + cur;
+        dieEl.classList.remove("rolling");
+        dieEl.classList.toggle("ready", canRoll);
+        dieEl.disabled = !canRoll;
+        setPips(dieEl, state.dice);
+        dieLabelEl.textContent = state.winner ? "" :
+            canRoll ? `${NAMES[cur]} - tap the dice to roll` :
+            state.dice ? `${NAMES[cur]} rolled ${state.dice}` : `${NAMES[cur]} is playing...`;
+
+        // player strip
+        diceRow.textContent = "";
+        diceRow.style.setProperty("--n", state.players.length);
+        state.players.forEach((color, idx) => {
+            const done = state.tokens[color].filter(p => p === FINISH).length;
+            const card = document.createElement("div");
+            card.className = `dice ${color}` + (idx === state.turn && !state.winner ? " active" : "");
+            card.innerHTML = `<div class="dice-name">${NAMES[color]}${isHuman(color) ? "" : " 🤖"}</div><small>🏁 ${done}/4 home</small>`;
+            diceRow.appendChild(card);
+        });
+    }
+
+    /* ---------- Turn flow ---------- */
+    async function roll() {
+        if (state.winner || state.rolled || state.busy) return;
+        const id = session, color = current();
+
+        state.busy = true;
+        render();
+        sound.roll();
+
+        dieEl.classList.add("rolling");
+        for (let k = 0; k < 7; k++) {
+            setPips(dieEl, randInt(1, 6));
+            if (!await wait(80, id)) return;
+        }
+
+        const value = randInt(1, 6);
+        state.dice = value;
+        state.rolled = true;
+        state.busy = false;
+        state.sixes = value === 6 ? state.sixes + 1 : 0;
+        render();
+        if (state.mode === "online") await syncOnlineState();
+
+        if (state.sixes >= 3) {
+            say("Three sixes in a row - turn lost.");
+            if (await wait(1000, id)) endTurn();
+            return;
+        }
+
+        const moves = legalMoves(color);
+        if (!moves.length) {
+            say("No legal move.");
+            if (await wait(900, id)) endTurn();
+            return;
+        }
+
+        if (isHuman(color)) {
+            say(value === 6 && state.tokens[color].includes(-1) ? "Rolled a six - bring a token out or move one." : "Choose a highlighted token.");
+        } else {
+            say(`${NAMES[color]} is choosing...`);
+            if (await wait(700, id)) performMove(color, pickMove(color, moves));
+        }
+    }
+
+    function onToken(color, i) {
+        if (state.winner || state.busy || !state.rolled) return;
+        if (color !== current() || !isHuman(color) || !canMove(color, i, state.dice)) return;
+        performMove(color, i);
+    }
+
+    async function performMove(color, i) {
+        const id = session, d = state.dice, start = state.tokens[color][i];
+        state.busy = true;
+        state.rolled = false;
+
+        if (start === -1) {
+            state.tokens[color][i] = 0;
+            sound.step();
+            render();
+            if (!await wait(250, id)) return;
+        } else {
+            for (let k = 1; k <= d; k++) {
+                state.tokens[color][i] = start + k;
+                sound.step();
+                render();
+                if (!await wait(150, id)) return;
+            }
+        }
+
+        const hits = captureAt(color, i);
+        const reachedHome = state.tokens[color][i] === FINISH;
+        if (hits) { sound.capture(); say(`${NAMES[color]} captured ${hits} token${hits > 1 ? "s" : ""}! Roll again.`); }
+        else if (reachedHome) { sound.home(); say(`${NAMES[color]} got a token home! Roll again.`); }
+
+        if (state.tokens[color].every(p => p === FINISH)) {
+            state.winner = color;
+            state.busy = false;
+            stopTimer();
+            sound.win();
+            render();
+            if (state.mode === "online") {
+                await syncOnlineState();
+                await recordOnlineResult(color);
+            }
+            say(`${NAMES[color]} wins! Press New game to play again.`);
+            return;
+        }
+
+        state.busy = false;
+        if (state.mode === "online") await syncOnlineState();
+        if (d === 6 || hits || reachedHome) {
+            // bonus turn
+            state.dice = null;
+            state.time = TURN_TIME;
+            render();
+            if (state.mode === "online") await syncOnlineState();
+            if (!hits && !reachedHome) say(isHuman(color) ? "Rolled a six - roll again." : "Robot rolled a six and goes again.");
+            scheduleRobot();
+        } else {
+            if (await wait(250, id)) endTurn();
+        }
+    }
+
+    function endTurn() {
+        state.turn = (state.turn + 1) % state.players.length;
+        Object.assign(state, { dice: null, rolled: false, busy: false, sixes: 0, time: TURN_TIME });
+        render();
+        if (state.mode === "online") syncOnlineState();
+        say(isHuman(current()) ? "Tap your dice to roll." : "Robot is thinking...");
+        scheduleRobot();
+    }
+
+    function scheduleRobot() {
+        const id = session;
+        if (state.winner || state.mode !== "robot" || isHuman(current())) return;
+        setTimeout(() => { if (id === session && !state.winner && !isHuman(current())) roll(); }, 800);
+    }
+
+    /* ---------- Online multiplayer (Supabase) ---------- */
+    async function getSignedInUser() {
+        if (!sb) throw new Error("Supabase setup missing. Add your Project URL and anon/public key in this file.");
+        const { data, error } = await sb.auth.getUser();
+        if (error) throw error;
+        if (!data.user) throw new Error("Please log in to GameForge first, then open Ludo again.");
+        myUserId = data.user.id;
+        return data.user;
+    }
+
+    function makeRoomCode() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let code = "";
+        for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+        return code;
+    }
+
+    async function closeOnlineChannel() {
+        if (onlineChannel && sb) await sb.removeChannel(onlineChannel);
+        onlineChannel = null;
+    }
+
+    async function createRoom() {
+        try {
+            const user = await getSignedInUser();
+            await closeOnlineChannel();
+            const maxPlayers = Number(countEl.value);
+            const code = makeRoomCode();
+            const { data: room, error: roomError } = await sb.from("ludo_rooms").insert({
+                room_code: code, host_id: user.id, status: "waiting", max_players: maxPlayers, game_state: null
+            }).select().single();
+            if (roomError) throw roomError;
+            const color = COLOR_ORDER[maxPlayers][0];
+            const { error: playerError } = await sb.from("ludo_room_players").insert({
+                room_id: room.id, user_id: user.id, player_color: color
+            });
+            if (playerError) {
+                await sb.from("ludo_rooms").delete().eq("id", room.id);
+                throw playerError;
+            }
+            onlineRoomId = room.id; onlineRoomCode = code; myColor = color;
+            roomCodeEl.value = code;
+            await subscribeToRoom();
+            setOnlineStatus(`Room ${code} created. Share this code with friends. You are ${NAMES[color]}. Waiting for at least one more player.`);
+            say("Room created. Share the room code, then the host can press Start game.");
+        } catch (e) { setOnlineStatus(e.message || "Could not create room."); }
+    }
+
+    async function joinRoomByCode(code) {
+        const user = await getSignedInUser();
+        const normalized = (code || "").trim().toUpperCase();
+        if (!normalized) throw new Error("Enter a room code first.");
+        const { data: room, error } = await sb.from("ludo_rooms").select("*").eq("room_code", normalized).maybeSingle();
+        if (error) throw error;
+        if (!room) throw new Error("Room code not found.");
+        if (room.status !== "waiting") throw new Error("This room has already started or finished.");
+        const { data: members, error: membersError } = await sb.from("ludo_room_players")
+            .select("user_id, player_color").eq("room_id", room.id);
+        if (membersError) throw membersError;
+        const existing = members.find(m => m.user_id === user.id);
+        if (existing) {
+            onlineRoomId = room.id; onlineRoomCode = room.room_code; myColor = existing.player_color;
+            await subscribeToRoom();
+            setOnlineStatus(`Already in room ${room.room_code}. You are ${NAMES[myColor]}.`);
+            return;
+        }
+        if (members.length >= room.max_players) throw new Error("This room is full.");
+        const used = new Set(members.map(m => m.player_color));
+        const color = COLOR_ORDER[room.max_players].find(c => !used.has(c));
+        if (!color) throw new Error("No player slot is available.");
+        const { error: joinError } = await sb.from("ludo_room_players").insert({
+            room_id: room.id, user_id: user.id, player_color: color
+        });
+        if (joinError) throw joinError;
+        onlineRoomId = room.id; onlineRoomCode = room.room_code; myColor = color;
+        await subscribeToRoom();
+        setOnlineStatus(`Joined room ${room.room_code}. You are ${NAMES[color]}. Players: ${members.length + 1}/${room.max_players}.`);
+        say("Joined room. Wait for the host to start the game.");
+    }
+
+    async function randomMatch() {
+        try {
+            const user = await getSignedInUser();
+            await closeOnlineChannel();
+            const maxPlayers = Number(countEl.value);
+            const { data: rooms, error } = await sb.from("ludo_rooms").select("*")
+                .eq("status", "waiting").eq("max_players", maxPlayers).order("created_at", { ascending: true }).limit(30);
+            if (error) throw error;
+            for (const room of (rooms || [])) {
+                const { data: members, error: mErr } = await sb.from("ludo_room_players")
+                    .select("user_id, player_color").eq("room_id", room.id);
+                if (mErr) throw mErr;
+                if (members.some(m => m.user_id === user.id)) {
+                    onlineRoomId = room.id; onlineRoomCode = room.room_code;
+                    myColor = members.find(m => m.user_id === user.id).player_color;
+                    await subscribeToRoom();
+                    setOnlineStatus(`You are already in room ${room.room_code} (${NAMES[myColor]}).`);
+                    return;
+                }
+                if (members.length < room.max_players) {
+                    await joinRoomByCode(room.room_code);
+                    return;
+                }
+            }
+            await createRoom();
+            setOnlineStatus(`No waiting match found. Created room ${onlineRoomCode || roomCodeEl.value || ""}; share its code or wait for another player.`);
+        } catch (e) { setOnlineStatus(e.message || "Random matchmaking failed."); }
+    }
+
+    async function subscribeToRoom() {
+        await closeOnlineChannel();
+        onlineChannel = sb.channel("ludo-room-" + onlineRoomId)
+            .on("postgres_changes", { event: "UPDATE", schema: "public", table: "ludo_rooms", filter: "id=eq." + onlineRoomId }, payload => {
+                const row = payload.new;
+                if (row.game_state && Number(row.game_state.revision || 0) > onlineRevision) {
+                    onlineRevision = Number(row.game_state.revision || 0);
+                    applyRemoteState(row.game_state);
+                }
+                if (row.status === "finished") setOnlineStatus(`Room ${onlineRoomCode} finished.`);
+            })
+            .on("postgres_changes", { event: "*", schema: "public", table: "ludo_room_players", filter: "room_id=eq." + onlineRoomId }, () => {
+                refreshRoomStatus().catch(() => {});
+            })
+            .subscribe(status => {
+                if (status === "SUBSCRIBED") refreshRoomStatus().catch(() => {});
+            });
+    }
+
+    async function refreshRoomStatus() {
+        if (!onlineRoomId || !sb) return;
+        const { data: room } = await sb.from("ludo_rooms").select("*").eq("id", onlineRoomId).maybeSingle();
+        const { data: members } = await sb.from("ludo_room_players").select("user_id, player_color").eq("room_id", onlineRoomId);
+        if (!room) return;
+        const memberText = (members || []).map(m => `${NAMES[m.player_color] || m.player_color}${m.user_id === myUserId ? " (you)" : ""}`).join(", ");
+        setOnlineStatus(`Room ${room.room_code} · ${members.length}/${room.max_players} players · ${memberText || "no players"}. ${room.host_id === myUserId ? "You are host; press Start game when at least 2 players join." : "Waiting for host to start."}`);
+        if (room.game_state && Number(room.game_state.revision || 0) > onlineRevision) {
+            onlineRevision = Number(room.game_state.revision || 0);
+            applyRemoteState(room.game_state);
+        }
+    }
+
+    function stateSnapshot(revision) {
+        return {
+            players: state.players, turn: state.turn, dice: state.dice, rolled: state.rolled,
+            busy: false, time: state.time, winner: state.winner, sixes: state.sixes,
+            mode: "online", difficulty: state.difficulty, tokens: state.tokens, revision
+        };
+    }
+
+    async function syncOnlineState() {
+        if (!onlineRoomId || !sb || onlineApplying || !state || state.mode !== "online") return;
+        const nextRevision = onlineRevision + 1;
+        const snap = stateSnapshot(nextRevision);
+        const { error } = await sb.rpc("set_ludo_room_state", {
+            p_room_id: onlineRoomId,
+            p_game_state: snap,
+            p_status: state.winner ? "finished" : "playing"
+        });
+        if (error) { setOnlineStatus("Live sync error: " + error.message); return; }
+        onlineRevision = nextRevision;
+    }
+
+    function applyRemoteState(snapshot) {
+        if (!snapshot || !snapshot.players || !snapshot.tokens) return;
+        onlineApplying = true;
+        state = {
+            players: snapshot.players, turn: snapshot.turn || 0, dice: snapshot.dice ?? null,
+            rolled: !!snapshot.rolled, busy: false, time: Number(snapshot.time || TURN_TIME),
+            winner: snapshot.winner || null, sixes: Number(snapshot.sixes || 0),
+            mode: "online", difficulty: snapshot.difficulty || "medium", tokens: snapshot.tokens
+        };
+        buildBoard();
+        render();
+        if (state.winner) {
+            stopTimer();
+            say(`${NAMES[state.winner]} wins!`);
+            if (state.mode === "online") recordOnlineResult(state.winner);
+        } else {
+            startTimer();
+            say(state.rolled ? `${NAMES[current()]} rolled ${state.dice}. Choose a highlighted token.` : `${NAMES[current()]}'s turn.`);
+        }
+        onlineApplying = false;
+    }
+
+    async function startOnlineGame() {
+        try {
+            const user = await getSignedInUser();
+            if (!onlineRoomId) throw new Error("First create a room, join with a code, or use random matchmaking.");
+            const { data: room, error: roomError } = await sb.from("ludo_rooms").select("*").eq("id", onlineRoomId).single();
+            if (roomError) throw roomError;
+            if (room.host_id !== user.id) throw new Error("Only the room host can start the game.");
+            const { data: members, error: mErr } = await sb.from("ludo_room_players").select("user_id, player_color")
+                .eq("room_id", onlineRoomId).order("joined_at", { ascending: true });
+            if (mErr) throw mErr;
+            if (!members || members.length < 2) throw new Error("At least 2 players must join before starting.");
+            const colors = members.map(m => m.player_color);
+            session++; stopTimer();
+            state = newState();
+            state.players = colors;
+            state.mode = "online";
+            state.tokens = { red: [-1,-1,-1,-1], green: [-1,-1,-1,-1], yellow: [-1,-1,-1,-1], blue: [-1,-1,-1,-1] };
+            state.turn = 0; state.dice = null; state.rolled = false; state.busy = false; state.winner = null; state.sixes = 0; state.time = TURN_TIME;
+            onlineRevision = 0;
+            buildBoard(); render(); startTimer();
+            await syncOnlineState();
+            setOnlineStatus(`Game started in room ${onlineRoomCode}. You are ${NAMES[myColor]}.`);
+            say("Online game started. Roll when it is your turn.");
+        } catch (e) { setOnlineStatus(e.message || "Could not start online game."); }
+    }
+
+    /* ---------- Online rankings ---------- */
+    let rankingRequestBusy = false;
+
+    async function recordOnlineResult(winnerColor) {
+        if (!sb || !onlineRoomId || !winnerColor || rankingRequestBusy) return;
+        try {
+            const { data: userData } = await sb.auth.getUser();
+            if (!userData || !userData.user) return;
+            const { error } = await sb.rpc("record_ludo_ranked_result", {
+                p_room_id: onlineRoomId,
+                p_winner_color: winnerColor
+            });
+            if (error) {
+                console.warn("Ranking update failed:", error.message);
+                $("rankingStatus").textContent = "Ranking update pending: " + error.message;
+                return;
+            }
+            await loadRankings();
+        } catch (e) {
+            console.warn("Could not update ranking", e);
+        }
+    }
+
+    async function loadRankings() {
+        const statusEl = $("rankingStatus");
+        const tableEl = $("rankingTable");
+        const rowsEl = $("rankingRows");
+        if (!sb) { statusEl.textContent = "Supabase is not configured."; tableEl.style.display = "none"; return; }
+        try {
+            const { data: userData, error: userError } = await sb.auth.getUser();
+            if (userError) throw userError;
+            if (!userData.user) { statusEl.textContent = "Please log in to GameForge to view online rankings."; tableEl.style.display = "none"; return; }
+            const { data, error } = await sb.from("ludo_rankings")
+                .select("user_id, display_name, rating, wins, losses, games_played")
+                .order("rating", { ascending: false }).order("wins", { ascending: false }).limit(20);
+            if (error) throw error;
+            rowsEl.innerHTML = "";
+            if (!data || !data.length) {
+                statusEl.textContent = "No ranked matches yet. Finish an online match to start the leaderboard.";
+                tableEl.style.display = "none";
+                return;
+            }
+            data.forEach((player, index) => {
+                const tr = document.createElement("tr");
+                if (player.user_id === userData.user.id) tr.className = "me";
+                const values = [String(index + 1), player.display_name || "GameForge Player", String(player.rating ?? 1000), String(player.wins || 0), String(player.losses || 0), String(player.games_played || 0)];
+                values.forEach(value => { const td = document.createElement("td"); td.textContent = value; tr.appendChild(td); });
+                rowsEl.appendChild(tr);
+            });
+            tableEl.style.display = "table";
+            const myIndex = data.findIndex(player => player.user_id === userData.user.id);
+            statusEl.textContent = myIndex >= 0 ? `Your leaderboard position: #${myIndex + 1}` : "Top 20 players · Finish an online match to get ranked.";
+        } catch (e) {
+            statusEl.textContent = "Could not load rankings. Run the ranking SQL setup in Supabase first. " + (e.message || "");
+            tableEl.style.display = "none";
+        }
+    }
+
+    /* ---------- Timer ---------- */
+    function startTimer() {
+        clearInterval(timerId);
+        timerId = setInterval(() => {
+            if (!state || state.winner || state.busy || !isHuman(current())) return;
+            state.time--;
+            timerEl.textContent = state.time + "s";
+            if (state.time > 0) return;
+
+            const color = current();
+            if (state.rolled) {
+                const moves = legalMoves(color);
+                if (moves.length) { performMove(color, pickMove(color, moves, "medium")); return; }
+            }
+            say("Time's up - turn skipped.");
+            endTurn();
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerId);
+        timerId = null;
+    }
+
+    /* ---------- Setup ---------- */
+    function resetGame() {
+        session++;
+        stopTimer();
+        state = newState();
+        buildBoard();
+        render();
+        say("Tap your dice to roll. A six brings a token out.");
+        startTimer();
+    }
+
+    modeEl.addEventListener("change", () => {
+        difficultyEl.disabled = modeEl.value !== "robot";
+        onlinePanel.style.display = modeEl.value === "online" ? "grid" : "none";
+        countEl.disabled = modeEl.value === "online" && !!onlineRoomId;
+        if (modeEl.value === "online") {
+            say("Create a room, join with a room code, or try random matchmaking.");
+            setOnlineStatus(supabaseReady ? "Sign in to GameForge first. Then create/join a room." : "Add your Supabase Project URL and anon/public key in this file first.");
+        }
+    });
+    $("createRoom").addEventListener("click", createRoom);
+    $("joinRoom").addEventListener("click", async () => {
+        try { await joinRoomByCode(roomCodeEl.value); }
+        catch (e) { setOnlineStatus(e.message || "Could not join room."); }
+    });
+    $("randomMatch").addEventListener("click", randomMatch);
+    $("apply").addEventListener("click", () => {
+        if (modeEl.value === "online") startOnlineGame();
+        else resetGame();
+    });
+    $("newGame").addEventListener("click", () => {
+        if (modeEl.value === "online") {
+            setOnlineStatus("For a new online game, the host should create a new room. Existing room stays linked.");
+            if (myUserId) startOnlineGame();
+        } else resetGame();
+    });
+    $("refreshRankings").addEventListener("click", loadRankings);
+
+    $("soundBtn").addEventListener("click", e => {
+        sound.on = !sound.on;
+        e.currentTarget.textContent = sound.on ? "🔊" : "🔇";
+        e.currentTarget.setAttribute("aria-pressed", String(sound.on));
+    });
+
+    const startOverlay = $("startOverlay");
+    $("howToggle").addEventListener("click", () => {
+        const rules = $("howRules");
+        const opening = !rules.classList.contains("open");
+        rules.classList.toggle("open", opening);
+        $("howToggle").setAttribute("aria-expanded", String(opening));
+        $("howToggle").textContent = opening ? "Hide rules" : "📖 How to play";
+    });
+    document.querySelectorAll("[data-start-mode]").forEach(button => {
+        button.addEventListener("click", () => {
+            const chosenMode = button.getAttribute("data-start-mode");
+            modeEl.value = chosenMode;
+            modeEl.dispatchEvent(new Event("change", { bubbles: true }));
+            startOverlay.style.display = "none";
+            if (chosenMode === "online") {
+                // Show room controls first; the online board only starts when the host starts the room.
+                resetGame();
+                stopTimer();
+                dieEl.disabled = true;
+                say("Create a room, join with a room code, or try random matchmaking.");
+                setOnlineStatus(supabaseReady ? "Sign in to GameForge first, then create or join a room." : "Supabase setup is missing in this file.");
+            } else {
+                resetGame();
+            }
+        });
+    });
+
+    dieEl.innerHTML = dieHtml(null);
+    dieEl.addEventListener("click", roll);
+
+    resetGame();
+    stopTimer();
+    if (!supabaseReady) {
+        setOnlineStatus("Online setup pending: add your Supabase Project URL and anon/public key in this file.");
+    } else {
+        sb.auth.getUser().then(({data}) => {
+            if (data && data.user) {
+                myUserId = data.user.id;
+                setOnlineStatus("Signed in. Choose Online multiplayer to create/join a room.");
+                loadRankings();
+            } else {
+                loadRankings();
+            }
+        }).catch(() => {});
+    }
+})();
+</script>
+
+</body>
+</html>

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,53 +6,160 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#08090d">
 <title>All Games | GameForge</title>
+
 <style>
-:root{--bg:#08090d;--panel:#131620;--text:#f6f7fa;--muted:#b7bdc9;--lime:#b4ff38;--line:#ffffff25}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
-a{color:inherit;text-decoration:none}
-button,input{font:inherit}
-.wrap{width:min(1150px,92%);margin:auto}
-header{position:sticky;top:0;z-index:10;background:#08090df2;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-nav{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:15px}
-.logo{font-size:22px;font-weight:1000;letter-spacing:1px}
-.logo span,.green{color:var(--lime)}
-.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 17px;background:#ffffff0c;border:1px solid #ffffff45;color:white;border-radius:3px;font-size:12px;font-weight:900}
-.btn.primary{background:var(--lime);color:#10120c;border-color:var(--lime)}
-.btn:hover{border-color:var(--lime);transform:translateY(-2px)}
-.hero{padding:75px 0 38px;background:radial-gradient(ellipse at 75% 20%,#293526 0,transparent 42%),linear-gradient(135deg,#11141b,#08090d)}
-.eyebrow{color:var(--lime);font-size:11px;letter-spacing:4px;font-weight:900}
-h1{font-size:clamp(42px,7vw,78px);line-height:.95;letter-spacing:-3px;margin:20px 0;text-transform:uppercase}
-p{line-height:1.7}
-.hero p{max-width:620px;color:var(--muted)}
-.tools{padding:25px 0 10px}
-.search{width:100%;padding:15px;background:#12151d;border:1px solid var(--line);color:white;outline:none;border-radius:3px}
-.search:focus{border-color:var(--lime)}
-.filters{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0}
-.filter{padding:10px 14px;background:#12151d;border:1px solid var(--line);color:white;cursor:pointer}
-.filter.active{background:var(--lime);color:#111;border-color:var(--lime)}
-.count{color:var(--muted);font-size:13px;margin:15px 0}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:10px 0 65px}
-.card{overflow:hidden;background:var(--panel);border:1px solid var(--line);transition:transform .25s,border-color .25s}
-.card:hover{transform:translateY(-5px);border-color:var(--lime)}
-.cover{height:175px;display:grid;place-items:center;background:radial-gradient(ellipse,#343b4b,#141720);font-size:60px}
-.info{padding:19px}
-.info h2{font-size:21px;margin:0 0 9px}
-.info p{color:var(--muted);font-size:13px;min-height:42px;margin:0 0 17px}
-.bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.tag{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--lime)}
-.play{padding:10px 13px;background:var(--lime);color:#111;font-size:11px;font-weight:1000}
-.play:hover{background:#d2ff91}
-.card[hidden]{display:none}
-.empty{padding:30px 0;color:var(--muted)}
-footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted);font-size:12px}
-.footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
-footer a:hover{color:var(--lime)}
-@media(max-width:800px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){.grid{grid-template-columns:1fr}.cover{height:195px}h1{letter-spacing:-1px}.hero{padding-top:55px}}
+:root {
+  --bg:#08090d;
+  --panel:#131620;
+  --text:#f6f7fa;
+  --muted:#b7bdc9;
+  --lime:#b4ff38;
+  --line:#ffffff25;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+}
+a { color:inherit; text-decoration:none; }
+button,input { font:inherit; }
+.wrap { width:min(1150px,92%); margin:auto; }
+
+header {
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:#08090df2;
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+nav {
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+}
+.logo { font-size:22px; font-weight:1000; letter-spacing:1px; }
+.logo span,.green { color:var(--lime); }
+
+.btn {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 17px;
+  background:#ffffff0c;
+  border:1px solid #ffffff45;
+  color:white;
+  border-radius:3px;
+  font-size:12px;
+  font-weight:900;
+  transition:transform .2s,border-color .2s;
+}
+.btn.primary { background:var(--lime); color:#10120c; border-color:var(--lime); }
+.btn:hover { border-color:var(--lime); transform:translateY(-2px); }
+
+.hero {
+  padding:75px 0 38px;
+  background:
+    radial-gradient(ellipse at 75% 20%,#293526 0,transparent 42%),
+    linear-gradient(135deg,#11141b,#08090d);
+}
+.eyebrow { color:var(--lime); font-size:11px; letter-spacing:4px; font-weight:900; }
+h1 {
+  font-size:clamp(42px,7vw,78px);
+  line-height:.95;
+  letter-spacing:-3px;
+  margin:20px 0;
+  text-transform:uppercase;
+}
+p { line-height:1.7; }
+.hero p { max-width:620px; color:var(--muted); }
+
+.tools { padding:25px 0 10px; }
+.search {
+  width:100%;
+  padding:15px;
+  background:#12151d;
+  border:1px solid var(--line);
+  color:white;
+  outline:none;
+  border-radius:3px;
+}
+.search:focus { border-color:var(--lime); }
+
+.filters { display:flex; flex-wrap:wrap; gap:9px; margin:16px 0; }
+.filter {
+  padding:10px 14px;
+  background:#12151d;
+  border:1px solid var(--line);
+  color:white;
+  cursor:pointer;
+}
+.filter.active { background:var(--lime); color:#111; border-color:var(--lime); }
+.count { color:var(--muted); font-size:13px; margin:15px 0; }
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  padding:10px 0 65px;
+}
+.card {
+  overflow:hidden;
+  background:var(--panel);
+  border:1px solid var(--line);
+  transition:transform .25s,border-color .25s;
+  min-width:0;
+}
+.card:hover { transform:translateY(-5px); border-color:var(--lime); }
+
+/* CUSTOM GAME THUMBNAILS */
+.cover {
+  position:relative;
+  width:100%;
+  aspect-ratio:16 / 9;
+  overflow:hidden;
+  background:radial-gradient(ellipse,#343b4b,#141720);
+}
+.cover img {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform .35s;
+}
+.card:hover .cover img { transform:scale(1.045); }
+
+.info { padding:19px; }
+.info h2 { font-size:21px; margin:0 0 9px; }
+.info p { color:var(--muted); font-size:13px; min-height:42px; margin:0 0 17px; }
+
+.bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.tag { font-size:10px; font-weight:900; letter-spacing:1px; color:var(--lime); }
+.play { padding:10px 13px; background:var(--lime); color:#111; font-size:11px; font-weight:1000; }
+.play:hover { background:#d2ff91; }
+.card[hidden] { display:none; }
+.empty { padding:30px 0; color:var(--muted); }
+
+footer { border-top:1px solid var(--line); padding:24px 0; color:var(--muted); font-size:12px; }
+.footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+footer a:hover { color:var(--lime); }
+
+@media(max-width:800px) {
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:520px) {
+  .grid { grid-template-columns:1fr; }
+  h1 { letter-spacing:-1px; }
+  .hero { padding-top:55px; }
+}
 </style>
 </head>
+
 <body>
 <header>
 <nav class="wrap">
@@ -76,6 +184,7 @@ footer a:hover{color:var(--lime)}
 <section class="wrap tools" id="allgames">
   <label for="search" class="eyebrow">FIND YOUR GAME</label>
   <input class="search" id="search" type="search" placeholder="Search games..." autocomplete="off">
+
   <div class="filters" aria-label="Game categories">
     <button class="filter active" data-category="all">ALL GAMES</button>
     <button class="filter" data-category="arcade">ARCADE</button>
@@ -83,63 +192,181 @@ footer a:hover{color:var(--lime)}
     <button class="filter" data-category="strategy">STRATEGY</button>
     <button class="filter" data-category="classic">CLASSIC</button>
   </div>
+
   <p class="count" id="count" aria-live="polite"></p>
 
   <div class="grid" id="grid">
+
+    <!-- CLICK THE TARGET -->
     <article class="card" data-category="arcade" data-name="click the target target reaction">
-      <div class="cover">🎯</div><div class="info"><h2>Click the Target</h2><p>Test your reaction and click the targets as quickly as you can.</p><div class="bottom"><span class="tag">ARCADE</span><a class="play" href="target.html">PLAY ↗</a></div></div>
+      <div class="cover">
+        <img src="game-thumbnail/target-thumbnail.jpeg" alt="Click the Target thumbnail" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Click the Target</h2>
+        <p>Test your reaction and click the targets as quickly as you can.</p>
+        <div class="bottom">
+          <span class="tag">ARCADE</span>
+          <a class="play" href="target.html">PLAY ↗</a>
+        </div>
+      </div>
     </article>
+
+    <!-- CAR DODGE -->
     <article class="card" data-category="arcade" data-name="car dodge racing driving">
-      <div class="cover">🏎️</div><div class="info"><h2>Car Dodge</h2><p>Dodge traffic, react fast and see how long you can survive.</p><div class="bottom"><span class="tag">ARCADE</span><a class="play" href="Car-Dodge.html">PLAY ↗</a></div></div>
+      <div class="cover">
+        <img src="game-thumbnail/car-dodge-thumbnail.jpeg" alt="Car Dodge thumbnail" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Car Dodge</h2>
+        <p>Dodge traffic, react fast and see how long you can survive.</p>
+        <div class="bottom">
+          <span class="tag">ARCADE</span>
+          <a class="play" href="Car-Dodge.html">PLAY ↗</a>
+        </div>
+      </div>
     </article>
+
+    <!-- SNAKE -->
     <article class="card" data-category="classic" data-name="snake classic">
-      <div class="cover">🐍</div><div class="info"><h2>Snake</h2><p>Collect food, grow longer and avoid hitting yourself.</p><div class="bottom"><span class="tag">CLASSIC</span><a class="play" href="snake.html">PLAY ↗</a></div></div>
+      <div class="cover">
+        <img src="game-thumbnail/snake-thumbnail.jpeg" alt="Snake game thumbnail" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Snake</h2>
+        <p>Collect food, grow longer and avoid hitting yourself.</p>
+        <div class="bottom">
+          <span class="tag">CLASSIC</span>
+          <a class="play" href="snake.html">PLAY ↗</a>
+        </div>
+      </div>
     </article>
+
+    <!-- PUZZLE -->
     <article class="card" data-category="puzzle" data-name="puzzle brain">
-      <div class="cover">🧩</div><div class="info"><h2>Puzzle</h2><p>Challenge your brain and work through the puzzle.</p><div class="bottom"><span class="tag">PUZZLE</span><a class="play" href="puzzle.html">PLAY ↗</a></div></div>
+      <div class="cover">
+        <img src="game-thumbnail/puzzel-thumbnail.jpeg" alt="Puzzle game thumbnail" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Puzzle</h2>
+        <p>Challenge your brain and work through the puzzle.</p>
+        <div class="bottom">
+          <span class="tag">PUZZLE</span>
+          <a class="play" href="puzzle.html">PLAY ↗</a>
+        </div>
+      </div>
     </article>
+
+    <!-- CHESS -->
     <article class="card" data-category="strategy" data-name="chess board strategy">
-      <div class="cover">♟️</div><div class="info"><h2>Chess</h2><p>Think ahead, protect your king and plan your strategy.</p><div class="bottom"><span class="tag">STRATEGY</span><a class="play" href="Chess.html">PLAY ↗</a></div></div>
+      <div class="cover">
+        <img src="game-thumbnail/chess-thumbnail.jpeg" alt="Chess game thumbnail" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Chess</h2>
+        <p>Think ahead, protect your king and plan your strategy.</p>
+        <div class="bottom">
+          <span class="tag">STRATEGY</span>
+          <a class="play" href="Chess.html">PLAY ↗</a>
+        </div>
+      </div>
     </article>
+
+    <!-- LUDO -->
     <article class="card" data-category="classic" data-name="ludo board dice">
-      <div class="cover">🎲</div><div class="info"><h2>Ludo</h2><p>Roll the dice and enjoy the classic board game.</p><div class="bottom"><span class="tag">CLASSIC</span><a class="play" href="GameForge-Ludo-Multiplayer.html">PLAY ↗</a></div></div>
+      <div class="cover">
+        <img src="game-thumbnail/ludo-thambnail.jpeg" alt="Ludo game thumbnail" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Ludo</h2>
+        <p>Roll the dice and enjoy the classic board game.</p>
+        <div class="bottom">
+          <span class="tag">CLASSIC</span>
+          <a class="play" href="GameForge-Ludo-Fixed-Complete.html">PLAY ↗</a>
+        </div>
+      </div>
     </article>
-    <article class="card" data-category="arcade" data-name="game-narrative">
-      <div class="cover">🎯</div><div class="info">Game Narrative</h2><p>Test your reaction and click the targets as quickly as you can.</p><div class="bottom"><span class="tag">ARCADE</span><a class="play" href="game-narrative.html">PLAY ↗</a></div></div>
+
+    <!-- GAME NARRATIVE -->
+    <article class="card" data-category="arcade" data-name="game narrative">
+      <div class="cover">
+        <img src="game-thumbnail/game-narrative-thumbnail.jpeg" alt="Game Narrative thumbnail" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Game Narrative</h2>
+        <p>Explore the Game Narrative experience.</p>
+        <div class="bottom">
+          <span class="tag">ARCADE</span>
+          <a class="play" href="game-narrative.html">PLAY ↗</a>
+        </div>
+      </div>
     </article>
-    <article class="card" data-category="arcade" data-name="Hello Game Fun">
-      <div class="cover"></div><div class="info">Hello Game Fun</h2><p>Test your reaction and click the targets as quickly as you can.</p><div class="bottom"><span class="tag">ARCADE</span><a class="play" href="hello-game.html">PLAY ↗</a></div></div>
+
+    <!-- HELLO GAME FUN -->
+    <article class="card" data-category="arcade" data-name="hello game fun">
+      <div class="cover">
+        <img src="game-thumbnail/hello-gamefun-thumbnail.jpeg" alt="Hello Game Fun thumbnail" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Hello Game Fun</h2>
+        <p>Open the game and enjoy the experience.</p>
+        <div class="bottom">
+          <span class="tag">ARCADE</span>
+          <a class="play" href="hello-game.html">PLAY ↗</a>
+        </div>
+      </div>
     </article>
+
   </div>
   <p class="empty" id="empty" hidden>No games found. Try another search or category.</p>
 </section>
 </main>
 
-<footer><div class="wrap footer"><span>© <span id="year"></span> GAMEFORGE</span><a href="index.html">HOME</a><a href="#allgames">BACK TO TOP ↑</a></div></footer>
+<footer>
+<div class="wrap footer">
+  <span>© <span id="year"></span> GAMEFORGE</span>
+  <a href="index.html">HOME</a>
+  <a href="#allgames">BACK TO TOP ↑</a>
+</div>
+</footer>
+
 <script>
 document.getElementById("year").textContent = new Date().getFullYear();
+
 const search = document.getElementById("search");
 const cards = [...document.querySelectorAll(".card")];
 const filters = [...document.querySelectorAll(".filter")];
 const count = document.getElementById("count");
 const empty = document.getElementById("empty");
+
 let category = "all";
 
 function renderGames() {
   const query = search.value.trim().toLowerCase();
   let shown = 0;
+
   cards.forEach(card => {
-    const matchesCategory = category === "all" || card.dataset.category === category;
-    const matchesSearch = card.dataset.name.includes(query) ||
+    const matchesCategory =
+      category === "all" || card.dataset.category === category;
+
+    const matchesSearch =
+      card.dataset.name.includes(query) ||
       card.textContent.toLowerCase().includes(query);
+
     const visible = matchesCategory && matchesSearch;
     card.hidden = !visible;
+
     if (visible) shown++;
   });
-  count.textContent = shown + (shown === 1 ? " game available" : " games available");
+
+  count.textContent =
+    shown + (shown === 1 ? " game available" : " games available");
+
   empty.hidden = shown !== 0;
 }
+
 search.addEventListener("input", renderGames);
+
 filters.forEach(button => {
   button.addEventListener("click", () => {
     category = button.dataset.category;
@@ -147,6 +374,7 @@ filters.forEach(button => {
     renderGames();
   });
 });
+
 renderGames();
 </script>
 </body>
