@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gram Rush - GOD MODE</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+body{background:#000;color:#fff;font-family:'Inter',system-ui; overflow:hidden; overscroll-behavior:none; user-select:none;}
+.bebas{font-family:'Bebas Neue',sans-serif; letter-spacing:0.02em}
+.phone{width:100%; max-width:420px; height:100dvh; margin:0 auto; background:#050505; position:relative; border:1px solid #1a1a1a; display:flex; flex-direction:column; overflow:hidden}
+@media(min-width:500px){body{background:#101010; padding:20px}.phone{height:90dvh; border-radius:24px; box-shadow:0 20px 80px rgba(0,0,0,0.8)}}
+.hdr{height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; border-bottom:1px solid #161616; background:#000; z-index:20}
+.logo{font-family:'Bebas Neue'; font-size:28px; letter-spacing:1px}
+.stat{font-size:10px; font-weight:900; letter-spacing:1px; padding:6px 10px; border-radius:999px; background:#111; border:1px solid #222}
+.reach-bar{height:4px; width:100%; background:#151515; position:relative; overflow:hidden}
+.reach-fill{height:100%; transition:width 0.2s linear; background:linear-gradient(90deg,#22c55e,#eab308,#ef4444)}
+.reach-fill.low{background:#ef4444; animation:pulse 0.6s infinite alternate}
+.game{flex:1; position:relative; overflow:hidden; background:radial-gradient(120% 80% at 50% 0%, #1a1a1a 0%, #050505 70%)}
+.post-bg{position:absolute; inset:0; opacity:0.45; transition:transform 0.1s linear}
+.post-bg img{width:100%; height:100%; object-fit:cover; filter:blur(1px) brightness(0.7)}
+.heart-target{position:absolute; width:72px; height:72px; border-radius:50%; display:grid; place-items:center; background:radial-gradient(circle at 30% 30%, #ff3b82, #ff0050); box-shadow:0 0 0 3px rgba(255,255,255,0.9), 0 8px 20px rgba(255,0,80,0.6); cursor:pointer; z-index:10; transform:translate(-50%,-50%); animation:spawn 0.2s cubic-bezier(0.175,0.885,0.32,1.275)}
+.heart-target.waiting{background:radial-gradient(circle at 30% 30%, #ffd60a, #ff9d00); box-shadow:0 0 0 3px #fff, 0 8px 20px rgba(255,200,0,0.6)}
+.heart-target.lbl{position:absolute; bottom:-18px; left:50%; transform:translateX(-50%); font-size:8px; font-weight:900; letter-spacing:1px; background:#fff; color:#000; padding:2px 6px; border-radius:999px; white-space:nowrap}
+.float{position:absolute; font-weight:900; font-size:14px; pointer-events:none; animation:floatUp 0.9s ease-out forwards; text-shadow:0 2px 8px rgba(0,0,0,0.8); z-index:30}
+.notif{position:absolute; right:10px; background:#fff; color:#000; border-radius:999px; padding:6px 12px; font-size:11px; font-weight:700; box-shadow:0 4px 12px rgba(0,0,0,0.4); animation:slideIn 0.25s ease-out; max-width:200px; z-index:25; display:flex; gap:6px; align-items:center}
+.screen{position:absolute; inset:0; z-index:50; background:#050505; display:flex; flex-direction:column; padding:20px}
+.btn{height:54px; border-radius:999px; border:none; font-weight:900; font-size:14px; letter-spacing:0.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.1s}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:linear-gradient(90deg,#ef4444,#f97316); color:#fff; box-shadow:0 0 20px rgba(239,68,68,0.4)}
+.btn-sec{background:#171717; border:1px solid #2a2a2a; color:#fff}
+.diff{width:100%; padding:14px; border-radius:16px; border:1px solid #222; background:#0f0f0f; display:flex; justify-content:space-between; align-items:center; cursor:pointer; text-align:left}
+.diff.active{border-color:var(--c); background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0)); box-shadow:0 0 0 1px var(--c), 0 0 20px color-mix(in srgb, var(--c) 25%, transparent)}
+@keyframes spawn{from{transform:translate(-50%,-50%) scale(0)} to{transform:translate(-50%,-50%) scale(1)}}
+@keyframes floatUp{0%{transform:translate(-50%,0) scale(0.8); opacity:1} 100%{transform:translate(-50%,-60px) scale(1.2); opacity:0}}
+@keyframes slideIn{from{transform:translateX(20px); opacity:0} to{transform:translateX(0); opacity:1}}
+@keyframes pulse{from{opacity:0.7} to{opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-3px)} 40%,80%{transform:translateX(3px)}}
+.shake{animation:shake 0.15s infinite}
+.glitch{filter: hue-rotate(90deg) contrast(1.3)}
+</style>
+</head>
+<body>
+<div class="phone" id="app">
+  <div class="hdr">
+    <div class="logo">GRAM RUSH</div>
+    <div style="display:flex; gap:8px">
+      <div class="stat" id="scoreStat">0 FOLLOWERS</div>
+      <div class="stat" id="comboStat" style="background:#ff0050; color:#fff; border-color:#ff0050; display:none">COMBO x0</div>
+    </div>
+  </div>
+  <div class="reach-bar"><div class="reach-fill" id="reachFill" style="width:99%"></div></div>
+
+  <div class="game" id="game">
+    <div class="post-bg" id="postBg"><img id="postImg" src="https://picsum.photos/420/800?random=1"></div>
+    <div id="floatLayer" style="position:absolute; inset:0; pointer-events:none; z-index:30"></div>
+    <div id="notifLayer" style="position:absolute; top:8px; right:8px; display:flex; flex-direction:column; gap:6px; z-index:25; pointer-events:none"></div>
+
+    <div class="screen" id="menuScreen">
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:18px; max-width:340px; margin:0 auto; width:100%">
+        <div>
+          <div style="font-size:11px; font-weight:900; letter-spacing:3px; color:#ef4444">HIGH LEVEL</div>
+          <div class="bebas" style="font-size:62px; line-height:0.9; margin-top:4px">GOD<br>MODE</div>
+          <div style="font-size:13px; color:#888; margin-top:8px; line-height:1.4">Easy to understand.<br><b style="color:#fff">Impossible to master.</b></div>
+        </div>
+        <div style="background:#111; border:1px solid #222; border-radius:16px; padding:14px; display:flex; gap:12px; align-items:center">
+          <div style="width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#ff0050,#ff8a00); display:grid; place-items:center; font-size:22px">❤️</div>
+          <div><div style="font-weight:900; font-size:13px">ONE RULE</div><div style="font-size:12px; color:#aaa; margin-top:2px">Double-tap hearts before they vanish. Miss 3 = dead.</div></div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px" id="diffList"></div>
+        <button class="btn btn-primary" id="playBtn">▶ PLAY GOD MODE</button>
+        <div style="font-size:10px; color:#555; text-align:center; letter-spacing:0.5px">BEST STREAK: <span id="bestComboMenu" style="color:#fff; font-weight:900">0</span> • MADE WITH HTML/CSS/JS</div>
+      </div>
+    </div>
+
+    <div class="screen" id="overScreen" style="display:none; background:#050505; justify-content:center; align-items:center; text-align:center; gap:16px">
+      <div style="width:80px; height:80px; border-radius:20px; background:linear-gradient(135deg,#ef4444,#f97316); display:grid; place-items:center; font-size:36px; box-shadow:0 0 30px rgba(239,68,68,0.5)">💀</div>
+      <div><div style="font-size:11px; letter-spacing:3px; font-weight:900; color:#ef4444">ALGORITHM KILLED YOU</div><div class="bebas" style="font-size:54px">DEAD</div><div id="overStats" style="font-size:12px; color:#888"></div></div>
+      <div style="display:flex; gap:8px; width:100%; max-width:340px"><button class="btn btn-primary" style="flex:1" id="restartBtn">⚡ INSTANT RESTART</button><button class="btn btn-sec" id="menuBtn" style="padding:0 24px">MENU</button></div>
+      <div style="font-size:11px; color:#555; max-width:300px; line-height:1.4" id="tip"></div>
+    </div>
+
+    <div style="position:absolute; bottom:0; left:0; right:0; height:40px; background:#000; border-top:1px solid #111; display:flex; align-items:center; justify-content:space-between; padding:0 12px; font-size:10px; font-weight:900; letter-spacing:1px; color:#666; z-index:20">
+      <span>⚡ DOUBLE TAP • 0.8S ONLY</span><span id="lives">3 LIVES</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const CONFIG = {
+  easy: { spawn:1400, life:1500, maxMiss:10, drain:0.06, notifs:false, penalty:false },
+  normal: { spawn:1000, life:1000, maxMiss:5, drain:0.16, notifs:false, penalty:false },
+  god: { spawn:820, life:800, maxMiss:3, drain:0.38, notifs:true, penalty:true }
+};
+const FAKE_NOTIFS = ["mom tagged you 📸","🔥 SALE 50% OFF!","ex viewed story 👀","iPhone GIVEAWAY!!!","shadowbanned ⚠️","someone unfollowed you","Algorithm update!","cringe alert 💀"];
+
+let difficulty = 'god', gameState='menu';
+let hearts=[], score=0, combo=0, bestCombo=Number(localStorage.getItem('gram_best')||0), misses=0, reach=99, timeAlive=0;
+let heartId=0, notifId=0;
+let spawnInterval=null, gameLoop=null, timeLoop=null, notifLoop=null;
+
+const $ = s=>document.getElementById(s);
+const game = $('game'), floatLayer=$('floatLayer'), notifLayer=$('notifLayer');
+const reachFill=$('reachFill'), scoreStat=$('scoreStat'), comboStat=$('comboStat'), livesEl=$('lives');
+
+function playTone(freq, dur=0.12, type='sine', vol=0.22){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur);
+  }catch{}
+}
+function floatText(txt,x,y,color='#fff'){
+  const d=document.createElement('div'); d.className='float';
+  d.style.left=x+'%'; d.style.top=y+'%'; d.style.color=color; d.textContent=txt;
+  floatLayer.appendChild(d); setTimeout(()=>d.remove(),900);
+}
+function addNotif(){
+  if(!CONFIG[difficulty].notifs) return;
+  const text=FAKE_NOTIFS[Math.floor(Math.random()*FAKE_NOTIFS.length)];
+  const el=document.createElement('div'); el.className='notif'; el.textContent=text;
+  notifLayer.appendChild(el); setTimeout(()=>el.remove(),2200);
+}
+function spawnHeart(){
+  const id=++heartId;
+  const x=12+Math.random()*76, y=18+Math.random()*62;
+  const ang=Math.random()*Math.PI*2, sp=difficulty==='god'?0.35+Math.random()*0.7:0.2;
+  const vx=Math.cos(ang)*sp, vy=Math.sin(ang)*sp;
+  const h={id,x,y,vx,vy,spawnAt:Date.now(), tappedOnce:false, firstTapAt:null};
+  hearts.push(h);
+  const el=document.createElement('div');
+  el.className='heart-target'; el.id='h-'+id;
+  el.style.left=x+'%'; el.style.top=y+'%';
+  el.innerHTML=`<span style="font-size:26px">❤️</span><span class="lbl">DOUBLE TAP</span>`;
+  let lastTap=0;
+  el.addEventListener('touchstart',e=>{e.preventDefault(); handleTap(h,el)}, {passive:false});
+  el.addEventListener('mousedown',()=>handleTap(h,el));
+  game.appendChild(el);
+}
+function handleTap(h,el){
+  const now=Date.now();
+  if(!h.tappedOnce){
+    h.tappedOnce=true; h.firstTapAt=now;
+    el.classList.add('waiting');
+    el.innerHTML=`<span style="font-size:26px">💛</span><span class="lbl">TAP AGAIN!</span>`;
+    playTone(500,0.07,'sine',0.15);
+    setTimeout(()=>{ if(h.tappedOnce && Date.now()-h.firstTapAt>300){ failSingleTap(h,el); } },320);
+  }else{
+    const diff=now-h.firstTapAt;
+    if(diff<=300){ successHeart(h,el,diff); }else{ failSingleTap(h,el); }
+  }
+}
+function failSingleTap(h,el){
+  if(!CONFIG[difficulty].penalty){ h.tappedOnce=false; el.classList.remove('waiting'); el.innerHTML=`<span style="font-size:26px">❤️</span><span class="lbl">DOUBLE TAP</span>`; return; }
+  reach=Math.max(0, reach-6); misses++;
+  floatText('SINGLE! -5', h.x, h.y, '#ff4444');
+  playTone(150,0.25,'sawtooth',0.25);
+  game.classList.add('glitch'); setTimeout(()=>game.classList.remove('glitch'),180);
+  updateUI(); el.remove(); hearts=hearts.filter(x=>x.id!==h.id); checkGameOver();
+}
+function successHeart(h,el){
+  score+=10+Math.floor(combo/3)*2; combo++; bestCombo=Math.max(bestCombo,combo);
+  localStorage.setItem('gram_best',bestCombo);
+  reach=Math.min(99, reach+4);
+  playTone(660+combo*18,0.12,'sine',0.28);
+  if(navigator.vibrate) navigator.vibrate(30);
+  floatText(combo>=5?`+${10+Math.floor(combo/3)*2} 🔥 x${combo}`:`+10`, h.x, h.y, '#fff');
+  el.style.transform='translate(-50%,-50%) scale(1.6)'; el.style.opacity='0';
+  setTimeout(()=>el.remove(),160);
+  hearts=hearts.filter(x=>x.id!==h.id); updateUI();
+  if(combo>=10){ game.classList.add('shake'); setTimeout(()=>game.classList.remove('shake'),200); }
+}
+function updateUI(){
+  reachFill.style.width=reach+'%';
+  if(reach<35) reachFill.classList.add('low'); else reachFill.classList.remove('low');
+  scoreStat.textContent=score+' FOLLOWERS';
+  if(combo>1){ comboStat.style.display='block'; comboStat.textContent='COMBO x'+combo; } else comboStat.style.display='none';
+  livesEl.textContent=(CONFIG[difficulty].maxMiss-misses)+' LIVES';
+  livesEl.style.color=misses>0?'#ff4444':'#666';
+  $('bestComboMenu').textContent=bestCombo;
+}
+function gameTick(){
+  const now=Date.now();
+  const cfg=CONFIG[difficulty];
+  hearts.forEach(h=>{
+    h.x+=h.vx*0.6; h.y+=h.vy*0.6;
+    if(h.x<6||h.x>94) h.vx*=-1;
+    if(h.y<10||h.y>80) h.vy*=-1;
+    const el=document.getElementById('h-'+h.id);
+    if(el){ el.style.left=h.x+'%'; el.style.top=h.y+'%'; }
+    if(now-h.spawnAt>cfg.life){
+      if(!h.tappedOnce || (now-(h.firstTapAt||0)>300)){
+        misses++; floatText('MISSED!', h.x, h.y, '#ff4444');
+        playTone(120,0.2,'square',0.2);
+        game.classList.add('glitch'); setTimeout(()=>game.classList.remove('glitch'),120);
+        if(el) el.remove(); checkGameOver();
+      }
+      hearts=hearts.filter(x=>x.id!==h.id);
+    }
+  });
+  reach=Math.max(0, reach-cfg.drain*(1+combo*0.03));
+  updateUI(); if(reach<=0) endGame();
+  $('postBg').style.transform=`translateY(${-(timeAlive*0.015)%100}px)`;
+}
+function checkGameOver(){ if(misses>=CONFIG[difficulty].maxMiss) endGame(); }
+function startGame(){
+  hearts.forEach(h=>{ const el=document.getElementById('h-'+h.id); if(el) el.remove(); });
+  hearts=[]; score=0; combo=0; misses=0; reach=99; timeAlive=0; heartId=0;
+  notifLayer.innerHTML=''; floatLayer.innerHTML='';
+  gameState='playing'; $('menuScreen').style.display='none'; $('overScreen').style.display='none';
+  updateUI(); playTone(660,0.15); setTimeout(()=>playTone(880,0.2),120);
+  clearInterval(spawnInterval); clearInterval(gameLoop); clearInterval(timeLoop); clearInterval(notifLoop);
+  const getSpawn=()=>Math.max(difficulty==='god'?300:500, CONFIG[difficulty].spawn - (combo>=5?combo*22:0));
+  spawnHeart();
+  spawnInterval=setInterval(()=>{ spawnHeart(); if(combo>4){ clearInterval(spawnInterval); spawnInterval=setInterval(spawnHeart, getSpawn()); } }, getSpawn());
+  gameLoop=setInterval(gameTick, 16);
+  timeLoop=setInterval(()=>{ timeAlive+=100; },100);
+  if(CONFIG[difficulty].notifs) notifLoop=setInterval(addNotif, 1400+Math.random()*900);
+}
+function endGame(){
+  gameState='over'; clearInterval(spawnInterval); clearInterval(gameLoop); clearInterval(timeLoop); clearInterval(notifLoop);
+  hearts.forEach(h=>{ const el=document.getElementById('h-'+h.id); if(el) el.remove(); });
+  $('overStats').innerHTML=`SCORE ${score} • COMBO ${combo} • TIME ${(timeAlive/1000).toFixed(1)}s • REACH ${reach.toFixed(0)}% • ${misses} MISSES`;
+  $('tip').textContent=difficulty==='god'?'Tip: Don’t single tap. Tap-tap FAST within 0.3s. The algorithm hates hesitation.':'Tip: Double-tap fast, keep combo!';
+  $('overScreen').style.display='flex';
+  playTone(120,0.4,'sawtooth',0.35); setTimeout(()=>playTone(80,0.5,'sawtooth',0.35),200);
+}
+const diffs=[
+  {id:'easy', label:'EASY', sub:'Slow, chill', color:'#22c55e'},
+  {id:'normal', label:'NORMAL', sub:'Balanced', color:'#3b82f6'},
+  {id:'god', label:'GOD MODE', sub:'HIGH LEVEL • 1 RULE', color:'#ef4444', badge:'HARD'}
+];
+const list=$('diffList');
+function renderDiffs(){
+  list.innerHTML='';
+  diffs.forEach(d=>{
+    const b=document.createElement('button');
+    b.className='diff'+(d.id===difficulty?' active':'');
+    b.style.setProperty('--c',d.color);
+    b.innerHTML=`<div><div style="font-weight:900; font-size:12px; letter-spacing:1px">${d.label} ${d.badge?`<span style="background:${d.color}; color:#fff; font-size:8px; padding:2px 5px; border-radius:999px; margin-left:6px">${d.badge}</span>`:''}</div><div style="font-size:11px; color:#888; margin-top:2px">${d.sub}</div></div><div style="width:22px; height:22px; border-radius:50%; border:2px solid ${d.id===difficulty?d.color:'#333'}; display:grid; place-items:center">${d.id===difficulty?`<div style="width:10px; height:10px; border-radius:50%; background:${d.color}"></div>`:''}</div>`;
+    b.onclick=()=>{ difficulty=d.id; renderDiffs(); $('playBtn').textContent='▶ PLAY '+d.label; };
+    list.appendChild(b);
+  });
+}
+$('playBtn').onclick=startGame;
+$('restartBtn').onclick=startGame;
+$('menuBtn').onclick=()=>{ $('overScreen').style.display='none'; $('menuScreen').style.display='flex'; renderDiffs(); };
+renderDiffs(); updateUI();
+</script>
+</body>
+</html>
