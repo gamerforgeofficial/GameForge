@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon Space Shooter | GameForge</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080811;color:#f5eaff;font-family:Arial,sans-serif;text-align:center}
+header{padding:16px;background:#151026;border-bottom:1px solid #773bd2}
+h1{color:#c084fc;text-shadow:0 0 16px #9333ea}
+main{max-width:850px;margin:auto;padding:14px}
+canvas{width:100%;height:auto;background:#070713;border:2px solid #8b5cf6;border-radius:12px;touch-action:none}
+button,a{display:inline-block;padding:11px 16px;margin:5px;border:1px solid #a855f7;border-radius:9px;background:#25103e;color:white;font-weight:bold;text-decoration:none;cursor:pointer}
+.stats{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin:12px}
+</style>
+</head>
+<body>
+<header><b>GAMEFORGE</b></header>
+<main>
+<h1>NEON SPACE SHOOTER</h1>
+<p>Move with A/D or arrows. Fire with Space or tap Fire.</p>
+<div class="stats"><span>Score: <b id="score">0</b></span><span>Lives: <b id="lives">3</b></span></div>
+<canvas id="game" width="800" height="500"></canvas>
+<div>
+<button id="start">Start / Restart</button>
+<button id="left">◀ Left</button>
+<button id="fire">FIRE</button>
+<button id="right">Right ▶</button>
+</div>
+<p><a href="games.html">← Back to Games</a></p>
+</main>
+<script>
+const c=document.getElementById("game"),ctx=c.getContext("2d");
+const scoreEl=document.getElementById("score"),livesEl=document.getElementById("lives");
+let ship,shots,enemies,score,lives,keys={},running=false,frame=0,raf=0;
+function reset(){
+ cancelAnimationFrame(raf);
+ ship={x:400,y:450};shots=[];enemies=[];score=0;lives=3;frame=0;running=true;
+ scoreEl.textContent=score;livesEl.textContent=lives;tick();
+}
+function shoot(){if(running)shots.push({x:ship.x,y:ship.y-15})}
+function draw(){
+ ctx.fillStyle="#070713";ctx.fillRect(0,0,800,500);
+ for(let i=0;i<65;i++){ctx.fillStyle="#7c6ca8";ctx.fillRect((i*137)%800,(i*83+frame*.4)%500,2,2)}
+ ctx.fillStyle="#c084fc";ctx.beginPath();ctx.moveTo(ship.x,ship.y-20);ctx.lineTo(ship.x-17,ship.y+15);ctx.lineTo(ship.x+17,ship.y+15);ctx.closePath();ctx.fill();
+ ctx.fillStyle="#67e8f9";shots.forEach(s=>ctx.fillRect(s.x-2,s.y-9,4,12));
+ ctx.fillStyle="#fb7185";enemies.forEach(e=>{ctx.beginPath();ctx.arc(e.x,e.y,12,0,Math.PI*2);ctx.fill()});
+ if(!running){ctx.fillStyle="white";ctx.textAlign="center";ctx.font="bold 30px Arial";ctx.fillText(lives<=0?"GAME OVER":"READY TO PLAY",400,245);ctx.font="16px Arial";ctx.fillText("Press Start / Restart",400,275)}
+}
+function tick(){
+ if(!running){draw();return}
+ frame++;
+ if(keys.ArrowLeft||keys.a||keys.left)ship.x-=5;
+ if(keys.ArrowRight||keys.d||keys.right)ship.x+=5;
+ ship.x=Math.max(18,Math.min(782,ship.x));
+ if(frame%42===0)enemies.push({x:20+Math.random()*760,y:-10});
+ shots.forEach(s=>s.y-=8);enemies.forEach(e=>e.y+=2.2);
+ for(let i=enemies.length-1;i>=0;i--){
+  const e=enemies[i],j=shots.findIndex(s=>Math.hypot(s.x-e.x,s.y-e.y)<20);
+  if(j>=0){shots.splice(j,1);enemies.splice(i,1);score+=10;scoreEl.textContent=score;continue}
+  if(e.y>480){enemies.splice(i,1);lives--;livesEl.textContent=lives;if(lives<=0)running=false}
+ }
+ shots=shots.filter(s=>s.y>-20);
+ draw();if(running)raf=requestAnimationFrame(tick);
+}
+document.getElementById("start").onclick=reset;
+document.getElementById("fire").onpointerdown=e=>{e.preventDefault();shoot()};
+for(const id of ["left","right"]){
+ const b=document.getElementById(id);
+ b.onpointerdown=()=>keys[id]=true;
+ b.onpointerup=()=>keys[id]=false;
+ b.onpointerleave=()=>keys[id]=false;
+ b.onpointercancel=()=>keys[id]=false;
+}
+onkeydown=e=>{keys[e.key]=true;if(e.code==="Space"){e.preventDefault();shoot()}};
+onkeyup=e=>keys[e.key]=false;
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cyber Runner | GameForge</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080811;color:#f5eaff;font-family:Arial,sans-serif;text-align:center}
+header{padding:16px;background:#151026}h1{color:#67e8f9;text-shadow:0 0 14px #0891b2}
+main{max-width:850px;margin:auto;padding:14px}
+canvas{display:block;width:100%;height:auto;background:#080813;border:2px solid #06b6d4;border-radius:12px;touch-action:manipulation}
+button,a{display:inline-block;padding:11px 16px;margin:5px;border:1px solid #06b6d4;border-radius:9px;background:#102a3a;color:white;font-weight:bold;text-decoration:none;cursor:pointer}
+.stats{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin:12px}
+</style>
+</head>
+<body>
+<header><b>GAMEFORGE</b></header>
+<main>
+<h1>CYBER RUNNER</h1>
+<p>Jump over neon obstacles. Press Space, Arrow Up, or tap Jump.</p>
+<div class="stats"><span>Distance: <b id="score">0</b></span><span>Best: <b id="best">0</b></span></div>
+<canvas id="game" width="800" height="500"></canvas>
+<div><button id="start">Start / Restart</button><button id="jump">JUMP</button></div>
+<p><a href="games.html">← Back to Games</a></p>
+</main>
+<script>
+const c=document.getElementById("game"),g=c.getContext("2d");
+let player,obstacles,running=false,score=0,frame=0,raf=0;
+let best=Number(localStorage.getItem("gfRunnerBest")||0);
+document.getElementById("best").textContent=best;
+function reset(){cancelAnimationFrame(raf);player={y:390,vy:0};obstacles=[];score=0;frame=0;running=true;tick()}
+function jump(){if(running&&player.y>=389)player.vy=-13}
+function tick(){
+ if(!running){draw();return}
+ frame++;score++;
+ if(frame%68===0)obstacles.push({x:820,w:25+Math.random()*28,h:35+Math.random()*55});
+ player.vy+=.65;player.y+=player.vy;
+ if(player.y>390){player.y=390;player.vy=0}
+ obstacles.forEach(o=>o.x-=5);
+ if(obstacles.some(o=>o.x<105&&o.x+o.w>60&&player.y+30>420-o.h)){running=false;if(score>best){best=score;localStorage.setItem("gfRunnerBest",best)}}
+ obstacles=obstacles.filter(o=>o.x>-60);
+ draw();document.getElementById("score").textContent=Math.floor(score/3);document.getElementById("best").textContent=best;
+ if(running)raf=requestAnimationFrame(tick);
+}
+function draw(){
+ g.fillStyle="#080813";g.fillRect(0,0,800,500);
+ g.strokeStyle="#4c1d95";
+ for(let i=0;i<12;i++){let y=350+i*i*2.4;g.beginPath();g.moveTo(0,y);g.lineTo(800,y);g.stroke()}
+ g.strokeStyle="#a855f7";g.beginPath();g.moveTo(0,420);g.lineTo(800,420);g.stroke();
+ g.fillStyle="#c084fc";g.shadowColor="#a855f7";g.shadowBlur=18;g.fillRect(65,player.y-30,40,30);g.shadowBlur=0;
+ g.fillStyle="#fb7185";obstacles.forEach(o=>g.fillRect(o.x,420-o.h,o.w,o.h));
+ if(!running){g.fillStyle="white";g.textAlign="center";g.font="bold 30px Arial";g.fillText(score?"RUN ENDED":"READY TO RUN",400,220);g.font="16px Arial";g.fillText("Press Start / Restart",400,250)}
+}
+document.getElementById("start").onclick=reset;
+document.getElementById("jump").onclick=jump;
+c.addEventListener("pointerdown",jump);
+onkeydown=e=>{if(["Space","ArrowUp","KeyW"].includes(e.code)){e.preventDefault();jump()}};
+draw();
+</script>
+</body>
+</html>

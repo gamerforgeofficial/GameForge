@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Match | GameForge</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:16px;background:#080811;color:white;font-family:Arial;text-align:center}
+h1{color:#c084fc}#cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;max-width:520px;margin:20px auto}
+.card{height:clamp(70px,18vw,115px);font-size:clamp(25px,7vw,42px);background:#211638;border:1px solid #7e22ce;border-radius:12px;color:white}
+button{cursor:pointer}#restart{padding:12px 18px;background:#7e22ce;color:white;border:0;border-radius:10px}
+</style>
+</head>
+<body>
+<h1>🧠 MEMORY MATCH</h1>
+<p>Find all matching pairs of cards.</p>
+<p>Moves: <b id="moves">0</b> | Pairs: <b id="pairs">0</b>/8 | Time: <b id="time">0</b>s</p>
+<div id="cards"></div>
+<button id="restart">SHUFFLE / RESTART</button>
+<p id="message"></p>
+<p><a href="games.html" style="color:#c084fc">← Back to Games</a></p>
+<script>
+const icons=['🚀','🎮','👾','⚡','💎','🛸','🔥','🌙'];
+let deck=[],opened=[],matched=new Set(),moves=0,secs=0,started=false,timer;
+function reset(){
+ clearInterval(timer);deck=[...icons,...icons].sort(()=>Math.random()-.5);
+ opened=[];matched=new Set();moves=0;secs=0;started=false;
+ document.getElementById('message').textContent='';render();stats();
+}
+function stats(){
+ document.getElementById('moves').textContent=moves;
+ document.getElementById('pairs').textContent=matched.size/2;
+ document.getElementById('time').textContent=secs;
+}
+function render(){
+ const root=document.getElementById('cards');root.innerHTML='';
+ deck.forEach((v,i)=>{
+  let b=document.createElement('button');b.className='card';
+  b.textContent=matched.has(i)||opened.includes(i)?v:'?';
+  if(matched.has(i))b.style.background='#14532d';
+  b.setAttribute('aria-label',matched.has(i)||opened.includes(i)?v:'Hidden card');
+  b.onclick=()=>flip(i);root.appendChild(b);
+ });
+}
+function flip(i){
+ if(matched.has(i)||opened.includes(i)||opened.length===2)return;
+ if(!started){started=true;timer=setInterval(()=>{secs++;stats()},1000)}
+ opened.push(i);render();
+ if(opened.length===2){
+  moves++;
+  if(deck[opened[0]]===deck[opened[1]]){
+   matched.add(opened[0]);matched.add(opened[1]);opened=[];render();stats();
+   if(matched.size===16){clearInterval(timer);document.getElementById('message').textContent='You won! Great memory! 🎉'}
+  }else{
+   stats();setTimeout(()=>{opened=[];render()},700);
+  }
+ }
+}
+document.getElementById('restart').onclick=reset;reset();
+</script>
+</body>
+</html>

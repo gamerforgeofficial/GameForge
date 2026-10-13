@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number Merge | GameForge</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:16px;background:#080811;color:white;font-family:Arial;text-align:center}
+h1{color:#c084fc}#board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:500px;margin:20px auto}
+.tile{aspect-ratio:1;background:#211638;border:1px solid #6d28d9;border-radius:10px;color:white;font-size:clamp(20px,5vw,34px);font-weight:bold}
+button{cursor:pointer}#restart{padding:12px 18px;background:#7e22ce;color:white;border:0;border-radius:10px}
+</style>
+</head>
+<body>
+<h1>🔢 NUMBER MERGE 2048</h1>
+<p>Arrow keys / WASD or swipe to move tiles.</p>
+<p>Score: <b id="score">0</b></p>
+<div id="board"></div>
+<button id="restart">NEW GAME</button>
+<p><a href="games.html" style="color:#c084fc">← Back to Games</a></p>
+<script>
+const board=document.getElementById('board');
+let a,score=0,previous=null,touch=null;
+function spawn(){let empty=a.map((v,i)=>v===0?i:-1).filter(i=>i>=0);if(empty.length)a[empty[Math.floor(Math.random()*empty.length)]]=Math.random()<.9?2:4}
+function reset(){a=Array(16).fill(0);score=0;previous=null;spawn();spawn();render()}
+function render(){
+ board.innerHTML='';
+ a.forEach(v=>{let b=document.createElement('button');b.className='tile';b.textContent=v||'';b.style.background=v?({2:'#35204c',4:'#4c2670',8:'#6d28d9',16:'#9333ea',32:'#c026d3',64:'#db2777',128:'#c2410c',256:'#ca8a04',512:'#65a30d',1024:'#0e7490',2048:'#0891b2'}[v]||'#0891b2'):'#17152a';board.appendChild(b)});
+ document.getElementById('score').textContent=score;
+}
+function move(dir){
+ let old=a.slice(),moved=false;
+ for(let n=0;n<4;n++){
+  let ids=[];
+  for(let k=0;k<4;k++){
+   let r=dir==='down'?3-k:k,c=dir==='right'?3-k:k;
+   if(dir==='left'||dir==='right')ids.push(n*4+c);
+   else ids.push(r*4+n);
+  }
+  let vals=ids.map(i=>a[i]).filter(Boolean),out=[];
+  for(let j=0;j<vals.length;j++){
+   if(vals[j]===vals[j+1]){out.push(vals[j]*2);score+=vals[j]*2;j++}
+   else out.push(vals[j]);
+  }
+  while(out.length<4)out.push(0);
+  ids.forEach((id,j)=>{if(a[id]!==out[j])moved=true;a[id]=out[j]});
+ }
+ if(moved){previous=old;spawn();render()}
+}
+onkeydown=e=>{
+ let d={'ArrowLeft':'left','a':'left','ArrowRight':'right','d':'right','ArrowUp':'up','w':'up','ArrowDown':'down','s':'down'}[e.key];
+ if(d){e.preventDefault();move(d)}
+};
+board.ontouchstart=e=>{touch={x:e.touches[0].clientX,y:e.touches[0].clientY}};
+board.ontouchend=e=>{
+ if(!touch)return;let dx=e.changedTouches[0].clientX-touch.x,dy=e.changedTouches[0].clientY-touch.y;
+ if(Math.max(Math.abs(dx),Math.abs(dy))>20)move(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));touch=null;
+};
+document.getElementById('restart').onclick=reset;reset();
+</script>
+</body>
+</html>

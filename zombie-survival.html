@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zombie Survival | GameForge</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080811;color:#f5eaff;font-family:Arial,sans-serif;text-align:center}
+header{padding:16px;background:#151026}h1{color:#a3e635;text-shadow:0 0 14px #65a30d}
+main{max-width:850px;margin:auto;padding:14px}
+canvas{display:block;width:100%;height:auto;background:#090910;border:2px solid #65a30d;border-radius:12px;touch-action:none}
+button,a{display:inline-block;padding:11px 14px;margin:5px;border:1px solid #84cc16;border-radius:9px;background:#18230d;color:white;font-weight:bold;text-decoration:none;cursor:pointer}
+.stats{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin:12px}
+</style>
+</head>
+<body>
+<header><b>GAMEFORGE</b></header>
+<main>
+<h1>ZOMBIE SURVIVAL</h1>
+<p>Move with WASD/arrows. Tap the arena or press Shoot to fire.</p>
+<div class="stats"><span>Score: <b id="score">0</b></span><span>Health: <b id="health">100</b></span></div>
+<canvas id="game" width="800" height="500"></canvas>
+<div>
+<button id="start">Start / Restart</button>
+<button id="up">▲</button><button id="left">◀</button>
+<button id="shoot">SHOOT</button><button id="right">▶</button><button id="down">▼</button>
+</div>
+<p><a href="games.html">← Back to Games</a></p>
+</main>
+<script>
+const c=document.getElementById("game"),g=c.getContext("2d");
+let p,zombies,bullets,keys={},score=0,health=100,frame=0,running=false,raf=0,aim={x:650,y:250};
+function reset(){
+ cancelAnimationFrame(raf);p={x:400,y:250};zombies=[];bullets=[];score=0;health=100;frame=0;running=true;tick();
+}
+function shoot(){
+ if(!running)return;
+ let a=Math.atan2(aim.y-p.y,aim.x-p.x);
+ bullets.push({x:p.x,y:p.y,vx:Math.cos(a)*7,vy:Math.sin(a)*7});
+}
+c.addEventListener("pointerdown",e=>{
+ const r=c.getBoundingClientRect();
+ aim={x:(e.clientX-r.left)*800/r.width,y:(e.clientY-r.top)*500/r.height};
+ shoot();
+});
+function tick(){
+ if(!running){draw();return}
+ frame++;
+ if(keys.ArrowLeft||keys.a||keys.left)p.x-=3.5;
+ if(keys.ArrowRight||keys.d||keys.right)p.x+=3.5;
+ if(keys.ArrowUp||keys.w||keys.up)p.y-=3.5;
+ if(keys.ArrowDown||keys.s||keys.down)p.y+=3.5;
+ p.x=Math.max(14,Math.min(786,p.x));p.y=Math.max(14,Math.min(486,p.y));
+ if(frame%55===0)zombies.push({x:Math.random()*800,y:Math.random()*500});
+ zombies.forEach(z=>{
+  const a=Math.atan2(p.y-z.y,p.x-z.x);
+  z.x+=Math.cos(a)*.8;z.y+=Math.sin(a)*.8;
+  if(Math.hypot(p.x-z.x,p.y-z.y)<23&&frame%25===0)health-=5;
+ });
+ bullets.forEach(b=>{b.x+=b.vx;b.y+=b.vy});
+ for(let i=zombies.length-1;i>=0;i--){
+  const j=bullets.findIndex(b=>Math.hypot(b.x-zombies[i].x,b.y-zombies[i].y)<18);
+  if(j>=0){bullets.splice(j,1);zombies.splice(i,1);score+=10}
+ }
+ bullets=bullets.filter(b=>b.x>=0&&b.x<=800&&b.y>=0&&b.y<=500);
+ if(health<=0){health=0;running=false}
+ draw();document.getElementById("score").textContent=score;document.getElementById("health").textContent=health;
+ if(running)raf=requestAnimationFrame(tick);
+}
+function draw(){
+ g.fillStyle="#090910";g.fillRect(0,0,800,500);
+ g.strokeStyle="#25203e";
+ for(let i=0;i<800;i+=40){g.beginPath();g.moveTo(i,0);g.lineTo(i,500);g.stroke()}
+ for(let i=0;i<500;i+=40){g.beginPath();g.moveTo(0,i);g.lineTo(800,i);g.stroke()}
+ g.fillStyle="#84cc16";zombies.forEach(z=>{g.beginPath();g.arc(z.x,z.y,12,0,Math.PI*2);g.fill()});
+ g.fillStyle="#67e8f9";bullets.forEach(b=>g.fillRect(b.x-3,b.y-3,6,6));
+ g.fillStyle="#c084fc";g.beginPath();g.arc(p.x,p.y,14,0,Math.PI*2);g.fill();
+ if(!running){g.fillStyle="white";g.textAlign="center";g.font="bold 28px Arial";g.fillText(health<=0?"SURVIVAL OVER":"READY TO SURVIVE",400,240);g.font="16px Arial";g.fillText("Press Start / Restart",400,270)}
+}
+document.getElementById("start").onclick=reset;
+document.getElementById("shoot").onclick=shoot;
+["up","down","left","right"].forEach(k=>{
+ const b=document.getElementById(k);
+ b.onpointerdown=()=>keys[k]=true;
+ ["pointerup","pointerleave","pointercancel"].forEach(ev=>b.addEventListener(ev,()=>keys[k]=false));
+});
+onkeydown=e=>{keys[e.key]=true;if(e.code==="Space"){e.preventDefault();shoot()}};
+onkeyup=e=>keys[e.key]=false;
+draw();
+</script>
+</body>
+</html>
