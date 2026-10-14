@@ -919,5 +919,201 @@ if (window.supabase && window.supabase.createClient) {
   showSignedOut();
 }
 </script>
+<section id="gf-feedback">
+  <div class="gf-feedback-card">
+    <p class="gf-feedback-tag">PLAYER VOICE</p>
+    <h2>Rate <span>GameForge</span></h2>
+    <p class="gf-feedback-sub">
+      Your feedback helps us build a better gaming world.
+    </p>
+
+    <form id="gf-feedback-form">
+      <label for="gf-name">Your name (optional)</label>
+      <input id="gf-name" name="user_name"
+        type="text" maxlength="60" placeholder="Enter your name">
+
+      <p class="gf-label">Rate your experience</p>
+      <div class="gf-stars" role="group" aria-label="Rating out of five">
+        <input type="radio" id="gf-star1" name="rating" value="1" required>
+        <label for="gf-star1" title="1 star">★</label>
+        <input type="radio" id="gf-star2" name="rating" value="2">
+        <label for="gf-star2" title="2 stars">★</label>
+        <input type="radio" id="gf-star3" name="rating" value="3">
+        <label for="gf-star3" title="3 stars">★</label>
+        <input type="radio" id="gf-star4" name="rating" value="4">
+        <label for="gf-star4" title="4 stars">★</label>
+        <input type="radio" id="gf-star5" name="rating" value="5">
+        <label for="gf-star5" title="5 stars">★</label>
+      </div>
+
+      <label for="gf-review">Write your review</label>
+      <textarea id="gf-review" name="review"
+        rows="5" maxlength="1500" minlength="5"
+        placeholder="Tell us what you liked or what we can improve..."
+        required></textarea>
+
+      <button id="gf-submit" type="submit">SUBMIT FEEDBACK ↗</button>
+      <p id="gf-status" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<style>
+#gf-feedback {
+  padding: 55px 16px;
+  color: #f6f7fa;
+  font-family: Arial, sans-serif;
+}
+#gf-feedback .gf-feedback-card {
+  max-width: 620px;
+  margin: auto;
+  padding: 28px;
+  border: 1px solid #343a48;
+  border-radius: 20px;
+  background: #11141d;
+  box-shadow: 0 0 28px #b4ff3810;
+}
+#gf-feedback .gf-feedback-tag {
+  color: #b4ff38;
+  letter-spacing: 3px;
+  font-size: 12px;
+  font-weight: bold;
+}
+#gf-feedback h2 {
+  font-size: clamp(27px, 5vw, 38px);
+  margin: 10px 0;
+}
+#gf-feedback h2 span { color: #b4ff38; }
+#gf-feedback .gf-feedback-sub {
+  color: #b7bdc9;
+  line-height: 1.6;
+  margin-bottom: 26px;
+}
+#gf-feedback form > label,
+#gf-feedback .gf-label {
+  display: block;
+  margin: 18px 0 9px;
+  font-weight: 600;
+}
+#gf-feedback input[type="text"],
+#gf-feedback textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px;
+  border-radius: 10px;
+  border: 1px solid #343a48;
+  background: #090b10;
+  color: #fff;
+  font: inherit;
+}
+#gf-feedback textarea { resize: vertical; }
+#gf-feedback .gf-stars {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 5px;
+}
+#gf-feedback .gf-stars input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+#gf-feedback .gf-stars label {
+  font-size: 38px;
+  color: #505563;
+  cursor: pointer;
+  padding: 3px;
+}
+#gf-feedback .gf-stars label:hover,
+#gf-feedback .gf-stars label:hover ~ label,
+#gf-feedback .gf-stars input:checked ~ label {
+  color: #b4ff38;
+}
+#gf-feedback .gf-stars input:focus-visible + label {
+  outline: 2px solid #b4ff38;
+  border-radius: 5px;
+}
+#gf-feedback #gf-submit {
+  width: 100%;
+  margin-top: 22px;
+  padding: 15px;
+  border: 0;
+  border-radius: 10px;
+  background: #b4ff38;
+  color: #10130b;
+  font-weight: 800;
+  cursor: pointer;
+}
+#gf-feedback #gf-submit:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+#gf-feedback #gf-status {
+  color: #b4ff38;
+  line-height: 1.5;
+}
+@media (max-width: 480px) {
+  #gf-feedback .gf-feedback-card { padding: 20px 16px; }
+}
+</style>
+
+<!-- EmailJS browser SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+(() => {
+  // Replace these 3 placeholders with your EmailJS details.
+  const PUBLIC_KEY = "8lTmrATlOAPpV5Nrr";
+  const SERVICE_ID = "service_nkdvha8";
+  const TEMPLATE_ID = "template_xxt4vsn";
+
+  const form = document.getElementById("gf-feedback-form");
+  if (!form || form.dataset.ready) return;
+  form.dataset.ready = "yes";
+
+  emailjs.init({ publicKey: PUBLIC_KEY });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const status = document.getElementById("gf-status");
+    const button = document.getElementById("gf-submit");
+    const rating = form.querySelector('input[name="rating"]:checked');
+
+    if (!rating) {
+      status.textContent = "Please select a star rating.";
+      return;
+    }
+
+    if (
+      PUBLIC_KEY === "YOUR_PUBLIC_KEY" ||
+      SERVICE_ID === "YOUR_SERVICE_ID" ||
+      TEMPLATE_ID === "YOUR_TEMPLATE_ID"
+    ) {
+      status.textContent = "Email setup incomplete. Add your EmailJS IDs first.";
+      return;
+    }
+
+    button.disabled = true;
+    status.textContent = "Sending your feedback...";
+
+    try {
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+        rating: rating.value,
+        user_name: document.getElementById("gf-name").value.trim() || "Anonymous",
+        review: document.getElementById("gf-review").value.trim(),
+        page_url: window.location.href
+      });
+
+      status.textContent = "Thanks! Your feedback has been submitted.";
+      form.reset();
+    } catch (error) {
+      status.textContent = "Could not send feedback. Please try again later.";
+      console.error("Feedback email failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  });
+})();
+</script>
 </body>
 </html>
