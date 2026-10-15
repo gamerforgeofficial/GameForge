@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>METROPOLIS — City Builder</title>
+
+<style>
+  * { box-sizing: border-box; font-family: Arial, sans-serif; }
+
+  body {
+    margin: 0;
+    background: #10151c;
+    color: #e8eef5;
+    display: flex;
+    justify-content: center;
+    padding: 15px;
+  }
+
+  .game {
+    width: 100%;
+    max-width: 1150px;
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    text-align: center;
+    letter-spacing: 4px;
+    color: #6ee7ff;
+  }
+
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    background: #182230;
+    border: 1px solid #2b3a4d;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .stat {
+    background: #0f1720;
+    border: 1px solid #2b3a4d;
+    padding: 8px 12px;
+    border-radius: 8px;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .stat b { color: #6ee7ff; }
+
+  .layout {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .sidebar {
+    width: 250px;
+    background: #182230;
+    border: 1px solid #2b3a4d;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .sidebar h3 {
+    margin: 5px 0 10px;
+    text-align: center;
+    color: #9fd8ff;
+  }
+
+  .tool {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0f1720;
+    color: #e8eef5;
+    border: 1px solid #2b3a4d;
+    border-radius: 8px;
+    padding: 9px 10px;
+    margin-bottom: 7px;
+    cursor: pointer;
+  }
+
+  .tool:hover { border-color: #6ee7ff; }
+
+  .tool.active {
+    border-color: #6ee7ff;
+    background: #123043;
+  }
+
+  .tool small { color: #8fa3b8; }
+
+  canvas {
+    display: block;
+    background: #243421;
+    border: 3px solid #2b3a4d;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .demand {
+    margin-top: 12px;
+  }
+
+  .bar {
+    height: 12px;
+    background: #0f1720;
+    border: 1px solid #2b3a4d;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 5px 0 10px;
+  }
+
+  .fill {
+    height: 100%;
+    width: 0%;
+  }
+
+  .green { background: #43d17c; }
+  .blue { background: #4d9dff; }
+  .yellow { background: #ffcc4d; }
+
+  .buttons {
+    display: flex;
+    gap: 7px;
+    margin-top: 10px;
+  }
+
+  button {
+    flex: 1;
+    padding: 9px;
+    background: #22374a;
+    color: white;
+    border: 1px solid #35506a;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+
+  button:hover { background: #2c4a63; }
+
+  .info {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #9fb3c8;
+    min-height: 40px;
+  }
+</style>
+</head>
+
+<body>
+<div class="game">
+  <h1>METROPOLIS</h1>
+
+  <div class="topbar">
+    <div class="stat">Money<br><b id="money">₹20,000</b></div>
+    <div class="stat">Population<br><b id="population">0</b></div>
+    <div class="stat">Jobs<br><b id="jobs">0</b></div>
+    <div class="stat">Power<br><b id="power">0 / 0</b></div>
+    <div class="stat">Happiness<br><b id="happiness">70%</b></div>
+    <div class="stat">Monthly Income<br><b id="income">₹0</b></div>
+    <div class="stat">Date<br><b id="date">Jan, Year 1</b></div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <h3>BUILD MENU</h3>
+      <div id="tools"></div>
+
+      <div class="demand">
+        <h3>CITY DEMAND</h3>
+
+        <div>Residential</div>
+        <div class="bar"><div class="fill green" id="rBar"></div></div>
+
+        <div>Commercial</div>
+        <div class="bar"><div class="fill blue" id="cBar"></div></div>
+
+        <div>Industrial</div>
+        <div class="bar"><div class="fill yellow" id="iBar"></div></div>
+      </div>
+
+      <div class="buttons">
+        <button id="saveBtn">Save</button>
+        <button id="loadBtn">Load</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+
+      <div class="info" id="info">
+        Select a building, then click on the map.<br>
+        Roads connect buildings and are required for zones to work.
+      </div>
+    </div>
+
+    <canvas id="map" width="820" height="580"></canvas>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById("map");
+const ctx = canvas.getContext("2d");
+
+const COLS = 28;
+const ROWS = 20;
+const TILE = 28;
+
+const moneyEl = document.getElementById("money");
+const populationEl = document.getElementById("population");
+const jobsEl = document.getElementById("jobs");
+const powerEl = document.getElementById("power");
+const happinessEl = document.getElementById("happiness");
+const incomeEl = document.getElementById("income");
+const dateEl = document.getElementById("date");
+
+const rBar = document.getElementById("rBar");
+const cBar = document.getElementById("cBar");
+const iBar = document.getElementById("iBar");
+const infoEl = document.getElementById("info");
+
+const BUILDINGS = {
+  road: {
+    name: "Road",
+    cost: 50,
+    upkeep: 2,
+    color: "#555",
+    icon: "🛣️",
+    desc: "Connects zones. Required for buildings to function."
+  },
+  house: {
+    name: "House",
+    cost: 400,
+    upkeep: 4,
+    color: "#7ec850",
+    icon: "🏠",
+    population: 12,
+    power: 2,
+    desc: "Small residential building."
+  },
+  apartment: {
+    name: "Apartment",
+    cost: 1200,
+    upkeep: 10,
+    color: "#4d9dff",
+    icon: "🏢",
+    population: 45,
+    power: 7,
+    desc: "High-density housing. Needs road and power."
+  },
+  shop: {
+    name: "Shop",
+    cost: 800,
+    upkeep: 8,
+    color: "#4dc3ff",
+    icon: "🏪",
+    jobs: 12,
+    power: 5,
+    income: 90,
+    desc: "Commercial zone. Provides jobs and tax income."
+  },
+  mall: {
+    name: "Mall",
+    cost: 3000,
+    upkeep: 25,
+    color: "#9b5cff",
+    icon: "🏬",
+    jobs: 45,
+    power: 16,
+    income: 320,
+    desc: "Large commercial center."
+  },
+  factory: {
+    name: "Factory",
+    cost: 1600,
+    upkeep: 18,
+    color: "#b08900",
+    icon: "🏭",
+    jobs: 30,
+    power: 12,
+    income: 180,
+    pollution: 18,
+    desc: "Industrial jobs, but lowers nearby happiness."
+  },
+  park: {
+    name: "Park",
+    cost: 300,
+    upkeep: 6,
+    color: "#2f9e44",
+    icon: "🌳",
+    happiness: 6,
+    desc: "Improves happiness around nearby homes."
+  },
+  powerplant: {
+    name: "Power Plant",
+    cost: 2500,
+    upkeep: 40,
+    color: "#ff7043",
+    icon: "⚡",
+    powerGenerated: 80,
+    pollution: 10,
+    desc: "Generates electricity for the city."
+  },
+  police: {
+    name: "Police Station",
+    cost: 1800,
+    upkeep: 30,
+    color: "#3b5bdb",
+    icon: "🚓",
+    happiness: 8,
+    desc: "Reduces crime and improves happiness."
+  },
+  hospital: {
+    name: "Hospital",
+    cost: 2600,
+    upkeep: 45,
+    color: "#ff5c7a",
+    icon: "🏥",
+    happiness: 12,
+    desc: "Improves public health and happiness."
+  },
+  school: {
+    name: "School",
+    cost: 2200,
+    upkeep: 35,
+    color: "#ffa94d",
+    icon: "🏫",
+    happiness: 10,
+    jobs: 15,
+    desc: "Educates citizens and creates jobs."
+  },
+  bulldoze: {
+    name: "Bulldoze",
+    cost: 0,
+    upkeep: 0,
+    color: "#888",
+    icon: "🚧",
+    desc: "Remove a building. Refunds 25%."
+  }
+};
+
+let grid = [];
+let selectedTool = "road";
+let money = 20000;
+let month = 0;
+let happiness = 70;
+let population = 0;
+let totalJobs = 0;
+let powerUsed = 0;
+let powerGenerated = 0;
+let monthlyIncome = 0;
+
+function createEmptyGrid() {
+  grid = [];
+
+  for (let y = 0; y < ROWS; y++) {
+    grid.push([]);
+
+    for (let x = 0; x < COLS; x++) {
+      grid[y].push(null);
+    }
+  }
+}
+
+function hasRoadAccess(x, y) {
+  const directions = [
+    [1, 0], [-1, 0], [0, 1], [0, -1]
+  ];
+
+  return directions.some(([dx, dy]) => {
+    const nx = x + dx;
+    const ny = y + dy;
+
+    return (
+      nx >= 0 && ny >= 0 &&
+      nx < COLS && ny < ROWS &&
+      grid[ny][nx] &&
+      grid[ny][nx].type === "road"
+    );
+  });
+}
+
+function canBuild(x, y, type) {
+  if (x < 0 || y < 0 || x >= COLS || y >= ROWS) return false;
+  if (grid[y][x]) return false;
+
+  const building = BUILDINGS[type];
+
+  if (building.cost > money) {
+    showInfo("Not enough money.");
+    return false;
+  }
+
+  if (type !== "road" && type !== "park" && type !== "powerplant") {
+    if (!hasRoadAccess(x, y)) {
+      showInfo(building.name + " needs road access.");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function placeBuilding(x, y, type) {
+  if (!canBuild(x, y, type)) return;
+
+  const data = BUILDINGS[type];
+
+  if (type === "bulldoze") {
+    const existing = grid[y][x];
+
+    if (!existing) return;
+
+    const refund = Math.floor(BUILDINGS[existing.type].cost * 0.25);
+    money += refund;
+
+    grid[y][x] = null;
+    showInfo("Removed " + BUILDINGS[existing.type].name + ". Refund: ₹" + refund);
+
+    recalculateCity();
+    updateHUD();
+    return;
+  }
+
+  money -= data.cost;
+
+  grid[y][x] = {
+    type,
+    x,
+    y,
+    age: 0,
+    powered: false,
+    connected: type === "road" || type === "park" || type === "powerplant"
+  };
+
+  recalculateCity();
+  updateHUD();
+}
+
+function recalculateCity() {
+  population = 0;
+  totalJobs = 0;
+  powerUsed = 0;
+  powerGenerated = 0;
+  monthlyIncome = 0;
+
+  let residential = 0;
+  let commercial = 0;
+  let industrial = 0;
+  let parks = 0;
+  let services = 0;
+  let upkeep = 0;
+
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const tile = grid[y][x];
+      if (!tile) continue;
+
+      const data = BUILDINGS[tile.type];
+      upkeep += data.upkeep || 0;
+
+      tile.powered = false;
+      tile.connected = tile.type === "road" || tile.type === "park" || tile.type === "powerplant";
+
+      if (tile.type === "powerplant") {
+        powerGenerated += data.powerGenerated;
+        tile.powered = true;
+      }
+
+      if (tile.type === "house") residential++;
+      if (tile.type === "apartment") residential += 2;
+      if (tile.type === "shop") commercial++;
+      if (tile.type === "mall") commercial += 2;
+      if (tile.type === "factory") industrial++;
+      if (tile.type === "park") parks++;
+      if (tile.type === "police" || tile.type === "hospital" || tile.type === "school") services++;
+    }
+  }
+
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const tile = grid[y][x];
+      if (!tile) continue;
+
+      const data = BUILDINGS[tile.type];
+
+      if (tile.type === "road" || tile.type === "park" || tile.type === "powerplant") {
+        continue;
+      }
+
+      if (!hasRoadAccess(x, y)) continue;
+
+      tile.connected = true;
+
+      if (powerUsed + (data.power || 0) <= powerGenerated) {
+        tile.powered = true;
+        powerUsed += data.power || 0;
+      }
+
+      if (tile.powered) {
+        population += data.population || 0;
+        totalJobs += data.jobs || 0;
+        monthlyIncome += data.income || 0;
+      }
+    }
+  }
+
+  const demandR = Math.max(0, Math.min(100, (totalJobs - population * 0.55) * 2 + 40));
+  const demandC = Math.max(0, Math.min(100, (population * 0.25 - commercial * 12) + 40));
+  const demandI = Math.max(0, Math.min(100, (population * 0.2 - industrial * 15) + 40));
+
+  rBar.style.width = demandR + "%";
+  cBar.style.width = demandC + "%";
+  iBar.style.width = demandI + "%";
+
+  let targetHappiness = 65;
+  targetHappiness += parks * 2;
+  targetHappiness += services * 3;
+  targetHappiness -= industrial * 1.5;
+
+  if (powerGenerated < powerUsed) targetHappiness -= 25;
+  if (totalJobs < population * 0.5) targetHappiness -= 15;
+
+  happiness += (targetHappiness - happiness) * 0.15;
+  happiness = Math.max(5, Math.min(100, happiness));
+
+  monthlyIncome = Math.round(
+    monthlyIncome * (happiness / 100) - upkeep
+  );
+
+  cityDemand = { residential: demandR, commercial: demandC, industrial: demandI };
+}
+
+let cityDemand = { residential: 40, commercial: 40, industrial: 40 };
+
+function nextMonth() {
+  month++;
+
+  money += monthlyIncome;
+
+  if (money < 0) {
+    happiness -= 5;
+    money = Math.max(0, money);
+  }
+
+  let growth = 0;
+
+  if (happiness > 55 && powerGenerated >= powerUsed) {
+    growth = Math.round(population * 0.04 + cityDemand.residential * 0.08);
+  } else if (happiness < 35) {
+    growth = -Math.round(population * 0.03);
+  }
+
+  population = Math.max(0, population + growth);
+
+  recalculateCity();
+  updateHUD();
+}
+
+function updateHUD() {
+  moneyEl.textContent = "₹" + money.toLocaleString("en-IN");
+  populationEl.textContent = population.toLocaleString("en-IN");
+  jobsEl.textContent = totalJobs.toLocaleString("en-IN");
+  powerEl.textContent = powerUsed + " / " + powerGenerated;
+  happinessEl.textContent = Math.round(happiness) + "%";
+
+  incomeEl.textContent =
+    (monthlyIncome >= 0 ? "₹" : "-₹") +
+    Math.abs(monthlyIncome).toLocaleString("en-IN");
+
+  const years = Math.floor(month / 12);
+  const months = month % 12;
+  const monthNames = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  dateEl.textContent = monthNames[months] + ", Year " + (years + 1);
+}
+
+function showInfo(text) {
+  infoEl.textContent = text;
+}
+
+function drawGrid() {
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const px = x * TILE;
+      const py = y * TILE;
+
+      ctx.fillStyle = (x + y) % 2 === 0 ? "#2c4028" : "#293b26";
+      ctx.fillRect(px, py, TILE, TILE);
+
+      ctx.strokeStyle = "rgba(0,0,0,.18)";
+      ctx.strokeRect(px, py, TILE, TILE);
+    }
+  }
+}
+
+function drawTile(tile) {
+  const data = BUILDINGS[tile.type];
+  const px = tile.x * TILE;
+  const py = tile.y * TILE;
+
+  ctx.fillStyle = data.color;
+  ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+
+  ctx.font = "16px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(data.icon, px + TILE / 2, py + TILE / 2);
+
+  if (tile.type !== "road" && tile.type !== "park" && tile.type !== "powerplant") {
+    if (!tile.connected) {
+      ctx.fillStyle = "rgba(255,0,0,.55)";
+      ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+    } else if (!tile.powered) {
+      ctx.fillStyle = "rgba(255,200,0,.4)";
+      ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGrid();
+
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (grid[y][x]) drawTile(grid[y][x]);
+    }
+  }
+}
+
+function buildToolbar() {
+  const toolsEl = document.getElementById("tools");
+  toolsEl.innerHTML = "";
+
+  Object.keys(BUILDINGS).forEach(key => {
+    const data = BUILDINGS[key];
+
+    const button = document.createElement("div");
+    button.className = "tool" + (key === selectedTool ? " active" : "");
+
+    button.innerHTML =
+      "<span>" + data.icon + " " + data.name + "</span>" +
+      "<small>" + (data.cost ? "₹" + data.cost : "Free") + "</small>";
+
+    button.addEventListener("click", () => {
+      selectedTool = key;
+
+      document.querySelectorAll(".tool").forEach(t => t.classList.remove("active"));
+      button.classList.add("active");
+
+      showInfo(data.name + ": " + data.desc);
+    });
+
+    toolsEl.appendChild(button);
+  });
+}
+
+canvas.addEventListener("click", event => {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - rect.left) / TILE);
+  const y = Math.floor((event.clientY - rect.top) / TILE);
+
+  placeBuilding(x, y, selectedTool);
+});
+
+canvas.addEventListener("mousemove", event => {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - rect.left) / TILE);
+  const y = Math.floor((event.clientY - rect.top) / TILE);
+
+  if (x < 0 || y < 0 || x >= COLS || y >= ROWS) return;
+
+  const tile = grid[y][x];
+
+  if (tile) {
+    const data = BUILDINGS[tile.type];
+    showInfo(
+      data.name + " | Cost: ₹" + data.cost +
+      " | Upkeep: ₹" + data.upkeep +
+      (data.population ? " | Residents: " + data.population : "") +
+      (data.jobs ? " | Jobs: " + data.jobs : "") +
+      (data.power ? " | Power: " + data.power : "")
+    );
+  }
+});
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+  localStorage.setItem("metropolisSave", JSON.stringify({
+    grid,
+    money,
+    month,
+    happiness
+  }));
+
+  showInfo("City saved.");
+});
+
+document.getElementById("loadBtn").addEventListener("click", () => {
+  const save = localStorage.getItem("metropolisSave");
+
+  if (!save) {
+    showInfo("No saved city found.");
+    return;
+  }
+
+  const data = JSON.parse(save);
+
+  grid = data.grid;
+  money = data.money;
+  month = data.month;
+  happiness = data.happiness;
+
+  recalculateCity();
+  updateHUD();
+  showInfo("City loaded.");
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  createEmptyGrid();
+
+  money = 20000;
+  month = 0;
+  happiness = 70;
+
+  recalculateCity();
+  updateHUD();
+  showInfo("New city started.");
+});
+
+setInterval(() => {
+  if (grid.length) nextMonth();
+}, 5000);
+
+createEmptyGrid();
+buildToolbar();
+recalculateCity();
+updateHUD();
+draw();
+</script>
+</body>
+</html>
