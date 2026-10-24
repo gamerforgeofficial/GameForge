@@ -1,288 +1,922 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#0b151f">
-<title>Metropolis Pro — GameForge</title>
+<title>Metropolis Pro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{--bg:#0b151f;--panel:#111f2d;--panel2:#182a3d;--line:#2b4054;--fg:#e8f1f8;--mut:#91a7ba;--blue:#69c8f1;--green:#63d39a;--yellow:#f0bd58;--red:#df7777}
-*{box-sizing:border-box}html,body{height:100%;margin:0}body{background:var(--bg);color:var(--fg);font:14px system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;touch-action:pan-y}
-button,input{font:inherit}button{color:var(--fg);background:#1a2b3e;border:1px solid #2a4055;border-radius:10px;padding:9px 12px;cursor:pointer;white-space:nowrap}button:active{transform:scale(.98)}button.active{background:var(--blue);border-color:var(--blue);color:#09202c;font-weight:800}
-#app{height:100dvh;min-height:480px;display:flex;flex-direction:column}
-header{z-index:3;background:linear-gradient(#122131,#0f1b28);border-bottom:1px solid var(--line);padding:10px 14px calc(9px + env(safe-area-inset-top));}
-.headrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.brand{font-size:21px;font-weight:900;letter-spacing:.17em;color:var(--blue);font-stretch:condensed}
-.cityname{background:transparent;color:var(--fg);border:0;border-bottom:1px dashed var(--line);padding:4px 0;width:130px}
-.tier{font-size:10px;letter-spacing:.12em;background:var(--blue);color:#09202c;padding:4px 7px;border-radius:4px;font-weight:900}
-.stats{display:grid;grid-template-columns:repeat(5,minmax(55px,1fr));gap:8px;margin-top:12px}
-.stat small{display:block;color:var(--mut);font:10px ui-monospace,monospace;letter-spacing:.08em}.stat strong{display:block;font:700 clamp(12px,2.7vw,17px) ui-monospace,monospace;margin-top:3px;white-space:nowrap}.meter{height:4px;background:#07111a;border-radius:4px;overflow:hidden;margin-top:5px}.meter i{display:block;height:100%;width:50%;background:var(--blue)}
-.controlrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px}.date{font:13px ui-monospace,monospace;color:var(--mut);margin-right:auto}.speed{display:flex;gap:3px}.speed button{padding:7px 10px}
-#maparea{position:relative;flex:1;min-height:100px;overflow:hidden;background:#193f60}
-#world{display:block;width:100%;height:100%;touch-action:none;cursor:grab}#world:active{cursor:grabbing}
-.legend{position:absolute;top:10px;left:10px;display:flex;gap:5px;flex-wrap:wrap;pointer-events:none}.legend span{background:#0c1a28d9;border:1px solid #3b5265;border-radius:20px;padding:5px 9px;font:11px ui-monospace,monospace;color:#dceaf3}
-.minimap{position:absolute;right:10px;bottom:10px;width:110px;height:92px;border:1px solid #3b6377;border-radius:9px;background:#12334b;box-shadow:0 4px 20px #0007;overflow:hidden}.minimap canvas{width:100%;height:100%}
-#toast{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:#102131ee;border:1px solid #45657a;border-radius:10px;padding:9px 13px;max-width:85%;text-align:center;z-index:2;pointer-events:none;opacity:0;transition:opacity .18s}#toast.show{opacity:1}
-.bottom{background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:3}
-.tabs{display:flex;overflow-x:auto;gap:0;border-bottom:1px solid var(--line);scrollbar-width:none}.tabs button{flex:0 0 auto;background:transparent;border:0;border-radius:0;color:var(--mut);font:700 11px ui-monospace,monospace;letter-spacing:.08em;padding:13px 15px;border-bottom:3px solid transparent}.tabs button.active{background:transparent;color:var(--blue);border-bottom-color:var(--blue)}
-.tools{display:flex;gap:8px;overflow-x:auto;padding:9px 10px 11px;scrollbar-width:thin}.tool{display:flex;align-items:center;gap:9px;min-width:118px;text-align:left;padding:9px;background:#17283a}.tool .swatch{width:19px;height:40px;border-radius:4px;flex:0 0 19px;background:#8da5b8}.tool b{display:block;font-size:13px}.tool small{display:block;color:var(--mut);margin-top:2px}
-.tool.active{outline:2px solid var(--blue);outline-offset:-2px;background:#203d51}
-.overlay{position:absolute;inset:0;background:#03080dcc;display:none;align-items:center;justify-content:center;padding:16px;z-index:5}.overlay.open{display:flex}.sheet{background:#122131;border:1px solid #35516a;border-radius:16px;padding:18px;width:min(420px,100%);max-height:85%;overflow:auto;box-shadow:0 20px 70px #0009}.sheet h2{margin:0 0 12px;color:var(--blue)}.sheet p{color:var(--mut);line-height:1.5}.sheet .row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.sheet .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
-@media(min-width:850px){header{padding-left:22px;padding-right:22px}.stats{grid-template-columns:repeat(5,minmax(90px,1fr));max-width:850px}.minimap{width:150px;height:115px}.tools{justify-content:center}.tool{min-width:145px}}
-@media(max-height:650px){header{padding-top:7px;padding-bottom:7px}.stats{margin-top:7px}.controlrow{margin-top:6px}.tabs button{padding-top:9px;padding-bottom:9px}.tool{min-width:105px;padding:6px}.tool .swatch{height:29px}}
+/* Layout: HUD header, full-bleed isometric map with chips, tool dock at the bottom. Single dark look by choice. */
+:root{
+ color-scheme:dark;
+ --bg:#0a141d;--panel:#101e2b;--panel2:#172a3b;--line:#27404f;--fg:#e6eff6;--mut:#8aa3b5;
+ --accent:#6cc8ee;--accent-ink:#06202c;--good:#5fd39a;--warn:#f0bd58;--bad:#e27b7b;
+ --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+ --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+ --f-data:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--f-body);overflow:hidden}
+button,input{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;white-space:nowrap}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:active{transform:scale(.98)}
+button.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+#app{position:relative;height:100%;min-height:420px;display:flex;flex-direction:column}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{background:linear-gradient(#122131,#0e1a27);border-bottom:1px solid var(--line);padding-block:8px;z-index:3}
+.headrow{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.brand{font:800 22px/1 var(--f-display);letter-spacing:.2em;color:var(--accent)}
+.cityrow{display:flex;align-items:center;gap:8px;margin-top:3px}
+.cityname{background:transparent;border:0;border-bottom:1px dashed var(--line);width:140px;padding:2px 0;color:var(--fg)}
+.tier{font:700 10px var(--f-data);letter-spacing:.1em;background:var(--accent);color:var(--accent-ink);padding:3px 6px;border-radius:3px}
+.net{text-align:right;font:11px var(--f-data);color:var(--mut)}
+.net b{display:block;font:600 15px var(--f-data);color:var(--fg)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px;margin-top:8px}
+.stat{min-width:0}
+.stat small{display:block;color:var(--mut);font:10px var(--f-data);letter-spacing:.08em}
+.stat strong{display:block;font:600 15px var(--f-data);white-space:nowrap;font-variant-numeric:tabular-nums}
+.stat em{display:block;font:normal 10px var(--f-data);color:var(--mut)}
+.meter{height:4px;background:#06101a;border-radius:3px;overflow:hidden;margin-top:3px}
+.meter i{display:block;height:100%;width:0;background:var(--good);transition:width .3s}
+.rci{display:flex;gap:6px;height:26px}
+.rci span{position:relative;flex:1;background:#06101a;border-radius:2px}
+.rci span::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+.rci i{position:absolute;left:0;right:0;background:currentColor;transition:all .3s}
+.controlrow{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.date{font:12px var(--f-data);color:var(--mut);margin-right:auto}
+.speed{display:flex;gap:3px}.speed button{padding:6px 9px}
+#maparea{position:relative;flex:1;min-height:90px;overflow:hidden;background:#0d2236}
+#world{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.legend{position:absolute;top:8px;left:max(12px,env(safe-area-inset-left,0px));right:12px;display:flex;gap:5px;flex-wrap:wrap;pointer-events:none}
+.legend span{background:#0a1824e6;border:1px solid #34505f;border-radius:14px;padding:4px 9px;font:11px var(--f-data);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#advice{color:var(--warn)}
+.layers{position:absolute;top:40px;left:max(12px,env(safe-area-inset-left,0px));right:12px;display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
+.layers button{padding:4px 9px;font:11px var(--f-data);border-radius:14px;background:#0a1824e6}
+.minimap{position:absolute;right:max(10px,env(safe-area-inset-right,0px));bottom:10px;width:132px;border:1px solid #34505f;border-radius:8px;background:#0a1824;overflow:hidden;box-shadow:0 4px 18px #0008}
+.minimap canvas{display:block;width:100%;height:auto;touch-action:none}
+#toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:#0e2132f2;border:1px solid #45657a;border-radius:10px;padding:8px 12px;max-width:80%;text-align:center;z-index:2;pointer-events:none;opacity:0;transition:opacity .18s}
+#toast.show{opacity:1}
+#inspector{position:absolute;left:max(12px,env(safe-area-inset-left,0px));bottom:10px;max-width:calc(100% - 170px);min-width:170px;background:#0e2132f5;border:1px solid #3d5c70;border-radius:10px;padding:10px 12px;z-index:2}
+#inspector h3{margin:0 0 4px;font:700 16px var(--f-display);letter-spacing:.06em;color:var(--accent)}
+#inspector .kv{display:flex;justify-content:space-between;gap:10px;font:11px var(--f-data);padding:2px 0;color:var(--mut)}
+#inspector .kv b{color:var(--fg);font-weight:500}
+#inspector .x{position:absolute;top:4px;right:6px;padding:0 6px;border:0;background:none;font-size:18px;color:var(--mut)}
+.bottom{background:var(--panel);border-top:1px solid var(--line);padding-bottom:0;z-index:3}
+.tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:none}
+.tabs button{flex:0 0 auto;background:transparent;border:0;border-radius:0;color:var(--mut);font:600 11px var(--f-data);letter-spacing:.08em;padding:12px 14px;border-bottom:3px solid transparent}
+.tabs button.active{background:transparent;color:var(--accent);border-bottom-color:var(--accent)}
+.tools{display:flex;gap:8px;overflow-x:auto;padding-block:8px 10px;scrollbar-width:thin}
+.tools>:first-child{margin-left:auto}.tools>:last-child{margin-right:auto}
+.tool{display:flex;align-items:center;gap:9px;min-width:124px;text-align:left;padding:8px}
+.tool .sw{width:16px;height:34px;border-radius:3px;flex:0 0 16px}
+.tool b{display:block;font:700 14px var(--f-display);letter-spacing:.04em}
+.tool small{display:block;color:var(--mut);font:10px var(--f-data)}
+.tool.active{outline:2px solid var(--accent);outline-offset:-2px;background:#1e3a4e;color:var(--fg)}
+.tool.poor{opacity:.45}
+.overlay{position:absolute;inset:0;background:#03080dcc;display:none;align-items:center;justify-content:center;padding:14px;z-index:6}
+.overlay.open{display:flex}
+.sheet{background:#112030;border:1px solid #35516a;border-radius:14px;padding:16px;width:min(440px,100%);max-height:100%;overflow:auto;box-shadow:0 20px 70px #000a}
+.sheet h2{margin:0 0 10px;font:800 22px var(--f-display);letter-spacing:.1em;color:var(--accent)}
+.sheet h4{margin:14px 0 4px;font:600 11px var(--f-data);letter-spacing:.1em;color:var(--mut)}
+.sheet p{color:var(--mut);margin:6px 0}
+.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--line);font:12px var(--f-data)}
+.row.sub{color:var(--mut)}
+.row.tot{font-weight:600;border-bottom:0}
+.sheet .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tax{display:grid;grid-template-columns:90px 1fr 44px;gap:8px;align-items:center;padding:4px 0;font:12px var(--f-data)}
+.tax input{width:100%;accent-color:var(--accent)}
+.goal{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.goal .ck{flex:0 0 18px;height:18px;border:1.5px solid var(--line);border-radius:50%;margin-top:2px}
+.goal.done .ck{background:var(--good);border-color:var(--good)}
+.goal small{display:block;color:var(--mut);font:11px var(--f-data)}
+.good{color:var(--good)}.bad{color:var(--bad)}
+@media(min-width:760px){.stats{grid-template-columns:repeat(6,minmax(0,1fr))}.minimap{width:190px}.tool{min-width:150px}}
+@media(max-height:640px){.stats{grid-template-columns:repeat(6,minmax(0,1fr));margin-top:5px}.controlrow{margin-top:5px}.tabs button{padding-block:8px}.tool{min-width:110px;padding:5px}.tool .sw{height:24px}}
+@media(prefers-reduced-motion:reduce){.meter i,.rci i{transition:none}}
 </style>
-</head>
-<body>
 <div id="app">
-<header>
-  <div class="headrow">
-    <div><div class="brand">METROPOLIS PRO</div><div style="display:flex;gap:9px;align-items:center;margin-top:4px"><input id="cityName" class="cityname" value="New Harbour" maxlength="24" aria-label="City name"><span class="tier" id="tier">HAMLET</span></div></div>
-    <div style="font-size:12px;color:var(--mut);text-align:right">GAMEFORGE<br><span id="income">+$120/mo</span></div>
-  </div>
-  <div class="stats">
-    <div class="stat"><small>FUNDS</small><strong id="funds">₹20,000</strong><div class="meter"><i id="fundbar"></i></div></div>
-    <div class="stat"><small>RESIDENTS</small><strong id="residents">0</strong><small id="jobs">0 jobs</small></div>
-    <div class="stat"><small>POWER</small><strong id="power">0/100</strong><div class="meter"><i id="powerbar"></i></div></div>
-    <div class="stat"><small>WATER</small><strong id="water">0/100</strong><div class="meter"><i id="waterbar"></i></div></div>
-    <div class="stat"><small>MOOD</small><strong id="mood">65%</strong><div class="meter"><i id="moodbar"></i></div></div>
-  </div>
-  <div class="controlrow"><span class="date" id="date">JAN 2028</span><div class="speed"><button data-speed="0">Ⅱ</button><button data-speed="1" class="active">1×</button><button data-speed="2">2×</button><button data-speed="4">4×</button></div><button id="budgetBtn">Budget</button><button id="goalsBtn">Goals</button><button id="menuBtn">Menu</button></div>
-</header>
+<header><div class="wrap">
+ <div class="headrow">
+  <div><div class="brand">METROPOLIS PRO</div><div class="cityrow"><input id="cityName" class="cityname" value="New Harbour" maxlength="24" aria-label="City name"><span class="tier" id="tier">HAMLET</span></div></div>
+  <div class="net">GAMEFORGE<b id="income">+₹0/mo</b></div>
+ </div>
+ <div class="stats">
+  <div class="stat"><small>FUNDS</small><strong id="funds">₹0</strong><em id="fundsub">treasury</em></div>
+  <div class="stat"><small>RESIDENTS</small><strong id="residents">0</strong><em id="jobs">0 jobs</em></div>
+  <div class="stat"><small>POWER USE/CAP</small><strong id="power">0/0</strong><div class="meter"><i id="powerbar"></i></div></div>
+  <div class="stat"><small>WATER USE/CAP</small><strong id="water">0/0</strong><div class="meter"><i id="waterbar"></i></div></div>
+  <div class="stat"><small>MOOD</small><strong id="mood">0%</strong><div class="meter"><i id="moodbar"></i></div></div>
+  <div class="stat"><small>DEMAND R · C · I</small><div class="rci"><span style="color:#5db4ea"><i id="dR"></i></span><span style="color:#f0bf5a"><i id="dC"></i></span><span style="color:#d9807a"><i id="dI"></i></span></div></div>
+ </div>
+ <div class="controlrow"><span class="date" id="date">JAN 2028</span>
+  <div class="speed"><button data-speed="0" aria-label="Pause">Ⅱ</button><button data-speed="1" class="active">1×</button><button data-speed="2">2×</button><button data-speed="4">4×</button></div>
+  <button id="budgetBtn">Budget</button><button id="goalsBtn">Goals</button><button id="menuBtn">Menu</button></div>
+</div></header>
 <section id="maparea">
-  <canvas id="world" aria-label="Isometric city map"></canvas>
-  <div class="legend"><span id="toolLabel">PAN · DRAG TO MOVE</span><span id="monthLabel">CITY SIMULATION</span></div>
-  <div id="toast" role="status"></div>
-  <div class="minimap"><canvas id="mini" width="220" height="180"></canvas></div>
+ <canvas id="world" aria-label="Isometric city map"></canvas>
+ <div class="legend"><span id="toolLabel">PAN · DRAG TO MOVE</span><span id="advice">Loading city…</span></div>
+ <div class="layers" id="layers"></div>
+ <div id="inspector" hidden></div>
+ <div id="toast" role="status"></div>
+ <div class="minimap"><canvas id="mini" width="176" height="92"></canvas></div>
 </section>
 <section class="bottom">
-  <nav class="tabs" id="tabs">
-    <button class="active" data-tab="pan">MAP</button><button data-tab="roads">ROADS</button><button data-tab="zones">ZONES</button><button data-tab="power">POWER</button><button data-tab="water">WATER</button><button data-tab="safety">SAFETY</button><button data-tab="parks">PARKS</button>
-  </nav>
-  <div class="tools" id="tools"></div>
+ <nav class="tabs wrap" id="tabs"><button class="active" data-tab="pan">MAP</button><button data-tab="roads">ROADS</button><button data-tab="zones">ZONES</button><button data-tab="power">POWER</button><button data-tab="water">WATER</button><button data-tab="safety">SAFETY</button><button data-tab="civic">CIVIC</button></nav>
+ <div class="tools wrap" id="tools"></div>
 </section>
-<div class="overlay" id="overlay"><div class="sheet"><h2 id="sheetTitle">City menu</h2><div id="sheetBody"></div><div class="actions" id="sheetActions"></div></div></div>
+<div class="overlay" id="overlay"><div class="sheet"><h2 id="sheetTitle">Menu</h2><div id="sheetBody"></div><div class="actions" id="sheetActions"></div></div></div>
 </div>
 <script>
 (()=>{
 "use strict";
-const canvas=document.querySelector("#world"),ctx=canvas.getContext("2d"),mini=document.querySelector("#mini"),mctx=mini.getContext("2d");
 const $=id=>document.getElementById(id);
-const W=32,H=32,tw=46,th=23;
-const defs={
- pan:{label:"Pan",cost:0,kind:"pan",color:"#8da5b8",desc:"Free"},
- inspect:{label:"Inspect",cost:0,kind:"inspect",color:"#68c8ef",desc:"Free"},
- bulldoze:{label:"Bulldoze",cost:8,kind:"bulldoze",color:"#d87979",desc:"₹8"},
- road:{label:"Road",cost:80,kind:"road",color:"#596778",desc:"₹80"},
- home:{label:"Homes",cost:400,kind:"zoneR",color:"#68b9ed",desc:"₹400"},
- shop:{label:"Shops",cost:650,kind:"zoneC",color:"#f0bf5a",desc:"₹650"},
- industry:{label:"Industry",cost:900,kind:"zoneI",color:"#dc8880",desc:"₹900"},
- power:{label:"Power plant",cost:1800,kind:"power",color:"#e8b84f",desc:"₹1.8k"},
- water:{label:"Water tower",cost:1200,kind:"water",color:"#69bfe9",desc:"₹1.2k"},
- safety:{label:"Fire station",cost:1500,kind:"safety",color:"#d87979",desc:"₹1.5k"},
- park:{label:"Park",cost:300,kind:"park",color:"#57b878",desc:"₹300"}
+const canvas=$("world"),ctx=canvas.getContext("2d"),mini=$("mini"),mctx=mini.getContext("2d");
+const W=32,H=32,TW=64,TH=32,HW=32,HH=16,TPM=4,TICK_MS=1500,START_YEAR=2028,KEY="metropolis-pro-v2";
+const MON=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const N4=[[1,0],[-1,0],[0,1],[0,-1]];
+const CAPR=[0,6,16,40],CAPC=[0,4,10,24],CAPI=[0,6,14,30];
+const PD={R:[0,1,2,5],C:[0,2,4,9],I:[0,4,8,16]};
+const WD={R:[0,1,2,4],C:[0,1,3,6],I:[0,3,6,10]};
+const ROADCAP=22;
+const STRUCT={
+ coal:{name:"Coal power plant",kind:"power",cap:80,up:55},
+ solar:{name:"Solar farm",kind:"power",cap:16,up:12},
+ pump:{name:"Water pump station",kind:"water",cap:70,up:30},
+ fire:{name:"Fire station",kind:"safety",up:45},
+ park:{name:"Park",kind:"civic",up:6},
+ school:{name:"School",kind:"civic",up:40}
 };
-let grid=[],funds=26248,month=0,speed=1,tab="pan",tool="pan",toastTimer=null,simTimer=0;
-let camera={x:0,y:0,zoom:0.62},drag=null,lastPointer=null,hover=null,pinch=null;
-function emptyCell(){return {kind:"empty",zone:null,road:false,building:null}}
-function resetGrid(){grid=Array.from({length:H},()=>Array.from({length:W},emptyCell))}
-function cell(x,y){return x>=0&&x<W&&y>=0&&y<H?grid[y][x]:null}
-function seedCity(){
- resetGrid();
- // Water bay at the upper-left, with an initial neighbourhood and a connected road grid.
- for(let y=1;y<8;y++)for(let x=1;x<9;x++)if((x+y)%3!==0)grid[y][x].kind="waterTile";
- for(let y=9;y<29;y++)for(let x=3;x<29;x++){
-   if((x%7===3)||(y%6===3)){grid[y][x].road=true;grid[y][x].kind="land"}
- }
- const placements=[
-  [5,11,"home"],[6,11,"home"],[8,11,"shop"],[10,11,"home"],[12,11,"home"],
-  [5,13,"home"],[7,13,"home"],[9,13,"home"],[11,13,"home"],[13,13,"shop"],
-  [5,16,"home"],[7,16,"shop"],[9,16,"home"],[11,16,"home"],[13,16,"home"],
-  [17,12,"home"],[19,12,"shop"],[21,12,"home"],[17,14,"home"],[19,14,"home"],
-  [21,14,"shop"],[23,14,"home"],[17,17,"industry"],[20,17,"industry"],
-  [24,17,"power"],[26,20,"water"],[9,20,"park"],[13,21,"safety"]
- ];
- for(const [x,y,k] of placements){let c=cell(x,y);if(c){c.kind="land";c.building=k}}
- // add more roads around seeded buildings
- for(let y=10;y<23;y+=3)for(let x=4;x<27;x++)if(cell(x,y))cell(x,y).road=true;
+const ZNAME={R:"Residential",C:"Commercial",I:"Industrial"};
+const ZCOL={R:"#5db4ea",C:"#f0bf5a",I:"#d9807a"};
+const DEFS={
+ pan:{label:"Pan",cost:0,color:"#8aa3b5",desc:"Free",mode:"pan"},
+ inspect:{label:"Inspect",cost:0,color:"#6cc8ee",desc:"Free",mode:"inspect"},
+ bulldoze:{label:"Bulldoze",cost:10,color:"#d87979",desc:"₹10/tile",mode:"bulldoze"},
+ road:{label:"Road",cost:100,color:"#6b7889",desc:"₹100/tile",mode:"line"},
+ zoneR:{label:"Residential",cost:50,color:ZCOL.R,desc:"₹50/tile",mode:"rect",zone:"R"},
+ zoneC:{label:"Commercial",cost:70,color:ZCOL.C,desc:"₹70/tile",mode:"rect",zone:"C"},
+ zoneI:{label:"Industrial",cost:90,color:ZCOL.I,desc:"₹90/tile",mode:"rect",zone:"I"},
+ coal:{label:"Coal plant",cost:4500,color:"#7d8794",desc:"₹4,500 · 80 MW",mode:"place",struct:"coal",radius:0},
+ solar:{label:"Solar farm",cost:7500,color:"#3f78b8",desc:"₹7,500 · 16 MW",mode:"place",struct:"solar"},
+ pump:{label:"Water pump",cost:2800,color:"#5fb8d8",desc:"₹2,800 · 70 kL",mode:"place",struct:"pump"},
+ fire:{label:"Fire station",cost:2200,color:"#d85f5f",desc:"₹2,200",mode:"place",struct:"fire",radius:9},
+ park:{label:"Park",cost:350,color:"#4fae73",desc:"₹350",mode:"place",struct:"park",radius:5},
+ school:{label:"School",cost:2600,color:"#e0c98a",desc:"₹2,600",mode:"place",struct:"school",radius:6}
+};
+const TABS={pan:["pan","inspect","bulldoze"],roads:["road","bulldoze"],zones:["zoneR","zoneC","zoneI","bulldoze"],power:["coal","solar","road","bulldoze"],water:["pump","road","bulldoze"],safety:["fire","road","bulldoze"],civic:["park","school","bulldoze"]};
+const TABDEF={pan:"pan",roads:"road",zones:"zoneR",power:"coal",water:"pump",safety:"fire",civic:"park"};
+const LAYERS=[["normal","Normal"],["power","Power"],["water","Water"],["value","Land value"],["pollution","Pollution"],["traffic","Traffic"],["fire","Fire cover"]];
+
+let S,G=[],comps=[],T={},cars=[];
+let layer="normal",tab="pan",tool="pan",speed=1,sheetOpen=false;
+let cam={sx:-64,sy:544,z:.6},VW=0,VH=0,DPR=1,Z=1,OX=0,OY=0;
+let hover=null,sel=null,pending=null,dirty=true,miniDirty=true,toastTimer=0,camInit=false;
+let rs=1;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+function rnd(){rs=(rs+0x6D2B79F5)|0;let t=Math.imul(rs^(rs>>>15),1|rs);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}
+const hsh=(x,y)=>(Math.imul(x+11,73856093)^Math.imul(y+7,19349663))>>>0;
+const at=(x,y)=>x>=0&&y>=0&&x<W&&y<H?G[y*W+x]:null;
+const fmt=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+const fmtS=n=>(n>=0?"+":"−")+"₹"+Math.abs(Math.round(n)).toLocaleString("en-IN");
+function mkCell(x,y){return{x,y,t:0,road:false,zone:null,b:0,s:null,rub:0,tree:false,fire:0,bad:0,occ:0,lv:35,pol:0,trf:0,fc:0,comp:-1,acc:false,pw:false,wt:false,pf:0,wf:0,svc:0,rd:null}}
+
+/* ---------- terrain & starter city ---------- */
+function noiseFn(seed){
+ let s=seed|0;const r=()=>{s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296};
+ const g=[];for(let i=0;i<100;i++)g.push(r());const sm=t=>t*t*(3-2*t);
+ return(x,y)=>{x/=5;y/=5;const xi=Math.floor(x),yi=Math.floor(y),xf=sm(x-xi),yf=sm(y-yi);
+  const v=(a,b)=>g[(((b%10)+10)%10)*10+(((a%10)+10)%10)];
+  return(v(xi,yi)*(1-xf)+v(xi+1,yi)*xf)*(1-yf)+(v(xi,yi+1)*(1-xf)+v(xi+1,yi+1)*xf)*yf};
 }
-let cameraInitialized=false;
-function resize(){
- const r=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
- canvas.width=Math.max(1,Math.round(r.width*dpr));canvas.height=Math.max(1,Math.round(r.height*dpr));
- ctx.setTransform(dpr,0,0,dpr,0,0);
- if(!cameraInitialized){
-   camera.zoom=Math.min(.72,Math.max(.48,(r.width+100)/(W*tw*.72)));
-   camera.x=0;
-   camera.y=r.height*.05-((W+H)*th*.25*camera.zoom);
-   cameraInitialized=true;
- }
- draw();
-}
-function project(x,y){
- const w=canvas.clientWidth,h=canvas.clientHeight;
- return {x:w/2+(x-y)*tw*.5*camera.zoom+camera.x,y:h*.43+(x+y)*th*.5*camera.zoom+camera.y};
-}
-function unproject(px,py){
- // Convert screen coordinates back into isometric grid coordinates.
- // A tile's clickable diamond is centred half a tile below its top vertex.
- const z=camera.zoom;
- const dx=(px-canvas.clientWidth/2-camera.x)/(tw*.5*z);
- const dy=(py-canvas.clientHeight*.43-camera.y-th*.5*z)/(th*.5*z);
- const gx=(dx+dy)/2, gy=(dy-dx)/2;
- const x=Math.floor(gx+0.5), y=Math.floor(gy+0.5);
- if(x<0||x>=W||y<0||y>=H)return null;
- // Reject taps outside the diamond rather than selecting a neighbouring tile.
- const p=project(x,y), localX=Math.abs(px-p.x)/(tw*.5*z);
- const localY=Math.abs(py-(p.y+th*.5*z))/(th*.5*z);
- if(localX+localY>1.08)return null;
- return {x,y};
-}
-function diamond(p,fill,stroke="#28473f"){
- ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+tw*.5*camera.zoom,p.y+th*.5*camera.zoom);ctx.lineTo(p.x,p.y+th*camera.zoom);ctx.lineTo(p.x-tw*.5*camera.zoom,p.y+th*.5*camera.zoom);ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=.6;ctx.stroke();
-}
-function drawBuilding(p,k){
- const z=camera.zoom,base=p.y+th*z*.35;
- if(k==="home"||k==="shop"||k==="industry"||k==="safety"){
-  const height=(k==="home"?17:k==="shop"?25:k==="industry"?20:23)*z;
-  const width=(k==="home"?17:22)*z;
-  ctx.fillStyle="#13232f";ctx.beginPath();ctx.moveTo(p.x-width*z*.1,base);ctx.lineTo(p.x+width,base-5*z);ctx.lineTo(p.x+width,base-height);ctx.lineTo(p.x,base-height+5*z);ctx.lineTo(p.x-width,base-height);ctx.lineTo(p.x-width,base-5*z);ctx.closePath();ctx.fill();
-  ctx.fillStyle=({home:"#7f8ca4",shop:"#6f9e9d",industry:"#777b8d",safety:"#ba7774"})[k];
-  ctx.beginPath();ctx.moveTo(p.x-width,base-5*z);ctx.lineTo(p.x,base);ctx.lineTo(p.x,base-height+5*z);ctx.lineTo(p.x-width,base-height);ctx.closePath();ctx.fill();
-  ctx.fillStyle=({home:"#52637a",shop:"#426c72",industry:"#535b6b",safety:"#8b4e51"})[k];
-  ctx.beginPath();ctx.moveTo(p.x,base);ctx.lineTo(p.x+width,base-5*z);ctx.lineTo(p.x+width,base-height);ctx.lineTo(p.x,base-height+5*z);ctx.closePath();ctx.fill();
-  ctx.fillStyle="#ffdb91";for(let i=0;i<2;i++){ctx.fillRect(p.x-width*.72,base-height*.68+i*6*z,4*z,4*z);ctx.fillRect(p.x+width*.25,base-height*.68+i*6*z,4*z,4*z)}
-  if(k==="home"){ctx.fillStyle="#694f50";ctx.beginPath();ctx.moveTo(p.x-width*1.1,base-height);ctx.lineTo(p.x,base-height-9*z);ctx.lineTo(p.x+width*1.1,base-height);ctx.closePath();ctx.fill()}
- } else if(k==="power"){
-  ctx.strokeStyle="#d9e1e6";ctx.lineWidth=2*z;ctx.beginPath();ctx.moveTo(p.x,base);ctx.lineTo(p.x,base-34*z);ctx.stroke();
-  ctx.strokeStyle="#d9e1e6";for(let a=0;a<3;a++){let ang=a*2.094;ctx.beginPath();ctx.moveTo(p.x,base-34*z);ctx.lineTo(p.x+Math.cos(ang)*17*z,base-34*z+Math.sin(ang)*17*z);ctx.stroke()}
-  ctx.fillStyle="#e9c46a";ctx.fillRect(p.x-11*z,base-7*z,22*z,8*z)
- }else if(k==="water"){
-  ctx.fillStyle="#8da6b8";ctx.fillRect(p.x-8*z,base-22*z,16*z,22*z);ctx.fillStyle="#bdceda";ctx.fillRect(p.x-11*z,base-26*z,22*z,6*z);ctx.fillRect(p.x-10*z,base-2*z,3*z,7*z);ctx.fillRect(p.x+7*z,base-2*z,3*z,7*z)
- }else if(k==="park"){
-  ctx.fillStyle="#2e8755";ctx.beginPath();ctx.ellipse(p.x,base-2*z,15*z,7*z,0,0,Math.PI*2);ctx.fill();
-  for(let i=0;i<3;i++){let xx=p.x+(i-1)*8*z;ctx.fillStyle="#286f4a";ctx.fillRect(xx-1*z,base-15*z,3*z,13*z);ctx.fillStyle=i%2?"#48a66b":"#3a925e";ctx.beginPath();ctx.arc(xx,base-18*z,6*z,0,Math.PI*2);ctx.fill()}
+function genTerrain(seed){
+ const n=noiseFn(seed),n2=noiseFn(seed+99);
+ for(const c of G){
+  const bay=Math.hypot(c.x+.5-1,c.y+.5-1),bayR=9+(n(c.x*.9,c.y*.9)-.5)*9;
+  const lake=Math.hypot(c.x-27.5,c.y-6),lakeR=3.2+(n2(c.x,c.y)-.5)*3.5;
+  c.t=(bay<bayR||lake<lakeR)?1:0;
+  if(c.x>=5&&c.x<=28&&c.y>=10&&c.y<=27)c.t=0;
+  c.tree=!c.t&&(hsh(c.x,c.y)%100)<(n2(c.x*1.7+3,c.y*1.7)>.52?55:7);
  }
 }
-function drawRoad(p){
- const z=camera.zoom;
- ctx.strokeStyle="#101b2a";ctx.lineWidth=9*z;ctx.beginPath();ctx.moveTo(p.x-tw*.22*z,p.y+th*.5*z);ctx.lineTo(p.x+tw*.22*z,p.y+th*.5*z);ctx.stroke();
- ctx.strokeStyle="#697487";ctx.lineWidth=6*z;ctx.beginPath();ctx.moveTo(p.x-tw*.22*z,p.y+th*.5*z);ctx.lineTo(p.x+tw*.22*z,p.y+th*.5*z);ctx.stroke();
- ctx.strokeStyle="#b4b6a6";ctx.lineWidth=.8*z;ctx.setLineDash([3*z,3*z]);ctx.beginPath();ctx.moveTo(p.x-tw*.19*z,p.y+th*.5*z);ctx.lineTo(p.x+tw*.19*z,p.y+th*.5*z);ctx.stroke();ctx.setLineDash([]);
+function seedStarter(){
+ const road=(x0,y0,x1,y1)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const c=at(x,y);if(c&&!c.t){c.road=true;c.tree=false}}};
+ const zone=(k,x0,y0,x1,y1,fill)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const c=at(x,y);if(!c||c.t||c.road)continue;c.zone=k;c.tree=false;
+  if(rnd()<fill){c.b=rnd()<.22?2:1;c.occ=.55+rnd()*.25}}};
+ const put=(x,y,s)=>{const c=at(x,y);if(c){c.s=s;c.tree=false}};
+ road(8,18,25,18);road(12,12,12,24);road(19,12,19,24);road(12,14,19,14);road(8,22,25,22);
+ zone("R",13,15,18,15,.7);zone("R",13,17,18,17,.7);zone("R",8,17,11,17,.7);zone("R",8,19,11,19,.6);
+ zone("C",13,19,18,19,.5);zone("C",20,17,24,17,.5);
+ zone("I",20,19,24,19,.5);zone("I",13,21,18,21,.5);zone("I",20,21,24,21,.4);
+ put(26,18,"coal");put(7,18,"pump");put(12,25,"fire");put(15,16,"park");
 }
-function draw(){
- if(!ctx||!canvas.clientWidth)return;
- const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);
- const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,"#23527a");bg.addColorStop(.4,"#1d4965");bg.addColorStop(1,"#102e41");ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
- // draw distant isometric grid
- for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-  const p=project(x,y),c=cell(x,y);let col="#244c3d";
-  if(c.kind==="waterTile")col="#155079";
-  else if(c.kind==="land")col=(x+y)%2?"#2a513f":"#2d5743";
-  diamond(p,col);
-  if(c.road)drawRoad(p);
-  if(c.zone&&!c.building){const zcol={zoneR:"#66b9ed",zoneC:"#f0bf5a",zoneI:"#dc8880"}[c.zone];diamond(p,zcol+"66",zcol)}
-  if(c.building)drawBuilding(p,c.building);
-  if(hover&&hover.x===x&&hover.y===y){diamond(p,"#72d6f255","#b7efff")}
+function newGame(seed){
+ S={v:2,name:"New Harbour",seed,rs:seed*7+13,funds:40000,tick:0,tax:{R:9,C:9,I:9},mood:62,dem:{R:.4,C:.3,I:.3},goals:{},news:[],broke:0,streak:0,lost:0,net:0,last:null};
+ rs=S.rs;G=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)G.push(mkCell(x,y));
+ genTerrain(seed);seedStarter();cars.length=0;sel=null;
+ refresh();news("Welcome to "+S.name+". Zone land beside roads and keep power and water flowing.");
+ $("cityName").value=S.name;
+}
+
+/* ---------- analysis ---------- */
+function adjRoad(c){for(const [dx,dy] of N4){const n=at(c.x+dx,c.y+dy);if(n&&n.road)return n}return null}
+function spread(c,r,s){for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const n=at(c.x+dx,c.y+dy);if(!n)continue;const d=Math.hypot(dx,dy);if(d<=r)n.pol+=s*(1-d/r)}}
+function analyze(){
+ for(const c of G){c.comp=-1;c.acc=false;c.pw=false;c.wt=false;c.pol=0;c.trf=0;c.fc=0;c.rd=null;c.pf=0;c.wf=0;c.svc=0}
+ comps=[];
+ for(const c of G){if(!c.road||c.comp>=0)continue;
+  const id=comps.length,cp={p:0,pd:0,w:0,wd:0,pf:0,wf:0};comps.push(cp);const q=[c];c.comp=id;
+  while(q.length){const a=q.pop();for(const [dx,dy] of N4){const n=at(a.x+dx,a.y+dy);if(n&&n.road&&n.comp<0){n.comp=id;q.push(n)}}}}
+ for(const c of G){if(c.road||c.t)continue;if(!(c.b||c.s||c.zone))continue;
+  const r=adjRoad(c);if(r){c.comp=r.comp;c.acc=true;c.rd=r}}
+ for(const c of G){
+  if(c.s&&c.comp>=0){const st=STRUCT[c.s];if(st.kind==="power")comps[c.comp].p+=st.cap;else if(st.kind==="water")comps[c.comp].w+=st.cap}
+  if(c.b>0&&c.comp>=0){comps[c.comp].pd+=PD[c.zone][c.b];comps[c.comp].wd+=WD[c.zone][c.b]}
  }
- // scattered trees on empty land for richer city look
- for(let y=2;y<H-2;y+=4)for(let x=2;x<W-2;x+=5){const c=cell(x,y);if(c.kind==="land"&&!c.road&&!c.building&&!c.zone){const p=project(x,y);ctx.fillStyle="#153c31";ctx.beginPath();ctx.ellipse(p.x,p.y+7*camera.zoom,5*camera.zoom,2*camera.zoom,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#2d8057";ctx.beginPath();ctx.arc(p.x,p.y-3*camera.zoom,4*camera.zoom,0,Math.PI*2);ctx.fill()}}
+ for(const k of comps){k.pf=k.p<=0?0:k.pd<=k.p?1:k.p/k.pd;k.wf=k.w<=0?0:k.wd<=k.w?1:k.w/k.wd}
+ for(const c of G){if(c.comp<0||c.road)continue;const k=comps[c.comp];c.pf=k.pf;c.wf=k.wf;c.pw=k.pf>0;c.wt=k.wf>0;c.svc=Math.min(k.pf,k.wf)}
+ for(const c of G){
+  if(c.s==="coal")spread(c,7,26);
+  else if(c.b>0&&c.zone==="I")spread(c,4,5*c.b*(c.occ>.2?1:.4));
+  if(c.s==="fire"&&c.comp>=0&&(!S||S.funds>0)){for(let dy=-9;dy<=9;dy++)for(let dx=-9;dx<=9;dx++){const n=at(c.x+dx,c.y+dy);if(!n)continue;const d=Math.hypot(dx,dy);if(d<=9)n.fc=Math.max(n.fc,1-d/10)}}
+ }
+ // traffic: each building loads nearby road tiles
+ for(const c of G){
+  if(!(c.b>0)||!c.rd)continue;
+  const trips=(c.zone==="R"?CAPR[c.b]*.3:c.zone==="C"?CAPC[c.b]*.4:CAPI[c.b]*.25)*Math.max(.2,c.occ);
+  const seen=new Map();seen.set(c.rd,0);const q=[c.rd];
+  while(q.length){const a=q.shift(),d=seen.get(a);a.trf+=trips*(1-d/7);if(d>=6)continue;
+   for(const [dx,dy] of N4){const n=at(a.x+dx,a.y+dy);if(n&&n.road&&!seen.has(n)){seen.set(n,d+1);q.push(n)}}}
+ }
+ // land value
+ const parks=[],schools=[];
+ for(const c of G){if(c.s==="park")parks.push(c);else if(c.s==="school")schools.push(c)}
+ for(const c of G){
+  if(c.t){c.pol=Math.min(100,c.pol);continue}
+  c.pol=Math.min(100,c.pol);
+  let v=32,wn=0;
+  for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const n=at(c.x+dx,c.y+dy);if(n&&n.t){const d=Math.hypot(dx,dy);if(d<=3.5)wn+=1-d/4}}
+  v+=Math.min(14,wn*2.2);
+  for(const p of parks){const d=Math.hypot(p.x-c.x,p.y-c.y);if(d<=5)v+=14*(1-d/6)}
+  for(const p of schools){const d=Math.hypot(p.x-c.x,p.y-c.y);if(d<=6)v+=12*(1-d/7)}
+  v-=c.pol*.7;
+  if(c.acc)v+=6;else if(c.zone)v-=8;
+  const rr=c.road?c:c.rd;if(rr)v-=12*Math.min(1,rr.trf/ROADCAP);
+  v+=6*c.fc;if(c.zone&&(!c.pw||!c.wt))v-=10;
+  c.lv+=(clamp(v,0,100)-c.lv)*.4;
+ }
+}
+function computeStats(){
+ const t={pop:0,popCap:0,cCap:0,iCap:0,jobsCap:0,jobs:0,dev:0,pd:0,wd:0,pc:0,wc:0,parks:0,schools:0,solar:0,fires:0,unserved:0,blocked:0,ready:0,lvR:0,nR:0,polR:0,roads:0,cong:0,covered:0,sp:0,sw:0,stations:0,lvAll:0,nLand:0};
+ for(const c of G){
+  if(!c.t){t.lvAll+=c.lv;t.nLand++}
+  if(c.road){t.roads++;t.cong+=Math.min(1.5,c.trf/ROADCAP)}
+  if(c.s){const st=STRUCT[c.s];
+   if(st.kind==="power"&&c.comp>=0)t.pc+=st.cap;if(st.kind==="water"&&c.comp>=0)t.wc+=st.cap;
+   if(c.s==="park")t.parks++;else if(c.s==="school")t.schools++;else if(c.s==="solar")t.solar++;else if(c.s==="fire")t.stations++}
+  if(c.fire>0)t.fires++;
+  if(c.b>0){const k=c.zone,b=c.b;t.dev++;t.pd+=PD[k][b];t.wd+=WD[k][b];t.sp+=PD[k][b]*c.pf;t.sw+=WD[k][b]*c.wf;
+   if(k==="R"){t.popCap+=CAPR[b];t.pop+=CAPR[b]*c.occ;t.lvR+=c.lv;t.nR++;t.polR+=c.pol}
+   else if(k==="C"){t.cCap+=CAPC[b];t.jobs+=CAPC[b]*c.occ}else{t.iCap+=CAPI[b];t.jobs+=CAPI[b]*c.occ}
+   if(!c.acc||c.svc<=0)t.unserved++;if(c.fc>.1)t.covered++}
+  else if(c.zone&&!c.t&&!c.rub){if(c.acc&&c.pw&&c.wt)t.ready++;else t.blocked++}
+ }
+ t.jobsCap=t.cCap+t.iCap;t.satP=t.pd>0?t.sp/t.pd:1;t.satW=t.wd>0?t.sw/t.wd:1;
+ t.avgCong=t.cong/Math.max(1,t.roads);t.fireCov=t.covered/Math.max(1,t.dev);
+ t.avgLV=t.lvAll/Math.max(1,t.nLand);t.pop=Math.round(t.pop);t.jobs=Math.round(t.jobs);
+ t.dem=S.dem;T=t;
+}
+function demandTarget(){
+ const t=T,work=t.popCap*.55,tx=k=>(S.tax[k]-9)*.05;
+ return{
+  R:clamp(.35+(t.jobsCap*.9-work)/Math.max(30,t.jobsCap+work)*1.6-tx("R")+(S.mood-55)/150,-1,1),
+  C:clamp(.3+(t.pop*.45-t.cCap)/Math.max(30,t.pop*.45+t.cCap)*1.6-tx("C"),-1,1),
+  I:clamp(.3+(work*.6-t.iCap)/Math.max(30,work*.6+t.iCap)*1.4-tx("I"),-1,1)};
+}
+function moodTarget(){
+ const t=T;let m=56;
+ m+=(t.satP-1)*38+(t.satW-1)*38;
+ m-=(t.pop>8?Math.max(0,1-t.jobs/Math.max(1,t.pop*.55)):0)*32;
+ m+=Math.min(12,t.parks*2.5)+Math.min(8,t.schools*3);
+ m+=((t.nR?t.lvR/t.nR:40)-42)*.3;m-=(t.nR?t.polR/t.nR:0)*.45;
+ m-=(S.tax.R-9)*2.4;m-=t.avgCong*16;m-=Math.min(12,t.fires*4);
+ if(S.broke>0)m-=8;if(t.fireCov<.5&&t.dev>20)m-=4;
+ return clamp(m,5,98);
+}
+function econ(){
+ const inc={R:0,C:0,I:0},ex={roads:0,power:0,water:0,safety:0,civic:0};
+ for(const c of G){
+  if(c.b>0&&c.svc>0&&c.acc){const k=c.zone,w=(.55+c.lv/110)*(S.tax[k]/9);
+   if(k==="R")inc.R+=CAPR[c.b]*c.occ*4*w;else if(k==="C")inc.C+=CAPC[c.b]*c.occ*8*w;else inc.I+=CAPI[c.b]*c.occ*6.5*w}
+  if(c.road)ex.roads+=1.5;else if(c.s)ex[STRUCT[c.s].kind]+=STRUCT[c.s].up;
+ }
+ const ti=inc.R+inc.C+inc.I,te=ex.roads+ex.power+ex.water+ex.safety+ex.civic;
+ return{inc,ex,ti,te,net:ti-te};
+}
+function refresh(){analyze();computeStats();S.last=econ();hud();dirty=true;miniDirty=true}
+function news(msg){S.news.unshift({d:dateStr(),m:msg});if(S.news.length>30)S.news.pop();say(msg)}
+const dateStr=()=>{const m=Math.floor(S.tick/TPM);return MON[m%12]+" "+(START_YEAR+Math.floor(m/12))};
+const where=c=>"block "+String.fromCharCode(65+c.x%26)+(c.y+1);
+
+/* ---------- simulation tick (one week) ---------- */
+function tick(){
+ S.tick++;analyze();computeStats();
+ S.mood+=(moodTarget()-S.mood)*.3;
+ const dt=demandTarget();for(const k of["R","C","I"])S.dem[k]+=(dt[k]-S.dem[k])*.4;
+ const t=T,work=t.pop*.55,fill=clamp(work/Math.max(8,t.jobsCap),.25,1),cm=clamp(t.pop*.45/Math.max(8,t.cCap),.25,1);
+ let aband=0;
+ for(const c of G){
+  if(c.rub>0)c.rub--;
+  if(!(c.b>0))continue;
+  const ok=c.acc&&c.pw&&c.wt;
+  if(!ok)c.bad++;else if(c.svc<1&&rnd()<(1-c.svc)*.6)c.bad++;else c.bad=Math.max(0,c.bad-1);
+  if(c.bad>=10){c.b=0;c.occ=0;c.bad=0;c.rub=8;aband++;continue}
+  let tg;if(c.zone==="R")tg=clamp(.35+.65*S.mood/100,.1,1);else if(c.zone==="C")tg=Math.min(cm,fill);else tg=fill;
+  if(c.svc<=0)tg=.05;
+  c.occ+=clamp(tg-c.occ,-.06,.06);
+ }
+ if(aband){S.lost+=aband;news(aband+" building"+(aband>1?"s":"")+" abandoned: no road, power or water.")}
+ grow();fires();
+ const e=econ();S.last=e;S.funds+=e.net/TPM;
+ if(S.funds<0){S.funds=0;S.broke++;if(S.broke===1||S.broke%12===0)news("The treasury is empty. Raise taxes or stop building.")}else S.broke=Math.max(0,S.broke-1);
+ if(S.tick%TPM===0){S.streak=e.net>=0?S.streak+1:0}
+ computeStats();checkGoals();
+ hud();dirty=true;miniDirty=true;
+ if(S.tick%8===0)save();
+}
+function grow(){
+ const d=S.dem,maxNew=2+Math.floor(T.dev/25),cand=[];let built=0;
+ for(const c of G){if(c.t||c.road||c.s)continue;if(c.zone&&!c.b&&!c.rub&&!c.fire&&c.acc&&c.pw&&c.wt)cand.push(c)}
+ for(let i=cand.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[cand[i],cand[j]]=[cand[j],cand[i]]}
+ for(const c of cand){if(built>=maxNew)break;const dm=d[c.zone];if(dm<=.02)continue;
+  if(rnd()<(.12+dm*.45)*(.55+c.lv/120)){c.b=1;c.occ=.2;c.bad=0;built++}}
+ for(const c of G){
+  if(c.b>0&&c.b<3&&!c.fire&&c.svc>=1&&c.occ>.75&&d[c.zone]>.1){const need=c.b===1?44:62;if(c.lv>=need&&rnd()<.05+d[c.zone]*.06)c.b++}
+  else if(c.b>0&&d[c.zone]<-.45&&c.occ<.45&&rnd()<.03){c.b--;if(!c.b)c.occ=0}
+ }
+}
+function fires(){
+ const ign=[];
+ for(const c of G){
+  if(c.fire>0){
+   c.fire++;
+   if(rnd()<.16+.75*c.fc*(S.funds>0?1:.3)){c.fire=0;news("Fire in "+where(c)+" put out.");continue}
+   if(c.fire>=5){const what=c.b>0?"building":STRUCT[c.s]?STRUCT[c.s].name.toLowerCase():"structure";
+    c.fire=0;c.b=0;c.occ=0;if(c.s&&c.s!=="park")c.s=null;c.rub=8;S.lost++;news("Fire destroyed a "+what+" in "+where(c)+".");continue}
+   for(const [dx,dy] of N4){const n=at(c.x+dx,c.y+dy);if(n&&(n.b>0||n.s==="coal")&&!n.fire&&rnd()<.18*(1-.8*n.fc))ign.push(n)}
+  }else if((c.b>0||c.s==="coal")&&S.tick>12){
+   const p=.0007*(c.zone==="I"?2.2:1)*(1+c.b*.2)*(1-.9*c.fc);
+   if(rnd()<p){ign.push(c);news("Fire broke out in "+where(c)+(c.fc<.1?" with no fire cover nearby.":"."))}
+  }
+ }
+ for(const c of ign)if(!c.fire)c.fire=1;
+}
+
+/* ---------- goals & advice ---------- */
+const GOALS=[
+ {id:"p100",t:"First neighbours",d:"Reach 100 residents",r:3000,f:()=>[T.pop,100]},
+ {id:"p500",t:"Village status",d:"Reach 500 residents",r:6000,f:()=>[T.pop,500]},
+ {id:"p1500",t:"Town status",d:"Reach 1,500 residents",r:12000,f:()=>[T.pop,1500]},
+ {id:"power",t:"Lights on",d:"Meet all power demand with 20+ buildings",r:3000,f:()=>[T.dev>=20&&T.satP>=.999?1:0,1]},
+ {id:"green",t:"Green power",d:"Build 3 solar farms",r:4000,f:()=>[T.solar,3]},
+ {id:"books",t:"Balanced books",d:"3 months of surplus with 150+ residents",r:4000,f:()=>[T.pop>=150?Math.min(3,S.streak):0,3]},
+ {id:"happy",t:"Happy city",d:"Mood 75%+ with 300+ residents",r:5000,f:()=>[T.pop>=300&&S.mood>=75?1:0,1]},
+ {id:"safe",t:"Fire safe",d:"70% of buildings covered, 200+ residents",r:3000,f:()=>[T.pop>=200&&T.fireCov>=.7?1:0,1]}
+];
+function checkGoals(){for(const g of GOALS){if(S.goals[g.id])continue;const [a,b]=g.f();if(a>=b){S.goals[g.id]=1;S.funds+=g.r;news("Goal reached: "+g.t+". Reward "+fmt(g.r)+".")}}}
+function advise(){
+ const t=T,e=S.last;
+ if(S.funds<500)return"Treasury is nearly empty. Raise taxes or pause building.";
+ if(t.fires>0)return"Fire burning. Build a fire station nearby.";
+ if(t.pd>t.pc)return t.pc===0?"No power. Build a plant beside a road.":"Power demand exceeds supply. Add generation.";
+ if(t.wd>t.wc)return t.wc===0?"No water. Build a pump beside a road.":"Water demand exceeds supply. Add a pump.";
+ if(t.unserved>0)return t.unserved+" building"+(t.unserved>1?"s":"")+" lack road, power or water.";
+ if(t.blocked>3)return t.blocked+" zoned plots can't grow. Check road access and utilities.";
+ if(t.avgCong>.5)return"Roads are congested. Add parallel streets.";
+ if(e&&e.net<0&&t.pop>60)return"Running a deficit. Adjust taxes in Budget.";
+ const d=S.dem,k=["R","C","I"].sort((a,b)=>d[b]-d[a])[0];
+ if(d[k]>.25)return"Demand for "+ZNAME[k].toLowerCase()+" is high. Zone more.";
+ if(S.mood<45)return"Residents are unhappy. Add parks, cut taxes, fix services.";
+ return"City is stable.";
+}
+
+/* ---------- rendering ---------- */
+const LIT="#ffd98a",LITR="#d9b068",DKL="#2a3745",DKR="#222d39";
+function P(gx,gy,e){return[OX+(gx-gy)*HW*Z,OY+(gx+gy)*HH*Z-(e||0)*Z]}
+function poly(pts,fill,stroke,lw){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke()}}
+function diamond(x,y,fill,stroke,lw){poly([P(x,y),P(x+1,y),P(x+1,y+1),P(x,y+1)],fill,stroke,lw)}
+function prism(x0,y0,x1,y1,e0,e1,cT,cL,cR){
+ poly([P(x1,y0,e0),P(x1,y1,e0),P(x1,y1,e1),P(x1,y0,e1)],cR);
+ poly([P(x0,y1,e0),P(x1,y1,e0),P(x1,y1,e1),P(x0,y1,e1)],cL);
+ poly([P(x0,y0,e1),P(x1,y0,e1),P(x1,y1,e1),P(x0,y1,e1)],cT);
+}
+function shade(h,f){const n=parseInt(h.slice(1),16);let r=n>>16&255,g=n>>8&255,b=n&255;if(f<1){r*=f;g*=f;b*=f}else{r+=(255-r)*(f-1);g+=(255-g)*(f-1);b+=(255-b)*(f-1)}return"rgb("+(r|0)+","+(g|0)+","+(b|0)+")"}
+function winL(x0,x1,y1,e0,e1,u0,u1,col){const a=x0+(x1-x0)*u0,b=x0+(x1-x0)*u1;poly([P(a,y1,e0),P(b,y1,e0),P(b,y1,e1),P(a,y1,e1)],col)}
+function winR(x1,y0,y1,e0,e1,u0,u1,col){const a=y0+(y1-y0)*u0,b=y0+(y1-y0)*u1;poly([P(x1,a,e0),P(x1,b,e0),P(x1,b,e1),P(x1,a,e1)],col)}
+function winGrid(x0,y0,x1,y1,e0,e1,cols,rows,lit,seed){
+ for(let i=0;i<cols;i++){const u0=(i+.2)/cols,u1=(i+.8)/cols;
+  for(let j=0;j<rows;j++){const a=e0+(e1-e0)*(j+.22)/rows,b=e0+(e1-e0)*(j+.74)/rows,on=lit&&((i*7+j*13+seed)%5)!==0;
+   winL(x0,x1,y1,a,b,u0,u1,on?LIT:DKL);winR(x1,y0,y1,a,b,u0,u1,on?LITR:DKR)}}
+}
+function cyl(cx,cy,r,e0,e1,cTop,cSide){
+ const a=P(cx,cy,e0),b=P(cx,cy,e1),rx=r*1.414*HW*Z,ry=r*1.414*HH*Z;
+ ctx.fillStyle=cSide;ctx.beginPath();ctx.ellipse(a[0],a[1],rx,ry,0,0,6.2832);ctx.fill();
+ ctx.fillRect(a[0]-rx,b[1],rx*2,a[1]-b[1]);
+ ctx.fillStyle=cTop;ctx.beginPath();ctx.ellipse(b[0],b[1],rx,ry,0,0,6.2832);ctx.fill();
+}
+function smoke(gx,gy,e,seed,t){
+ for(let i=0;i<3;i++){const ph=((t/2200+i/3+seed*.37)%1),p=P(gx,gy,e+ph*30);
+  ctx.fillStyle="rgba(205,210,216,"+((1-ph)*.34).toFixed(3)+")";ctx.beginPath();ctx.arc(p[0]+ph*12*Z,p[1],(3+ph*7)*Z,0,6.2832);ctx.fill()}
+}
+function tree(sx,sy,s){
+ ctx.fillStyle="#5a4630";ctx.fillRect(sx-1*Z*s,sy-4*Z*s,2*Z*s,5*Z*s);
+ ctx.fillStyle="#2f7a52";ctx.beginPath();ctx.moveTo(sx-6*Z*s,sy-3*Z*s);ctx.lineTo(sx,sy-17*Z*s);ctx.lineTo(sx+6*Z*s,sy-3*Z*s);ctx.fill();
+ ctx.fillStyle="#3f9466";ctx.beginPath();ctx.moveTo(sx-5*Z*s,sy-9*Z*s);ctx.lineTo(sx,sy-22*Z*s);ctx.lineTo(sx+5*Z*s,sy-9*Z*s);ctx.fill();
+}
+const PAL_R=[{T:"#d9e0ea",L:"#b3bfcf",R:"#8d9bb1",roof:"#b9563f"},{T:"#e8dcc6",L:"#cdbd9f",R:"#a69677",roof:"#7a4a3a"},{T:"#cfe0d8",L:"#a9c2b6",R:"#7f9a8d",roof:"#8a5a44"}];
+const PAL_C=[{T:"#b8d4d6",L:"#8fb5ba",R:"#6b9298",aw:["#e06a5a","#f4e9d6"]},{T:"#dbc9a0",L:"#c3ad7c",R:"#9c8859",aw:["#4aa3a0","#f4e9d6"]},{T:"#c8cfe6",L:"#a2abd0",R:"#7b85b0",aw:["#f0bf5a","#fff3d6"]}];
+const PAL_I=[{T:"#a4a9b8",L:"#7f8596",R:"#5d6374"},{T:"#b0aa9a",L:"#8d8776",R:"#6b6556"}];
+
+function drawRes(c,t,lit){
+ const x=c.x,y=c.y,p=PAL_R[hsh(x,y)%3],sd=hsh(x,y)%9;
+ if(c.b===1){
+  const x0=x+.2,y0=y+.22,x1=x+.8,y1=y+.78,h=13,ym=(y0+y1)/2,rh=8;
+  prism(x0,y0,x1,y1,0,h,p.T,p.L,p.R);
+  poly([P(x0,y0,h),P(x1,y0,h),P(x1,ym,h+rh),P(x0,ym,h+rh)],shade(p.roof,.8));
+  poly([P(x0,y1,h),P(x1,y1,h),P(x1,ym,h+rh),P(x0,ym,h+rh)],p.roof);
+  poly([P(x1,y0,h),P(x1,y1,h),P(x1,ym,h+rh)],p.R);
+  winL(x0,x1,y1,1,7,.14,.34,"#5a4636");winL(x0,x1,y1,4,9,.55,.82,lit?LIT:DKL);winR(x1,y0,y1,4,9,.3,.62,lit?LITR:DKR);
+ }else if(c.b===2){
+  const x0=x+.15,y0=y+.17,x1=x+.85,y1=y+.83,h=24,xm=(x0+x1)/2,ym=(y0+y1)/2;
+  prism(x0,y0,x1,y1,0,h,p.T,p.L,p.R);
+  const ap=[xm,ym,h+10];
+  poly([P(x0,y0,h),P(x1,y0,h),P(x1,y1,h),P(x0,y1,h)],shade(p.roof,.75));
+  poly([P(x0,y1,h),P(x1,y1,h),P(ap[0],ap[1],ap[2])],p.roof);
+  poly([P(x1,y1,h),P(x1,y0,h),P(ap[0],ap[1],ap[2])],shade(p.roof,.7));
+  winGrid(x0,y0,x1,y1,2,h-1,3,2,lit,sd);
+ }else{
+  const x0=x+.1,y0=y+.1,x1=x+.9,y1=y+.9,h=42;
+  prism(x0,y0,x1,y1,0,h,p.T,p.L,p.R);
+  quad4(x0+.05,y0+.05,x1-.05,y1-.05,h,shade(p.T,.85));
+  winGrid(x0,y0,x1,y1,3,h-3,4,6,lit,sd);
+  prism(x0+.12,y0+.12,x0+.3,y0+.3,h,h+5,"#8a95a3","#6f7a88","#58626f");
+  cyl(x1-.22,y0+.25,.1,h,h+8,"#a9b3bd","#7b8591");
+ }
+}
+function quad4(x0,y0,x1,y1,e,fill){poly([P(x0,y0,e),P(x1,y0,e),P(x1,y1,e),P(x0,y1,e)],fill)}
+function drawCom(c,t,lit){
+ const x=c.x,y=c.y,p=PAL_C[hsh(x,y)%3],sd=hsh(x,y)%9;
+ if(c.b===1){
+  const x0=x+.14,y0=y+.16,x1=x+.86,y1=y+.84,h=15;
+  prism(x0,y0,x1,y1,0,h,p.T,p.L,p.R);
+  const n=6,aw=p.aw;
+  for(let i=0;i<n;i++){const a=x0+(x1-x0)*i/n,b=x0+(x1-x0)*(i+1)/n;poly([P(a,y1,11),P(b,y1,11),P(b,y1+.12,8),P(a,y1+.12,8)],aw[i%2])}
+  winL(x0,x1,y1,1,8,.1,.9,lit?"#ffe9b0":DKL);winL(x0,x1,y1,12,14.5,.15,.85,aw[0]);
+  winR(x1,y0,y1,5,11,.2,.8,lit?LITR:DKR);
+ }else if(c.b===2){
+  const x0=x+.12,y0=y+.12,x1=x+.88,y1=y+.88,h=28;
+  prism(x0,y0,x1,y1,0,h,p.T,p.L,p.R);
+  winGrid(x0,y0,x1,y1,3,h-2,5,3,lit,sd);
+  prism(x0+.15,y0+.15,x0+.4,y0+.4,h,h+5,"#8a95a3","#6f7a88","#58626f");
+ }else{
+  const x0=x+.08,y0=y+.08,x1=x+.92,y1=y+.92;
+  prism(x0,y0,x1,y1,0,14,p.T,p.L,p.R);winGrid(x0,y0,x1,y1,2,13,6,1,lit,sd);
+  const a=x+.24,b=y+.24,c2=x+.76,d=y+.76;
+  prism(a,b,c2,d,14,58,"#9fc4dc","#6f9ebb","#4f7f9c");
+  for(let j=0;j<7;j++){const e0=16+j*6,e1=e0+3.6;for(let i=0;i<3;i++){const on=lit&&((i*5+j*3+sd)%4)!==0;winL(a,c2,d,e0,e1,(i+.2)/3,(i+.8)/3,on?"#d6f1ff":"#3a566b");winR(c2,b,d,e0,e1,(i+.2)/3,(i+.8)/3,on?"#a9cfe6":"#2f475a")}}
+  const ap=P(x+.5,y+.5,58),ap2=P(x+.5,y+.5,72);ctx.strokeStyle="#c8d2da";ctx.lineWidth=1.5*Z;ctx.beginPath();ctx.moveTo(ap[0],ap[1]);ctx.lineTo(ap2[0],ap2[1]);ctx.stroke();
+  if(lit&&Math.floor(t/600)%2){ctx.fillStyle="#ff5a5a";ctx.beginPath();ctx.arc(ap2[0],ap2[1],2*Z,0,6.2832);ctx.fill()}
+ }
+}
+function drawInd(c,t,lit){
+ const x=c.x,y=c.y,p=PAL_I[hsh(x,y)%2],on=lit&&c.occ>.3;
+ if(c.b===1){
+  const x0=x+.1,y0=y+.16,x1=x+.9,y1=y+.84,h=12;
+  prism(x0,y0,x1,y1,0,h,p.T,p.L,p.R);
+  for(let i=0;i<2;i++){const a=x0+(x1-x0)*i/2,b=x0+(x1-x0)*(i+1)/2;poly([P(a,y0,h),P(b,y0,h+4),P(b,y1,h+4),P(a,y1,h)],i?shade(p.T,.9):shade(p.T,1.08))}
+  winL(x0,x1,y1,4,8,.1,.9,lit?"#c9d9a0":DKL);
+  cyl(x+.78,y+.26,.07,h,h+16,"#8a8f9c","#6a6f7c");if(on)smoke(x+.78,y+.26,h+16,hsh(x,y)%7,t);
+ }else if(c.b===2){
+  const x0=x+.1,y0=y+.12,x1=x+.9,y1=y+.88,h=20;
+  prism(x0,y0,x1,y1,0,h,p.T,p.L,p.R);winL(x0,x1,y1,5,10,.08,.92,lit?"#c9d9a0":DKL);winL(x0,x1,y1,13,16,.08,.92,lit?"#c9d9a0":DKL);
+  cyl(x+.28,y+.3,.13,h,h+9,"#b6bcc8","#8d93a1");
+  cyl(x+.74,y+.26,.07,h,h+18,"#8a8f9c","#6a6f7c");cyl(x+.56,y+.26,.07,h,h+14,"#8a8f9c","#6a6f7c");
+  if(on){smoke(x+.74,y+.26,h+18,hsh(x,y)%7,t);smoke(x+.56,y+.26,h+14,3+hsh(x,y)%5,t)}
+ }else{
+  const x0=x+.07,y0=y+.08,x1=x+.93,y1=y+.92,h=26;
+  prism(x0,y0,x1,y1,0,h,p.T,p.L,p.R);winGrid(x0,y0,x1,y1,6,h-3,6,2,lit,hsh(x,y)%9);
+  prism(x0+.1,y0+.1,x1-.1,y0+.25,h,h+5,"#7e8492","#656b79","#4e5462");
+  cyl(x+.3,y+.45,.14,h,h+12,"#c3c8d2","#99a0ae");
+  for(let i=0;i<3;i++){cyl(x+.5+i*.14,y+.22,.06,h,h+22+i*3,"#8a8f9c","#6a6f7c");if(on)smoke(x+.5+i*.14,y+.22,h+22+i*3,i+hsh(x,y)%5,t)}
+ }
+}
+function drawStruct(c,t){
+ const x=c.x,y=c.y,s=c.s;
+ if(s==="coal"){
+  prism(x+.08,y+.5,x+.92,y+.92,0,16,"#6d7480","#555c68","#404752");
+  winL(x+.08,x+.92,y+.92,5,9,.1,.9,c.comp>=0?"#e9c46a":DKL);
+  cyl(x+.3,y+.28,.17,0,40,"#9aa2ad","#767e8a");cyl(x+.7,y+.3,.17,0,34,"#9aa2ad","#767e8a");
+  ctx.fillStyle="#c44";const a=P(x+.3,y+.28,36);ctx.fillRect(a[0]-5*Z,a[1],10*Z,2.5*Z);
+  if(c.comp>=0){smoke(x+.3,y+.28,40,1,t);smoke(x+.7,y+.3,34,2,t)}
+ }else if(s==="solar"){
+  quad4(x+.05,y+.05,x+.95,y+.95,1,"#2c3a46");
+  for(let r=0;r<3;r++){const y0=y+.1+r*.29;
+   poly([P(x+.08,y0,5),P(x+.92,y0,5),P(x+.92,y0+.22,2),P(x+.08,y0+.22,2)],"#2f5f9a","#8fb4dc",.6);
+   poly([P(x+.08,y0,5),P(x+.5,y0,5),P(x+.5,y0+.22,2),P(x+.08,y0+.22,2)],"#3b73b8")}
+ }else if(s==="pump"){
+  prism(x+.3,y+.3,x+.7,y+.7,0,6,"#9aa4ad","#7b858f","#5f6973");
+  const l=[[.32,.32],[.68,.32],[.32,.68],[.68,.68]];ctx.strokeStyle="#6b7782";ctx.lineWidth=2*Z;
+  for(const [a,b] of l){const p0=P(x+a,y+b,6),p1=P(x+a,y+b,20);ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke()}
+  cyl(x+.5,y+.5,.26,20,34,"#bfe6f5","#6fb3cf");
+ }else if(s==="fire"){
+  prism(x+.1,y+.2,x+.9,y+.8,0,17,"#e08a84","#c4524c","#9a3b38");
+  winL(x+.1,x+.9,y+.8,1,10,.12,.4,"#3a4048");winL(x+.1,x+.9,y+.8,1,10,.5,.78,"#3a4048");
+  winL(x+.1,x+.9,y+.8,12,14,.05,.95,"#f2f2f2");
+  prism(x+.7,y+.22,x+.88,y+.4,17,30,"#d65f59","#b24742","#8d3633");
+  if(Math.floor(t/450)%2){const a=P(x+.79,y+.31,32);ctx.fillStyle="#ff4d4d";ctx.beginPath();ctx.arc(a[0],a[1],2.2*Z,0,6.2832);ctx.fill()}
+ }else if(s==="park"){
+  diamond(x+.04,y+.04,"#3f9a62");quad4(x+.04,y+.04,x+.96,y+.96,.2,"#3f9a62");
+  poly([P(x+.2,y+.5,.3),P(x+.5,y+.2,.3),P(x+.8,y+.5,.3),P(x+.5,y+.8,.3)],"#b8a77c");
+  poly([P(x+.4,y+.4,.4),P(x+.6,y+.4,.4),P(x+.6,y+.6,.4),P(x+.4,y+.6,.4)],"#4b97c4");
+  for(const [a,b,sc] of[[.2,.2,1],[.8,.25,.9],[.25,.78,.95],[.8,.8,1]]){const p=P(x+a,y+b,0);tree(p[0],p[1],sc*.85)}
+ }else if(s==="school"){
+  prism(x+.08,y+.22,x+.92,y+.78,0,15,"#eadfc2","#cfc3a2","#a89d80");
+  quad4(x+.06,y+.2,x+.94,y+.8,15,"#b5523f");
+  winGrid(x+.08,y+.22,x+.92,y+.78,2,13,5,1,true,2);
+  const a=P(x+.15,y+.3,15),b=P(x+.15,y+.3,34);ctx.strokeStyle="#ddd";ctx.lineWidth=1.5*Z;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  ctx.fillStyle="#e86a4a";ctx.fillRect(b[0],b[1],9*Z,5*Z);
+ }
+}
+function drawFire(c,t){
+ const h=c.b?[0,16,28,46][c.b]:20,ph=t/120+c.x*3+c.y;
+ const g=P(c.x+.5,c.y+.5,h*.5);ctx.fillStyle="rgba(255,120,30,.22)";ctx.beginPath();ctx.ellipse(g[0],g[1],24*Z,16*Z,0,0,6.2832);ctx.fill();
+ for(let i=0;i<4;i++){const p=P(c.x+.25+(i%2)*.5,c.y+.25+(i>>1)*.5,h),f=1+.35*Math.sin(ph+i*1.7),w=6*Z,hh=16*Z*f;
+  ctx.fillStyle="#ff6a1a";ctx.beginPath();ctx.moveTo(p[0]-w,p[1]);ctx.quadraticCurveTo(p[0]-w*.6,p[1]-hh*.6,p[0],p[1]-hh);ctx.quadraticCurveTo(p[0]+w*.6,p[1]-hh*.6,p[0]+w,p[1]);ctx.fill();
+  ctx.fillStyle="#ffd23c";ctx.beginPath();ctx.moveTo(p[0]-w*.5,p[1]);ctx.quadraticCurveTo(p[0],p[1]-hh*.7,p[0]+w*.5,p[1]);ctx.fill()}
+ smoke(c.x+.5,c.y+.5,h,c.x,t);
+}
+function drawRubble(c){
+ for(let i=0;i<4;i++){const a=c.x+.2+(i%2)*.4,b=c.y+.2+(i>>1)*.4,hh=1.5+((i*7+c.x)%3);prism(a,b,a+.22,b+.22,0,hh,"#6a6560","#4f4b47","#3c3936")}
+}
+function tintFor(c){
+ const ok=f=>f>=.999?"rgba(95,211,154,.6)":f>0?"rgba(240,189,88,.65)":"rgba(226,123,123,.65)";
+ switch(layer){
+  case"power":{if(c.road)return ok(comps[c.comp].pf);if(c.b||c.s)return ok(c.comp>=0?(c.s?(STRUCT[c.s].kind==="power"?1:comps[c.comp].pf):c.pf):0);return null}
+  case"water":{if(c.road)return ok(comps[c.comp].wf);if(c.b||c.s)return ok(c.comp>=0?(c.s?(STRUCT[c.s].kind==="water"?1:comps[c.comp].wf):c.wf):0);return null}
+  case"value":return c.t?null:"hsla("+(c.lv*1.2).toFixed(0)+",70%,50%,.55)";
+  case"pollution":return c.t||c.pol<3?null:"rgba(170,110,210,"+Math.min(.75,c.pol/55).toFixed(2)+")";
+  case"traffic":return c.road?"hsla("+((1-Math.min(1,c.trf/ROADCAP))*120).toFixed(0)+",80%,50%,.8)":(c.t?null:"rgba(0,0,0,.28)");
+  case"fire":return c.t?null:c.fc>0?"rgba(80,200,200,"+(c.fc*.6).toFixed(2)+")":(c.b?"rgba(226,123,123,.5)":null);
+ }
+ return null;
+}
+function drawGround(c,t){
+ const x=c.x,y=c.y;
+ if(c.t){const v=(x*7+y*13)%3,sh=.5+.5*Math.sin(t/900+x*.7+y*.5);
+  diamond(x,y,["#1b5a85","#1a5580","#1d5f8c"][v]);
+  if(sh>.8){const p=P(x+.5,y+.5);ctx.strokeStyle="rgba(190,230,250,.25)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p[0]-6*Z,p[1]);ctx.lineTo(p[0]+6*Z,p[1]);ctx.stroke()}return}
+ diamond(x,y,(x+y)%2?"#2b5a43":"#2e5f47");
+ if(c.zone){diamond(x,y,ZCOL[c.zone]+(c.b?"33":"5c"),ZCOL[c.zone]+(c.b?"55":"99"),.7)}
+ if(c.road){
+  const w=.2,m=.5,cx=x+m,cy=y+m,dirs=[];
+  for(const [dx,dy] of N4){const n=at(x+dx,y+dy);if(n&&n.road)dirs.push([dx,dy])}
+  const strip=(ww,col)=>{
+   poly([P(cx-ww,cy-ww),P(cx+ww,cy-ww),P(cx+ww,cy+ww),P(cx-ww,cy+ww)],col);
+   for(const [dx,dy] of dirs){
+    if(dx)poly([P(cx,cy-ww),P(cx+dx*.5,cy-ww),P(cx+dx*.5,cy+ww),P(cx,cy+ww)],col);
+    else poly([P(cx-ww,cy),P(cx+ww,cy),P(cx+ww,cy+dy*.5),P(cx-ww,cy+dy*.5)],col)}};
+  strip(w+.06,"#9aa3ad");strip(w,"#4b5563");
+  ctx.strokeStyle="rgba(230,215,130,.75)";ctx.lineWidth=Math.max(.6,1*Z);ctx.setLineDash([3*Z,3*Z]);
+  for(const [dx,dy] of dirs){const a=P(cx,cy),b=P(cx+dx*.5,cy+dy*.5);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke()}
+  ctx.setLineDash([]);
+ }
+ const tn=tintFor(c);if(tn)diamond(x,y,tn);
+}
+function drawSlab(){
+ for(let i=0;i<W;i++){
+  const a=P(i,H),b=P(i+1,H),dn=14*Z;poly([a,b,[b[0],b[1]+dn],[a[0],a[1]+dn]],"#1e2d2a");
+  const c2=P(W,i),d2=P(W,i+1);poly([c2,d2,[d2[0],d2[1]+dn],[c2[0],c2[1]+dn]],"#16231f")}
+}
+function render(t){
+ if(!VW)return;
+ ctx.setTransform(DPR,0,0,DPR,0,0);
+ const bg=ctx.createLinearGradient(0,0,0,VH);bg.addColorStop(0,"#10304a");bg.addColorStop(1,"#091a29");ctx.fillStyle=bg;ctx.fillRect(0,0,VW,VH);
+ Z=cam.z;OX=VW/2-cam.sx*Z;OY=VH/2-cam.sy*Z;
+ const vis=(x,y)=>{const p=P(x,y);return p[0]>-TW*Z&&p[0]<VW+TW*Z&&p[1]>-110*Z&&p[1]<VH+TH*Z*2};
+ for(let s=0;s<W+H-1;s++)for(let x=Math.max(0,s-H+1);x<=Math.min(W-1,s);x++){const y=s-x;if(vis(x,y))drawGround(G[y*W+x],t)}
+ drawSlab();
+ const carAt={};for(const k of cars){const tx=k.p>.5?k.nx:k.x,ty=k.p>.5?k.ny:k.y,i=ty*W+tx;(carAt[i]=carAt[i]||[]).push(k)}
+ const dim=layer!=="normal";
+ for(let s=0;s<W+H-1;s++)for(let x=Math.max(0,s-H+1);x<=Math.min(W-1,s);x++){
+  const y=s-x;if(!vis(x,y))continue;const c=G[y*W+x];
+  if(dim)ctx.globalAlpha=.6;
+  if(c.tree&&!c.road&&!c.b&&!c.s&&!c.zone){const h=hsh(x,y);for(let i=0;i<1+h%3;i++){const p=P(x+.25+((h>>(i*3))%5)*.12,y+.25+((h>>(i*3+1))%5)*.12);tree(p[0],p[1],.8+((h>>4)%4)*.08)}}
+  if(c.rub)drawRubble(c);
+  const lit=c.pw&&c.wt;
+  if(c.s)drawStruct(c,t);
+  else if(c.b){if(c.zone==="R")drawRes(c,t,c.pw);else if(c.zone==="C")drawCom(c,t,c.pw);else drawInd(c,t,c.pw)}
+  if(c.fire)drawFire(c,t);
+  if(c.b&&(!c.acc||!lit)&&!dim){const p=P(x+.5,y+.5,[0,20,32,50][c.b]+8);ctx.fillStyle="#e27b7b";ctx.beginPath();ctx.arc(p[0],p[1],4*Z,0,6.2832);ctx.fill();ctx.fillStyle="#fff";ctx.fillRect(p[0]-.7*Z,p[1]-2.4*Z,1.4*Z,3*Z);ctx.fillRect(p[0]-.7*Z,p[1]+1*Z,1.4*Z,1.2*Z)}
+  ctx.globalAlpha=1;
+  const cl=carAt[y*W+x];if(cl)for(const k of cl)drawCar(k);
+ }
+ drawOverlays(t);
  drawMini();
 }
+function drawCar(k){
+ const gx=k.x+.5+(k.nx-k.x)*k.p,gy=k.y+.5+(k.ny-k.y)*k.p,dx=k.nx-k.x,dy=k.ny-k.y,ox=-dy*.11,oy=dx*.11,a=dx?.17:.09,b=dx?.09:.17;
+ prism(gx+ox-a/2,gy+oy-b/2,gx+ox+a/2,gy+oy+b/2,0.5,4,shade(k.c,1.15),k.c,shade(k.c,.7));
+}
+function drawOverlays(t){
+ if(pending){for(let i=0;i<pending.tiles.length;i++){const c=pending.tiles[i];diamond(c.x,c.y,pending.ok[i]?"rgba(95,211,154,.4)":"rgba(226,123,123,.45)","#fff",1)}
+  const d=DEFS[tool];if(d.radius&&pending.tiles[0]){const c=pending.tiles[0],p=P(c.x+.5,c.y+.5);ctx.strokeStyle="rgba(150,230,255,.8)";ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(p[0],p[1],d.radius*1.414*HW*Z,d.radius*1.414*HH*Z,0,0,6.2832);ctx.stroke();ctx.setLineDash([])}}
+ else if(hover&&DEFS[tool].mode!=="pan"){diamond(hover.x,hover.y,"rgba(108,200,238,.25)","#b7efff",1)}
+ if(sel)diamond(sel.x,sel.y,"rgba(255,255,255,.12)","#fff",2);
+}
 function drawMini(){
- mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#174666";mctx.fillRect(0,0,mini.width,mini.height);
- const cw=mini.width/W,ch=mini.height/H;
- for(let y=0;y<H;y++)for(let x=0;x<W;x++){const c=cell(x,y);mctx.fillStyle=c.kind==="waterTile"?"#17618a":c.building?({home:"#8ca9c6",shop:"#e1bb68",industry:"#cb827c",power:"#e8c05c",water:"#73c9e8",park:"#4da96a",safety:"#d77a7a"})[c.building]:c.road?"#7b8794":c.zone?"#b7a15f":"#35724d";mctx.fillRect(x*cw,y*ch,cw+0.5,ch+0.5)}
- mctx.strokeStyle="#d6f3ff";mctx.lineWidth=3;mctx.strokeRect(mini.width*.25,mini.height*.25,mini.width*.5,mini.height*.5);
-}
-function calc(){
- let residents=0,jobs=0,power=0,water=0,houses=0,parks=0,shops=0;
- for(const row of grid)for(const c of row){if(c.building==="home"){residents+=12;houses++}if(c.building==="shop"){jobs+=8;shops++}if(c.building==="industry")jobs+=14;if(c.building==="power")power+=100;if(c.building==="water")water+=100;if(c.building==="park")parks++}
- const mood=Math.max(15,Math.min(99,60+parks*3+Math.min(15,power/10)+Math.min(15,water/10)-Math.max(0,residents-power-water)*.08));
- return {residents,jobs,power,water,houses,parks,shops,mood:Math.round(mood)}
-}
-function updateHUD(){
- const s=calc();$("funds").textContent="₹"+Math.floor(funds).toLocaleString("en-IN");$("residents").textContent=s.residents.toLocaleString("en-IN");$("jobs").textContent=s.jobs+" jobs";
- $("power").textContent=Math.min(s.power,s.residents+20)+"/"+Math.max(100,s.power);$("water").textContent=Math.min(s.water,s.residents+20)+"/"+Math.max(100,s.water);
- $("powerbar").style.width=Math.min(100,s.power/Math.max(1,s.residents)*100)+"%";$("waterbar").style.width=Math.min(100,s.water/Math.max(1,s.residents)*100)+"%";
- $("mood").textContent=s.mood+"%";$("moodbar").style.width=s.mood+"%";$("fundbar").style.width=Math.min(100,funds/40000*100)+"%";
- $("income").textContent="+₹"+Math.round(100+s.residents*2+s.jobs*3)+"/mo";
- $("tier").textContent=s.residents<100?"HAMLET":s.residents<500?"VILLAGE":s.residents<1500?"TOWN":"CITY";
- $("date").textContent=new Date(2028,month,1).toLocaleDateString("en-US",{month:"short",year:"numeric"}).toUpperCase();
-}
-function say(t){const el=$("toast");el.textContent=t;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2100)}
-function selectTool(id){
- tool=id;const d=defs[id];$("toolLabel").textContent=d?d.label.toUpperCase()+" · "+d.desc.toUpperCase():"MAP TOOLS";
- document.querySelectorAll(".tool").forEach(b=>b.classList.toggle("active",b.dataset.tool===id));
-}
-function setTab(t){
- tab=t;document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
- const lists={pan:["pan","inspect","bulldoze"],roads:["road","bulldoze"],zones:["home","shop","industry","bulldoze"],power:["power","road","bulldoze"],water:["water","road","bulldoze"],safety:["safety","park","bulldoze"],parks:["park","bulldoze"]};
- $("tools").innerHTML="";
- for(const id of lists[t]||lists.pan){const d=defs[id],b=document.createElement("button");b.className="tool";b.dataset.tool=id;b.innerHTML='<span class="swatch" style="background:'+d.color+'"></span><span><b>'+d.label+'</b><small>'+d.desc+'</small></span>';b.addEventListener("click",()=>selectTool(id));$("tools").appendChild(b)}
- selectTool(t==="roads"?"road":t==="zones"?"home":t==="power"?"power":t==="water"?"water":t==="safety"?"safety":t==="parks"?"park":"pan");
- draw();
-}
-function applyAt(pos){
- if(!pos)return;const c=cell(pos.x,pos.y);if(!c)return;
- if(tool==="pan"){say("Drag to move the map. Choose Inspect to view a tile.");return}
- if(tool==="inspect"){say(c.building?"Building: "+c.building+" · "+(c.road?"Road access":"No road on tile"):c.road?"Road tile":c.zone?"Zoned land: "+c.zone:"Open land");return}
- if(tool==="bulldoze"){if(c.building||c.road||c.zone){c.building=null;c.road=false;c.zone=null;funds=Math.max(0,funds-8);say("Tile cleared · ₹8 fee");}else say("Nothing to bulldoze here.");}
- else if(tool==="road"){if(c.kind==="waterTile")return say("Cannot build a road on water.");if(c.road)return say("Road already exists.");if(funds<defs.road.cost)return say("Not enough funds.");funds-=defs.road.cost;c.road=true;c.kind="land";say("Road built · ₹80");}
- else if(["home","shop","industry"].includes(tool)){if(c.kind==="waterTile")return say("Cannot zone water. Choose land.");if(c.building)return say("Tile already has a building.");if(funds<defs[tool].cost)return say("Not enough funds.");funds-=defs[tool].cost;c.zone=({home:"zoneR",shop:"zoneC",industry:"zoneI"})[tool];c.building=tool;c.kind="land";say(({home:"Residential home built",shop:"Commercial shop built",industry:"Industrial building built"})[tool]);}
- else if(["power","water","safety","park"].includes(tool)){if(c.kind==="waterTile")return say("Choose land for this building.");if(c.building)return say("Tile already occupied.");if(funds<defs[tool].cost)return say("Not enough funds.");funds-=defs[tool].cost;c.building=tool;c.kind="land";say(defs[tool].label+" placed.");}
- updateHUD();draw();
-}
-function screenPos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
-const activePointers=new Map();
-canvas.addEventListener("pointerdown",e=>{
- canvas.setPointerCapture(e.pointerId);
- const p=screenPos(e);activePointers.set(e.pointerId,p);
- if(activePointers.size===2){
-   const pts=[...activePointers.values()];
-   pinch={distance:Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y),zoom:camera.zoom};
-   drag=null;return;
+ const k=mini.width/((W+H)*HW),ox=H*HW*k;
+ if(miniDirty){miniDirty=false;
+  mctx.fillStyle="#0a1824";mctx.fillRect(0,0,mini.width,mini.height);
+  const col={R:"#8ca9c6",C:"#e1bb68",I:"#cb827c"},sc={coal:"#e8c05c",solar:"#4a86c8",pump:"#73c9e8",fire:"#d77a7a",park:"#4da96a",school:"#e0c98a"};
+  for(const c of G){
+   const f=c.t?"#17618a":c.s?sc[c.s]:c.b?col[c.zone]:c.road?"#8794a3":c.zone?ZCOL[c.zone]+"66":"#2d6048";
+   const p=[(c.x-c.y)*HW*k+ox,(c.x+c.y)*HH*k];mctx.fillStyle=f;mctx.beginPath();mctx.moveTo(p[0],p[1]);mctx.lineTo(p[0]+HW*k,p[1]+HH*k);mctx.lineTo(p[0],p[1]+TH*k);mctx.lineTo(p[0]-HW*k,p[1]+HH*k);mctx.fill();
+   if(c.fire){mctx.fillStyle="#ff6a1a";mctx.fillRect(p[0]-1.5,p[1]+HH*k-1.5,3,3)}}
+  miniBase=mctx.getImageData(0,0,mini.width,mini.height);
  }
- drag={id:e.pointerId,x:p.x,y:p.y,cx:camera.x,cy:camera.y,moved:false,startX:p.x,startY:p.y};
- lastPointer=p;
+ if(miniBase)mctx.putImageData(miniBase,0,0);
+ const w=VW/Z*k,h=VH/Z*k,cx=cam.sx*k+ox,cy=cam.sy*k;
+ mctx.strokeStyle="#d6f3ff";mctx.lineWidth=1.5;mctx.strokeRect(cx-w/2,cy-h/2,w,h);
+}
+let miniBase=null;
+
+/* ---------- cars ---------- */
+const CARCOL=["#d9544f","#e8c04a","#4f8fd9","#e9e9e9","#58b87a","#9a6bd1"];
+function roadNeighbors(x,y){const r=[];for(const [dx,dy] of N4){const n=at(x+dx,y+dy);if(n&&n.road)r.push(n)}return r}
+function updateCars(dt){
+ const want=T.roads?Math.min(44,Math.floor(T.roads/5)+Math.floor(T.pop/40)):0;
+ cars=cars.filter(k=>at(k.x,k.y).road&&at(k.nx,k.ny).road);
+ while(cars.length<want&&T.roads){const c=G[Math.floor(rnd()*G.length)];if(!c.road)continue;const nb=roadNeighbors(c.x,c.y);if(!nb.length)continue;const n=nb[Math.floor(rnd()*nb.length)];
+  cars.push({x:c.x,y:c.y,nx:n.x,ny:n.y,p:rnd(),c:CARCOL[Math.floor(rnd()*CARCOL.length)],px:c.x,py:c.y,v:.9+rnd()*.5})}
+ if(cars.length>want)cars.length=want;
+ if(dt<=0)return;
+ for(const k of cars){
+  const cong=Math.min(1,(at(k.x,k.y).trf||0)/ROADCAP);
+  k.p+=dt/1000*k.v*(1.4-cong*.8);
+  while(k.p>=1){k.p-=1;const fx=k.x,fy=k.y;k.x=k.nx;k.y=k.ny;
+   const opts=roadNeighbors(k.x,k.y).filter(n=>!(n.x===fx&&n.y===fy)),dx=k.x-fx,dy=k.y-fy;
+   let nx;if(!opts.length)nx=at(fx,fy);else{const st=opts.find(n=>n.x===k.x+dx&&n.y===k.y+dy);nx=st&&rnd()<.65?st:opts[Math.floor(rnd()*opts.length)]}
+   k.nx=nx.x;k.ny=nx.y}
+ }
+}
+
+/* ---------- player actions ---------- */
+const land=c=>c&&!c.t;
+const canRoad=c=>land(c)&&!c.road&&!c.s&&!c.b&&!c.fire;
+const canZone=(c,k)=>land(c)&&!c.road&&!c.s&&c.zone!==k&&!c.b&&!c.fire;
+const canPlace=c=>land(c)&&!c.road&&!c.s&&!c.b&&!c.fire;
+function validFor(c){const d=DEFS[tool];return d.mode==="line"?canRoad(c):d.mode==="rect"?canZone(c,d.zone):d.mode==="place"?canPlace(c):true}
+function afford(total){if(S.funds<total){say("Need "+fmt(total)+" · you have "+fmt(S.funds));return false}return true}
+function commitTiles(tiles){
+ const d=DEFS[tool],ok=tiles.filter(validFor);
+ if(!ok.length){say(d.mode==="line"?"Can't build a road there.":"Nothing to change there.");return}
+ const total=ok.length*d.cost;if(!afford(total))return;
+ for(const c of ok){c.tree=false;c.rub=0;
+  if(d.mode==="line"){c.road=true;c.zone=null}else if(d.mode==="rect")c.zone=d.zone;
+  else{c.s=d.struct;c.zone=null}}
+ S.funds-=total;
+ if(d.mode==="place"){const c=ok[0];if(!adjRoad(c)&&d.struct!=="park")say(d.label+" built. Put it beside a road to connect it.");else say(d.label+" built · "+fmt(total))}
+ else say(ok.length+" tile"+(ok.length>1?"s":"")+" · "+fmt(total));
+ refresh();
+}
+function bulldoze(c){
+ if(!c)return;
+ if(c.b||c.s){if(!afford(10))return;c.b=0;c.occ=0;c.s=null;c.fire=0;S.funds-=10}
+ else if(c.zone){c.zone=null}
+ else if(c.road){if(!afford(10))return;c.road=false;S.funds-=10}
+ else if(c.rub){c.rub=0}
+ else if(c.tree){c.tree=false}
+ else return;
+ refresh();
+}
+function updatePending(tile,anchor){
+ const d=DEFS[tool];pending=null;if(!tile)return;
+ let tiles=[tile];
+ if(d.mode==="line"&&anchor){tiles=[];const dx=Math.abs(tile.x-anchor.x),dy=Math.abs(tile.y-anchor.y);
+  if(dx>=dy){for(let x=Math.min(anchor.x,tile.x);x<=Math.max(anchor.x,tile.x);x++)tiles.push(at(x,anchor.y))}
+  else{for(let y=Math.min(anchor.y,tile.y);y<=Math.max(anchor.y,tile.y);y++)tiles.push(at(anchor.x,y))}}
+ else if(d.mode==="rect"&&anchor){tiles=[];for(let y=Math.min(anchor.y,tile.y);y<=Math.max(anchor.y,tile.y);y++)for(let x=Math.min(anchor.x,tile.x);x<=Math.max(anchor.x,tile.x);x++)tiles.push(at(x,y))}
+ else if(d.mode==="bulldoze"||d.mode==="pan"||d.mode==="inspect"){return}
+ const ok=tiles.map(validFor),n=ok.filter(Boolean).length;
+ pending={tiles,ok};
+ $("toolLabel").textContent=d.label.toUpperCase()+" · "+n+" tile"+(n===1?"":"s")+" · "+fmt(n*d.cost);
+ dirty=true;
+}
+
+/* ---------- camera & input ---------- */
+function clampCam(){cam.sx=clamp(cam.sx,-H*HW,W*HW);cam.sy=clamp(cam.sy,0,(W+H)*HH)}
+function tileAt(px,py){
+ const sx=(px-VW/2)/cam.z+cam.sx,sy=(py-VH/2)/cam.z+cam.sy,gx=(sx/HW+sy/HH)/2,gy=(sy/HH-sx/HW)/2;
+ return at(Math.floor(gx),Math.floor(gy));
+}
+function zoomAt(nz,px,py){
+ nz=clamp(nz,.3,1.7);const sx=(px-VW/2)/cam.z+cam.sx,sy=(py-VH/2)/cam.z+cam.sy;
+ cam.z=nz;cam.sx=sx-(px-VW/2)/nz;cam.sy=sy-(py-VH/2)/nz;clampCam();dirty=true;
+}
+const ptrs=new Map();let act=null,pinch=null,spaceDown=false,lastBull=null;
+const local=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+function pinchNow(){const [a,b]=[...ptrs.values()];return{d:Math.hypot(a.x-b.x,a.y-b.y)||1,x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+canvas.addEventListener("pointerdown",e=>{
+ const p=local(e);ptrs.set(e.pointerId,p);try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+ if(ptrs.size>=2){const n=pinchNow();pinch={d:n.d,z:cam.z,x:n.x,y:n.y,sx:cam.sx,sy:cam.sy};act=null;pending=null;return}
+ const d=DEFS[tool];let mode=d.mode;
+ if(e.button===1||e.button===2||spaceDown)mode="pan";
+ act={mode,sx:p.x,sy:p.y,cx:cam.sx,cy:cam.sy,moved:false,tile:tileAt(p.x,p.y)};
+ if(mode==="bulldoze"){lastBull=act.tile;bulldoze(act.tile)}
+ else updatePending(act.tile,act.tile);
 });
 canvas.addEventListener("pointermove",e=>{
- const p=screenPos(e);activePointers.set(e.pointerId,p);hover=unproject(p.x,p.y);
- if(activePointers.size===2&&pinch){
-   const pts=[...activePointers.values()],dist=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
-   camera.zoom=Math.max(.38,Math.min(1.65,pinch.zoom*dist/Math.max(1,pinch.distance)));
-   draw();return;
- }
- if(drag&&drag.id===e.pointerId){
-   const dx=p.x-drag.x,dy=p.y-drag.y;
-   if(Math.abs(dx)+Math.abs(dy)>6)drag.moved=true;
-   if(tool==="pan"&&drag.moved){camera.x=drag.cx+dx;camera.y=drag.cy+dy;draw()}
- }
+ const p=local(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,p);
+ if(ptrs.size>=2&&pinch){const n=pinchNow();zoomAt(pinch.z*n.d/pinch.d,n.x,n.y);cam.sx-=(n.x-pinch.x)/cam.z;cam.sy-=(n.y-pinch.y)/cam.z;pinch.x=n.x;pinch.y=n.y;clampCam();return}
+ if(!act){hover=tileAt(p.x,p.y);const m=DEFS[tool].mode;if(m==="place")updatePending(hover);dirty=true;return}
+ const dx=p.x-act.sx,dy=p.y-act.sy;if(Math.hypot(dx,dy)>6)act.moved=true;
+ if(act.mode==="inspect"&&act.moved)act.mode="pan";
+ if(act.mode==="pan"){cam.sx=act.cx-dx/cam.z;cam.sy=act.cy-dy/cam.z;clampCam();dirty=true;return}
+ const t=tileAt(p.x,p.y);hover=t;
+ if(act.mode==="bulldoze"){if(t&&t!==lastBull){lastBull=t;bulldoze(t)}}
+ else updatePending(t||act.tile,act.tile);
 });
-function finishPointer(e){
- const p=screenPos(e);activePointers.delete(e.pointerId);
- if(pinch){pinch=null;drag=null;return}
- if(!drag||drag.id!==e.pointerId)return;
- if(!drag.moved){const pos=unproject(p.x,p.y);applyAt(pos)}
- drag=null;
+function endPtr(e,commit){
+ ptrs.delete(e.pointerId);
+ if(pinch){if(ptrs.size<2)pinch=null;act=null;pending=null;return}
+ if(!act)return;
+ const m=act.mode,p=local(e);
+ if(commit){
+  if(m==="inspect"&&!act.moved){const c=tileAt(p.x,p.y);sel=c;showInspector(c)}
+  else if((m==="line"||m==="rect"||m==="place")&&pending)commitTiles(pending.tiles);
+  else if(m==="pan"&&!act.moved&&DEFS[tool].mode==="pan")say("Drag to move the map. Pick Inspect to read a tile.");
+ }
+ act=null;pending=null;dirty=true;
+ $("toolLabel").textContent=labelFor(tool);
 }
-canvas.addEventListener("pointerup",finishPointer);
-canvas.addEventListener("pointercancel",e=>{activePointers.delete(e.pointerId);drag=null;pinch=null});
-canvas.addEventListener("wheel",e=>{e.preventDefault();camera.zoom=Math.max(.38,Math.min(1.65,camera.zoom*(e.deltaY>0?.92:1.08)));draw()},{passive:false});
-$("tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(b)setTab(b.dataset.tab)});
-function openSheet(title,body,actions=[]){$("sheetTitle").textContent=title;$("sheetBody").innerHTML=body;$("sheetActions").innerHTML="";for(const a of actions){const b=document.createElement("button");b.textContent=a.label;b.onclick=()=>{a.fn();};$("sheetActions").appendChild(b)}$("overlay").classList.add("open")}
-function closeSheet(){$("overlay").classList.remove("open")}
-function save(){try{localStorage.setItem("gf-metropolis-pro",JSON.stringify({grid,funds,month,cityName:$("cityName").value,camera}));say("City saved on this device.");}catch(e){say("Save unavailable in this browser.")}}
-function load(){try{const d=JSON.parse(localStorage.getItem("gf-metropolis-pro"));if(d&&Array.isArray(d.grid)&&d.grid.length===H&&d.grid.every(r=>Array.isArray(r)&&r.length===W)){grid=d.grid;funds=Number.isFinite(d.funds)?d.funds:funds;month=d.month||0;if(d.cityName)$("cityName").value=d.cityName;if(d.camera)camera={...camera,...d.camera};return true}}catch(e){}return false}
-$("budgetBtn").onclick=()=>{const s=calc();openSheet("City budget",'<div class="row"><span>Current treasury</span><b>₹'+Math.floor(funds).toLocaleString("en-IN")+'</b></div><div class="row"><span>Monthly tax estimate</span><b>₹'+(100+s.residents*2+s.jobs*3).toLocaleString("en-IN")+'</b></div><div class="row"><span>Residents</span><b>'+s.residents+'</b></div><div class="row"><span>Jobs</span><b>'+s.jobs+'</b></div><p>Collect monthly taxes to grow your treasury. Buildings cost funds to place.</p>',[{label:"Collect taxes",fn:()=>{funds+=100+s.residents*2+s.jobs*3;updateHUD();closeSheet();say("Taxes collected.")}},{label:"Close",fn:closeSheet}])};
-$("goalsBtn").onclick=()=>{const s=calc();openSheet("City goals",'<div class="row"><span>Reach 100 residents</span><b>'+(s.residents>=100?"✓ Complete":s.residents+"/100")+'</b></div><div class="row"><span>Build 5 roads</span><b>'+grid.flat().filter(c=>c.road).length+'/5</b></div><div class="row"><span>Build 3 parks</span><b>'+s.parks+'/3</b></div><div class="row"><span>Keep mood above 70%</span><b>'+s.mood+'%</b></div><p>Build connected neighbourhoods and provide services to improve your city.</p>',[{label:"Close",fn:closeSheet}])};
-$("menuBtn").onclick=()=>openSheet("City menu",'<p>Manage your Metropolis Pro city.</p><div class="row"><span>Current city</span><b>'+($("cityName").value||"New Harbour").replace(/[&<>"]/g,"")+'</b></div><div class="row"><span>Simulation speed</span><b>'+speed+'×</b></div>',[{label:"Save city",fn:()=>{save();closeSheet()}},{label:"Load saved city",fn:()=>{if(load()){updateHUD();draw();say("Saved city loaded.")}else say("No saved city found.");closeSheet()}},{label:"New city",fn:()=>{if(confirm("Start a new city? Current unsaved progress will be lost.")){seedCity();funds=20000;month=0;updateHUD();draw();say("New city created.")}closeSheet()}},{label:"Back to GameForge",fn:()=>{location.href="../games.html"}},{label:"Close",fn:closeSheet}]);
-$("overlay").addEventListener("click",e=>{if(e.target===$("overlay"))closeSheet()});
-$("cityName").addEventListener("input",draw);
-document.querySelectorAll("[data-speed]").forEach(b=>b.addEventListener("click",()=>{speed=Number(b.dataset.speed);document.querySelectorAll("[data-speed]").forEach(x=>x.classList.toggle("active",x===b));say(speed===0?"Simulation paused.":"Simulation speed "+speed+"×");}));
-setInterval(()=>{if(speed===0)return;simTimer+=speed;if(simTimer>=10){simTimer=0;month++;const s=calc();funds+=Math.max(20,Math.round(100+s.residents*2+s.jobs*3));updateHUD();draw()}},1000);
+canvas.addEventListener("pointerup",e=>endPtr(e,true));
+canvas.addEventListener("pointercancel",e=>endPtr(e,false));
+canvas.addEventListener("pointerleave",()=>{if(!act){hover=null;if(DEFS[tool].mode==="place")pending=null;dirty=true}});
+canvas.addEventListener("contextmenu",e=>e.preventDefault());
+canvas.addEventListener("wheel",e=>{e.preventDefault();const p=local(e);zoomAt(cam.z*Math.exp(-e.deltaY*.0015),p.x,p.y)},{passive:false});
+document.addEventListener("keydown",e=>{
+ if(e.target&&e.target.tagName==="INPUT")return;
+ if(e.code==="Space"){spaceDown=true;e.preventDefault()}
+ else if(e.key==="Escape")closeSheet();
+ else if(e.key==="p")setSpeed(speed?0:1);
+});
+document.addEventListener("keyup",e=>{if(e.code==="Space")spaceDown=false});
+function miniGo(e){const r=mini.getBoundingClientRect(),k=mini.width/((W+H)*HW);
+ const mx=(e.clientX-r.left)/r.width*mini.width,my=(e.clientY-r.top)/r.height*mini.height;
+ cam.sx=(mx-H*HW*k)/k;cam.sy=my/k;clampCam();dirty=true}
+let miniDown=false;
+mini.addEventListener("pointerdown",e=>{miniDown=true;try{mini.setPointerCapture(e.pointerId)}catch(_){}miniGo(e)});
+mini.addEventListener("pointermove",e=>{if(miniDown)miniGo(e)});
+mini.addEventListener("pointerup",()=>{miniDown=false});
+mini.addEventListener("pointercancel",()=>{miniDown=false});
+
+/* ---------- HUD, tools, sheets ---------- */
+function say(t){const el=$("toast");el.textContent=t;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2600)}
+function labelFor(id){const d=DEFS[id];return d.mode==="pan"?"PAN · DRAG TO MOVE":d.label.toUpperCase()+" · "+d.desc.toUpperCase()}
+function meterColor(r){return r<=.85?"var(--good)":r<=1?"var(--warn)":"var(--bad)"}
+function hud(){
+ if(!S||!T.dem)return;
+ const t=T,e=S.last;
+ $("funds").textContent=fmt(S.funds);$("fundsub").textContent="spent "+fmt(e.te)+"/mo";
+ $("residents").textContent=t.pop.toLocaleString("en-IN");$("jobs").textContent=t.jobs.toLocaleString("en-IN")+" jobs";
+ $("power").textContent=t.pd+"/"+t.pc;$("water").textContent=t.wd+"/"+t.wc;
+ const pr=t.pd/Math.max(1,t.pc),wr=t.wd/Math.max(1,t.wc);
+ for(const [id,r] of[["powerbar",pr],["waterbar",wr]]){const b=$(id);b.style.width=Math.min(100,r*100)+"%";b.style.background=meterColor(t.pc===0&&t.pd>0?2:r)}
+ $("mood").textContent=Math.round(S.mood)+"%";const mb=$("moodbar");mb.style.width=S.mood+"%";mb.style.background=S.mood>=60?"var(--good)":S.mood>=40?"var(--warn)":"var(--bad)";
+ for(const k of["R","C","I"]){const v=S.dem[k],i=$("d"+k);i.style.height=Math.abs(v)*50+"%";i.style.top=v>=0?(50-v*50)+"%":"50%"}
+ $("income").textContent=fmtS(e.net)+"/mo";$("income").className=e.net>=0?"good":"bad";
+ $("tier").textContent=t.pop<100?"HAMLET":t.pop<500?"VILLAGE":t.pop<1500?"TOWN":t.pop<5000?"CITY":"METROPOLIS";
+ const m=Math.floor(S.tick/TPM);$("date").textContent=MON[m%12]+" "+(START_YEAR+Math.floor(m/12))+" · W"+(S.tick%TPM+1);
+ $("advice").textContent=advise();
+ document.querySelectorAll(".tool").forEach(b=>b.classList.toggle("poor",DEFS[b.dataset.tool].cost>S.funds));
+}
+function selectTool(id){
+ tool=id;pending=null;$("toolLabel").textContent=labelFor(id);
+ document.querySelectorAll(".tool").forEach(b=>b.classList.toggle("active",b.dataset.tool===id));
+ canvas.style.cursor=DEFS[id].mode==="pan"?"grab":"crosshair";dirty=true;
+}
+function setTab(t){
+ tab=t;document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
+ const box=$("tools");box.innerHTML="";
+ for(const id of TABS[t]){const d=DEFS[id],b=document.createElement("button");b.className="tool";b.dataset.tool=id;
+  b.innerHTML='<span class="sw" style="background:'+d.color+'"></span><span><b>'+d.label+'</b><small>'+d.desc+'</small></span>';
+  b.addEventListener("click",()=>selectTool(id));box.appendChild(b)}
+ selectTool(TABDEF[t]);if(S)hud();
+}
+function setSpeed(v){speed=v;document.querySelectorAll(".speed button").forEach(b=>b.classList.toggle("active",+b.dataset.speed===v))}
+function setLayer(id){layer=id;document.querySelectorAll("#layers button").forEach(b=>b.classList.toggle("active",b.dataset.layer===id));dirty=true}
+function showInspector(c){
+ const el=$("inspector");if(!c){el.hidden=true;return}
+ const kv=(a,b)=>'<div class="kv"><span>'+a+'</span><b>'+b+'</b></div>';
+ let h='<button class="x" aria-label="Close" id="insX">×</button>',title="Open land",rows="";
+ const svc=()=>kv("Road access",c.acc?"yes":"<span class='bad'>none</span>")+kv("Power",c.pw?(c.pf>=1?"ok":"short"):"<span class='bad'>none</span>")+kv("Water",c.wt?(c.wf>=1?"ok":"short"):"<span class='bad'>none</span>");
+ if(c.t)title="Water";
+ else if(c.road){title="Road";rows=kv("Traffic",Math.round(Math.min(1.5,c.trf/ROADCAP)*100)+"%")}
+ else if(c.s){title=STRUCT[c.s].name;const k=STRUCT[c.s].kind;rows=kv("Road link",c.comp>=0?"connected":"<span class='bad'>not connected</span>");
+  if(k==="power"||k==="water")rows+=kv("Output",STRUCT[c.s].cap+(k==="power"?" MW":" kL"));rows+=kv("Upkeep",fmt(STRUCT[c.s].up)+"/mo")}
+ else if(c.b){title=ZNAME[c.zone]+" · level "+c.b;
+  const n=c.zone==="R"?Math.round(CAPR[c.b]*c.occ)+" residents":Math.round((c.zone==="C"?CAPC:CAPI)[c.b]*c.occ)+" jobs";
+  rows=kv("Occupancy",n)+svc()+kv("Land value",Math.round(c.lv))+kv("Pollution",Math.round(c.pol))+kv("Fire cover",Math.round(c.fc*100)+"%");
+  if(c.bad>0)rows+=kv("Unserved for",c.bad+" wk")}
+ else if(c.zone){title=ZNAME[c.zone]+" zone";rows=svc()+kv("Land value",Math.round(c.lv))+kv("Demand",Math.round(S.dem[c.zone]*100)+"%")}
+ else rows=kv("Land value",Math.round(c.lv))+kv("Pollution",Math.round(c.pol));
+ if(c.fire)rows+=kv("Status","<span class='bad'>on fire</span>");
+ el.innerHTML=h+"<h3>"+title+"</h3>"+rows+kv("Tile",where(c));el.hidden=false;
+ $("insX").onclick=()=>{el.hidden=true;sel=null;dirty=true};dirty=true;
+}
+function openSheet(title,body,actions){
+ $("sheetTitle").textContent=title;$("sheetBody").innerHTML=body;const a=$("sheetActions");a.innerHTML="";
+ for(const [l,f] of actions){const b=document.createElement("button");b.textContent=l;b.onclick=f;a.appendChild(b)}
+ $("overlay").classList.add("open");sheetOpen=true;
+}
+function closeSheet(){$("overlay").classList.remove("open");sheetOpen=false;budgetOpen=false}
+let budgetOpen=false;
+function budgetBody(){
+ const row=(k,l)=>'<div class="tax"><label for="tax'+k+'">'+l+'</label><input type="range" id="tax'+k+'" min="0" max="20" step="1" value="'+S.tax[k]+'"><span id="taxv'+k+'">'+S.tax[k]+'%</span></div>';
+ const r=(l,id,c)=>'<div class="row'+(c||"")+'"><span>'+l+'</span><span id="'+id+'"></span></div>';
+ return"<p>Higher taxes raise income but lower demand and mood. Rates apply per sector.</p>"+row("R","Residential")+row("C","Commercial")+row("I","Industrial")+
+ "<h4>MONTHLY INCOME</h4>"+r("Residential","bR")+r("Commercial","bC")+r("Industrial","bI")+
+ "<h4>MONTHLY EXPENSES</h4>"+r("Roads","eroads")+r("Power","epower")+r("Water","ewater")+r("Fire","esafety")+r("Parks and schools","ecivic")+
+ r("Net per month","bnet"," tot")+r("Treasury","bfunds"," sub");
+}
+function budgetFill(){
+ const e=S.last=econ();const set=(id,v)=>{$(id).textContent=v};
+ set("bR",fmt(e.inc.R));set("bC",fmt(e.inc.C));set("bI",fmt(e.inc.I));
+ for(const k of["roads","power","water","safety","civic"])set("e"+k,fmt(e.ex[k]));
+ set("bnet",fmtS(e.net));$("bnet").className=e.net>=0?"good":"bad";set("bfunds",fmt(S.funds));hud();
+}
+function openBudget(){
+ openSheet("Budget",budgetBody(),[["Close",closeSheet]]);budgetOpen=true;budgetFill();
+ for(const k of["R","C","I"])$("tax"+k).addEventListener("input",e=>{S.tax[k]=+e.target.value;$("taxv"+k).textContent=S.tax[k]+"%";budgetFill()});
+}
+function openGoals(){
+ let h="";for(const g of GOALS){const [a,b]=g.f(),done=!!S.goals[g.id];
+  h+='<div class="goal'+(done?" done":"")+'"><span class="ck"></span><div><b>'+g.t+'</b><small>'+g.d+" · reward "+fmt(g.r)+"</small><small>"+(done?"Complete":Math.min(Math.round(a),b)+" / "+b)+"</small></div></div>"}
+ openSheet("Goals",h,[["Close",closeSheet]]);
+}
+let armNew=false;
+function openMenu(){
+ armNew=false;
+ let h="<h4>CITY NEWS</h4>";for(const n of S.news.slice(0,8))h+='<div class="row"><span>'+n.m.replace(/</g,"&lt;")+'</span><span class="sub">'+n.d+"</span></div>";
+ h+="<h4>CITY</h4><div class='row'><span>Buildings lost to fire or neglect</span><span>"+S.lost+"</span></div><div class='row'><span>Land value (avg)</span><span>"+Math.round(T.avgLV)+"</span></div><div class='row'><span>Fire cover</span><span>"+Math.round(T.fireCov*100)+"%</span></div><div class='row'><span>Traffic load</span><span>"+Math.round(T.avgCong*100)+"%</span></div>";
+ openSheet("Menu",h,[["Save now",()=>{save();say("City saved")}],["New city",function(){if(!armNew){armNew=true;this.textContent="Erase and start over?";return}newGame(Math.floor(Math.random()*1e6)+1);camInit=false;fitCam();closeSheet()}],["Close",closeSheet]]);
+}
+
+/* ---------- save / load ---------- */
+function serialize(){return{S,cells:G.map(c=>[c.t,c.road?1:0,c.zone,c.b,c.s,c.rub,c.tree?1:0,c.fire,c.bad,Math.round(c.occ*100)/100,Math.round(c.lv)])}}
+function restore(d){
+ if(!d||!d.S||!Array.isArray(d.cells)||d.cells.length!==W*H)return false;
+ S=d.S;S.rs=S.rs||1;rs=S.rs;G=[];
+ d.cells.forEach((a,i)=>{const c=mkCell(i%W,Math.floor(i/W));c.t=a[0];c.road=!!a[1];c.zone=a[2];c.b=a[3];c.s=a[4];c.rub=a[5];c.tree=!!a[6];c.fire=a[7];c.bad=a[8];c.occ=a[9];c.lv=a[10];G.push(c)});
+ S.dem=S.dem||{R:.3,C:.3,I:.3};S.tax=S.tax||{R:9,C:9,I:9};S.goals=S.goals||{};S.news=S.news||[];
+ cars.length=0;refresh();$("cityName").value=S.name||"New Harbour";return true;
+}
+function save(){if(!S)return;S.rs=rs;try{localStorage.setItem(KEY,JSON.stringify(serialize()))}catch(_){}}
+function loadSaved(){try{const raw=localStorage.getItem(KEY);return raw?restore(JSON.parse(raw)):false}catch(_){return false}}
+
+/* ---------- layout & loop ---------- */
+function fitCam(){
+ if(camInit)return;camInit=true;cam.z=clamp(VW/1100,.42,.9);cam.sx=-64;cam.sy=544;clampCam();
+}
+function resize(){
+ const r=canvas.getBoundingClientRect();DPR=Math.min(window.devicePixelRatio||1,2);VW=r.width;VH=r.height;
+ canvas.width=Math.max(1,Math.round(VW*DPR));canvas.height=Math.max(1,Math.round(VH*DPR));fitCam();dirty=true;
+}
+let last=0,acc=0,lastDraw=0;
+function frame(ts){
+ requestAnimationFrame(frame);
+ if(document.hidden){last=ts;return}
+ const dt=Math.min(100,ts-last);last=ts;
+ const run=!sheetOpen||budgetOpen?speed:0;
+ if(run>0&&!(sheetOpen&&!budgetOpen)){acc+=dt*run;while(acc>=TICK_MS){acc-=TICK_MS;tick();if(budgetOpen)budgetFill()}}
+ updateCars(sheetOpen&&!budgetOpen?0:dt*speed);
+ if(ts-lastDraw>=30){lastDraw=ts;render(ts)}
+}
+
+/* ---------- wiring & boot ---------- */
+document.querySelectorAll(".speed button").forEach(b=>b.addEventListener("click",()=>setSpeed(+b.dataset.speed)));
+document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
+for(const [id,l] of LAYERS){const b=document.createElement("button");b.dataset.layer=id;b.textContent=l;if(id==="normal")b.className="active";b.addEventListener("click",()=>setLayer(id));$("layers").appendChild(b)}
+$("budgetBtn").onclick=openBudget;$("goalsBtn").onclick=openGoals;$("menuBtn").onclick=openMenu;
+$("overlay").addEventListener("pointerdown",e=>{if(e.target===$("overlay"))closeSheet()});
+$("cityName").addEventListener("input",e=>{if(S){S.name=e.target.value;save()}});
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save()});
+if(typeof ResizeObserver!=="undefined")new ResizeObserver(resize).observe($("maparea"));
 window.addEventListener("resize",resize);
-seedCity();load();setTab("pan");updateHUD();resize();
+function start(data){
+ if(!(data&&data.S&&restore(data))&&!loadSaved())newGame(20260);
+ setTab("pan");resize();setSpeed(1);requestAnimationFrame(frame);
+}
+try{const hot=window.claude&&window.claude.hot;if(hot&&hot.snapshot)hot.snapshot(()=>{S.rs=rs;return serialize()});
+ if(hot&&hot.ready)hot.ready(start);else start(hot&&hot.data)}catch(_){start()}
 })();
 </script>
-</body>
-</html>
