@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dragon Realm | Fantasy Adventure</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;overflow:hidden;background:#080d18;color:white;font-family:Arial,sans-serif}
+canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none}
+.panel{background:#0a1021dd;border:1px solid #927449;border-radius:12px;padding:14px;backdrop-filter:blur(8px)}
+#playerUI{position:absolute;top:15px;left:15px;width:245px}
+.logo{font-size:22px;font-weight:900;letter-spacing:2px;color:#ffda8a}
+.small{font-size:10px;color:#aebbd1;letter-spacing:2px;margin-top:4px}
+.label{font-size:11px;margin-top:12px;margin-bottom:5px;color:#c5cbd9}
+.bar{height:9px;border-radius:10px;background:#293044;overflow:hidden}
+.fill{height:100%;width:100%;transition:width .2s}
+#hp{background:linear-gradient(90deg,#a71f36,#ff5862)}
+#xpbar{background:linear-gradient(90deg,#2875e9,#69dfff)}
+#stats{display:flex;justify-content:space-between;margin-top:12px;font-size:12px}
+#quest{position:absolute;top:20px;left:50%;transform:translateX(-50%);text-align:center;width:300px}
+#quest h3{color:#ffe2a1;letter-spacing:3px;margin:0 0 8px;font-size:15px}
+#quest p{font-size:12px;color:#c5cede;margin:0}
+#right{position:absolute;right:15px;top:15px;text-align:right}
+.stat{font-size:12px;color:#c7d0e1;margin-bottom:8px}
+.stat strong{color:#ffe2a1;font-size:17px;margin-left:7px}
+#crosshair{position:absolute;left:50%;top:50%;width:10px;height:10px;border:1px solid #ffe3a4;border-radius:50%;transform:translate(-50%,-50%)}
+#bottom{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);text-align:center;width:95%}
+#help{font-size:11px;color:#c3cadd;line-height:2}
+#toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);color:#ffe0a0;font-size:14px;text-shadow:0 0 15px #ff9e34;white-space:nowrap}
+#overlay{position:fixed;inset:0;z-index:5;background:linear-gradient(#060a17d9,#080c18ee);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{width:100%;max-width:540px;text-align:center;border:1px solid #b38a4a;border-radius:18px;padding:30px 22px;background:linear-gradient(145deg,#17253a,#0b1020);box-shadow:0 0 60px #c18a3320}
+.modal h1{font-size:clamp(35px,8vw,65px);margin:0;color:#ffda8a;text-shadow:0 0 30px #e49b36;letter-spacing:4px}
+.modal p{font-size:14px;color:#c2cce0;line-height:1.9;margin:20px 0}
+button{pointer-events:auto;border:1px solid #e2b66d;border-radius:8px;padding:14px 25px;background:linear-gradient(135deg,#a86622,#513019);color:white;font-weight:bold;letter-spacing:2px;cursor:pointer}
+button:hover{filter:brightness(1.25)}
+.hidden{display:none!important}
+#mobile{display:none;position:fixed;inset:0;pointer-events:none}
+.pad{position:absolute;bottom:20px;left:15px;display:grid;grid-template-columns:48px 48px 48px;grid-template-rows:48px 48px 48px;gap:4px;pointer-events:auto}
+.pad button,.actions button{padding:0;font-size:18px;letter-spacing:0;opacity:.85}
+.pad .up{grid-column:2}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}
+.actions{position:absolute;right:15px;bottom:28px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
+.actions button{width:65px;height:60px;border-radius:50%;background:#392550dd}
+@media(max-width:650px){
+ #playerUI{width:175px;top:8px;left:8px;padding:9px}
+ .logo{font-size:16px}.small{font-size:8px}
+ #quest{top:12px;width:150px}
+ #quest h3{font-size:11px;letter-spacing:1px}
+ #quest p{font-size:10px}
+ #right{right:8px;top:115px}
+ #bottom{bottom:5px}
+ #help{font-size:9px}
+ #mobile{display:block}
+}
+</style>
+</head>
+<body>
+<div id="hud">
+ <div id="playerUI" class="panel">
+  <div class="logo">🐉 DRAGON REALM</div>
+  <div class="small">HERO OF THE FORGOTTEN KINGDOM</div>
+  <div class="label">HEALTH</div>
+  <div class="bar"><div class="fill" id="hp"></div></div>
+  <div class="label">EXPERIENCE</div>
+  <div class="bar"><div class="fill" id="xpbar"></div></div>
+  <div id="stats"><span>LEVEL <b id="level">1</b></span><span>❤️ <b id="healthNum">100</b></span></div>
+ </div>
+ <div id="quest"><h3 id="questTitle">THE LOST KINGDOM</h3><p id="questText">Defeat the dragons and survive!</p></div>
+ <div id="right"><div class="stat">⚔ KILLS <strong id="kills">0</strong></div><div class="stat">🪙 GOLD <strong id="gold">0</strong></div><div class="stat">🐲 DRAGONS <strong id="dragons">0</strong></div></div>
+ <div id="crosshair" class="hidden"></div>
+ <div id="toast"></div>
+ <div id="bottom" class="hidden"><div id="help">WASD MOVE • MOUSE AIM • LEFT CLICK ATTACK • SPACE DODGE • E MAGIC BLAST • ESC PAUSE</div></div>
+</div>
+
+<div id="mobile">
+ <div class="pad">
+  <button class="up" data-key="KeyW">▲</button>
+  <button class="left" data-key="KeyA">◀</button>
+  <button class="down" data-key="KeyS">▼</button>
+  <button class="right" data-key="KeyD">▶</button>
+ </div>
+ <div class="actions">
+  <button id="mAttack">⚔</button>
+  <button id="mMagic">✨</button>
+  <button id="mDodge">💨</button>
+ </div>
+</div>
+
+<div id="overlay"><div class="modal">
+ <h1 id="title">DRAGON<br>REALM</h1>
+ <p id="intro">An ancient evil has awakened.<br>Explore the forgotten kingdom, defeat dangerous creatures and become the Dragon Slayer.</p>
+ <button id="start">ENTER THE REALM</button>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+if(!window.THREE){$("intro").textContent="Unable to load Three.js. Check your internet connection and reload.";return}
+
+let scene,camera,renderer,clock;
+let player,sword,health=100,xp=0,level=1,gold=0,kills=0,dragonKills=0;
+let active=false,dead=false,wave=1,spawnTimer=0,attackCD=0,magicCD=0,dodgeCD=0,invuln=0,toastTime=0;
+let yaw=0,pitch=.1,mouseDown=false;
+const keys={},enemies=[],projectiles=[],particles=[],lights=[];
+const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2(0,0);
+const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const aimPoint=new THREE.Vector3();
+const mats={};
+
+function mat(color,emissive=0,roughness=.8){
+ return new THREE.MeshStandardMaterial({color,emissive,roughness,metalness:.12});
+}
+function mesh(geo,material,parent,x=0,y=0,z=0){
+ const m=new THREE.Mesh(geo,material);
+ m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;
+ parent.add(m);return m;
+}
+function box(w,h,d,material,parent,x,y,z){
+ return mesh(new THREE.BoxGeometry(w,h,d),material,parent,x,y,z);
+}
+function sphere(r,material,parent,x,y,z){
+ return mesh(new THREE.SphereGeometry(r,12,10),material,parent,x,y,z);
+}
+function notify(text){$("toast").textContent=text;toastTime=1.6}
+function random(min,max){return min+Math.random()*(max-min)}
+
+function init(){
+ scene=new THREE.Scene();
+ scene.background=new THREE.Color(0x8a9eb7);
+ scene.fog=new THREE.Fog(0x9caec0,55,160);
+ camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,250);
+ renderer=new THREE.WebGLRenderer({antialias:true});
+ renderer.setSize(innerWidth,innerHeight);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+ renderer.shadowMap.enabled=true;
+ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+ renderer.outputEncoding=THREE.sRGBEncoding;
+ document.body.appendChild(renderer.domElement);
+ clock=new THREE.Clock();
+
+ scene.add(new THREE.HemisphereLight(0xdde9ff,0x35442f,1.7));
+ const sun=new THREE.DirectionalLight(0xffe4b2,2);
+ sun.position.set(-35,55,-25);sun.castShadow=true;
+ sun.shadow.mapSize.set(1024,1024);
+ sun.shadow.camera.left=-65;sun.shadow.camera.right=65;
+ sun.shadow.camera.top=65;sun.shadow.camera.bottom=-65;
+ scene.add(sun);
+
+ // Grassland
+ const ground=mesh(new THREE.PlaneGeometry(240,240),mat(0x405b3b),scene,0,0,0);
+ ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;
+
+ // Mountain silhouettes
+ const mountainMat=mat(0x485268);
+ for(let i=0;i<34;i++){
+  let a=i/34*Math.PI*2,r=random(75,110);
+  let m=mesh(new THREE.ConeGeometry(random(8,17),random(18,38),5),mountainMat,scene,Math.cos(a)*r,0,Math.sin(a)*r);
+  m.position.y=m.geometry.parameters.height/2-1;
+ }
+ // Stone paths
+ for(let i=0;i<170;i++){
+  const x=random(-95,95),z=random(-95,95);
+  const s=random(.4,1.7);
+  const stone=box(s,.12,s,mat(0x777b79),scene,x,.04,z);
+  stone.rotation.y=random(0,Math.PI);
+ }
+ // Trees
+ const trunk=mat(0x4b3325),leaves=mat(0x244c36);
+ for(let i=0;i<85;i++){
+  const x=random(-85,85),z=random(-85,85);
+  if(Math.hypot(x,z)<12)continue;
+  const h=random(3,6);
+  box(.5,h,.5,trunk,scene,x,h/2,z);
+  sphere(random(1.2,2),leaves,scene,x,h,z);
+  sphere(1.2,leaves,scene,x-.7,h-.6,z+.2);
+ }
+ // Castle in the distance
+ const stoneMat=mat(0x7b8290),roofMat=mat(0x343b50);
+ box(19,10,9,stoneMat,scene,0,5,-57);
+ for(let i=-2;i<=2;i++){
+  box(2.4,14,3,stoneMat,scene,i*4,7,-59);
+  mesh(new THREE.ConeGeometry(1.8,4,4),roofMat,scene,i*4,16,-59);
+ }
+ box(5,6,.5,mat(0x27253a),scene,0,3.1,-52);
+
+ // River
+ const river=mesh(new THREE.PlaneGeometry(13,160),new THREE.MeshStandardMaterial({color:0x316f9c,metalness:.25,roughness:.25}),scene,26,.03,0);
+ river.rotation.x=-Math.PI/2;river.rotation.z=.17;
+
+ // Magical crystals
+ for(let i=0;i<14;i++){
+  const x=random(-65,65),z=random(-65,65);
+  if(Math.hypot(x,z)<10)continue;
+  const crystal=mesh(new THREE.OctahedronGeometry(random(.5,1.2)),mat(0x70cfff,0x167bff),scene,x,1,z);
+  const light=new THREE.PointLight(0x47aaff,1.5,9);
+  light.position.set(x,1.5,z);scene.add(light);
+  lights.push({light,phase:random(0,6),crystal});
+ }
+ makePlayer();
+}
+
+function makePlayer(){
+ player=new THREE.Group();scene.add(player);
+ const cloth=mat(0x263047),armor=mat(0x536079),skin=mat(0xc7a07c),goldMat=mat(0xe3b858);
+ const torso=mesh(new THREE.CylinderGeometry(.38,.5,1.1,8),cloth,player,0,1.45,0);
+ const head=sphere(.31,skin,player,0,2.25,0);
+ const helmet=mesh(new THREE.ConeGeometry(.4,.55,5),armor,player,0,2.55,0);
+ helmet.rotation.x=.1;
+ for(const s of [-1,1]){
+  const arm=mesh(new THREE.CylinderGeometry(.12,.17,.75,7),armor,player,s*.47,1.55,0);
+  arm.rotation.z=s*.25;
+  mesh(new THREE.CylinderGeometry(.14,.12,.72,7),cloth,player,s*.2,.55,0);
+  box(.3,.18,.42,armor,player,s*.2,.15,-.08);
+ }
+ // Cape
+ const cape=mesh(new THREE.ConeGeometry(.55,1.2,5),mat(0x7d2736),player,0,1.05,.4);
+ cape.rotation.x=-.15;
+ // Sword
+ sword=new THREE.Group();player.add(sword);
+ box(.12,1.05,.16,mat(0xb8d6ec),sword,0,.45,0);
+ box(.42,.1,.2,goldMat,sword,0,-.1,0);
+ box(.14,.32,.14,mat(0x694329),sword,0,-.3,0);
+ sword.position.set(.55,1.5,-.48);
+ sword.rotation.x=-.2;
+ player.position.set(0,0,0);
+}
+
+function createEnemy(type="goblin"){
+ const boss=type==="dragon";
+ const g=new THREE.Group();
+ const dark=mat(boss?0x8b302b:0x4b3e43);
+ const scales=mat(boss?0xb74a32:0x69744e);
+ const eyeMat=mat(0xffe26b,0xff6200);
+ if(boss){
+  // Dragon body
+  sphere(1.05,dark,g,0,1.8,0);
+  sphere(.58,scales,g,0,2.05,-.65);
+  sphere(.42,dark,g,0,2.15,-1.05);
+  for(const s of [-1,1]){
+   sphere(.09,eyeMat,g,s*.3,2.3,-1.35);
+   // Wings
+   const wing=mesh(new THREE.BufferGeometry(),dark,g);
+   const verts=new Float32Array([
+    s*.35,2,0,s*2.5,2.6,.4,s*2.1,1.25,-.2,
+    s*.35,2,0,s*2.1,1.25,-.2,s*.7,1.1,.5
+   ]);
+   wing.geometry.setAttribute("position",new THREE.BufferAttribute(verts,3));
+   wing.geometry.computeVertexNormals();
+   wing.material.side=THREE.DoubleSide;
+   // Legs
+   mesh(new THREE.CylinderGeometry(.2,.28,.8,7),dark,g,s*.7,1,.2);
+   // Horns
+   mesh(new THREE.ConeGeometry(.12,.55,5),scales,g,s*.35,2.75,-.7);
+  }
+  const tail=mesh(new THREE.ConeGeometry(.35,1.7,7),dark,g,0,1.55,1.15);
+  tail.rotation.x=Math.PI/2;
+ }else{
+  sphere(.42,dark,g,0,1.05,0);
+  sphere(.3,scales,g,0,1.75,-.05);
+  for(const s of [-1,1]){
+   sphere(.06,eyeMat,g,s*.13,1.8,-.3);
+   mesh(new THREE.CylinderGeometry(.1,.14,.65,6),dark,g,s*.48,1.05,0);
+   mesh(new THREE.CylinderGeometry(.13,.1,.65,6),dark,g,s*.2,.4,0);
+  }
+ }
+ // Health bar
+ const bar=new THREE.Group();
+ const bg=mesh(new THREE.PlaneGeometry(boss?2.7:1.2,.12),new THREE.MeshBasicMaterial({color:0x2c1720}),bar,0,0,0);
+ const fill=mesh(new THREE.PlaneGeometry(boss?2.6:1.1,.08),new THREE.MeshBasicMaterial({color:boss?0xff4a35:0x85ff76}),bar,0,0,.01);
+ bar.position.y=boss?3.6:2.35;g.add(bar);
+ const angle=random(0,Math.PI*2),dist=random(18,31);
+ g.position.set(player.position.x+Math.cos(angle)*dist,0,player.position.z+Math.sin(angle)*dist);
+ scene.add(g);
+ const hp=boss?260+wave*30:40+wave*6;
+ enemies.push({mesh:g,boss,hp,maxHp:hp,speed:boss?1.65:2.1,attack:random(.5,1.8),bar,fill});
+}
+
+function spawnWave(){
+ const bossWave=wave%5===0;
+ const n=bossWave?1:Math.min(3+wave,12);
+ for(let i=0;i<n;i++)createEnemy(bossWave?"dragon":"goblin");
+ $("questTitle").textContent=bossWave?"🐉 DRAGON BOSS":"WAVE "+wave+" • THE WILDS";
+ $("questText").textContent=bossWave?"Defeat the ancient dragon!":"Defeat "+n+" enemies";
+ notify(bossWave?"AN ANCIENT DRAGON HAS AWAKENED":"WAVE "+wave+" BEGINS");
+}
+
+function getAim(){
+ raycaster.setFromCamera(mouse,camera);
+ const p=new THREE.Vector3();
+ if(raycaster.ray.intersectPlane(groundPlane,p))aimPoint.copy(p);
+ else aimPoint.set(player.position.x+Math.sin(yaw)*20,0,player.position.z-Math.cos(yaw)*20);
+ return aimPoint;
+}
+
+function attack(){
+ if(!active||dead||attackCD>0)return;
+ attackCD=.45;
+ // Sword slash: damage nearby enemies in front
+ const forward=new THREE.Vector3(-Math.sin(player.rotation.y),0,-Math.cos(player.rotation.y));
+ let hit=0;
+ for(const e of [...enemies]){
+  const d=e.mesh.position.clone().sub(player.position);
+  const dist=d.length();
+  if(dist<3.5&&forward.dot(d.normalize())>.15){
+   damageEnemy(e,25+level*4);
+   hit++;
+  }
+ }
+ sword.rotation.x=-1.4;
+ setTimeout(()=>{if(sword)sword.rotation.x=-.2},180);
+ notify(hit?"SWORD STRIKE!":"SWING!");
+}
+
+function magic(){
+ if(!active||dead||magicCD>0)return;
+ magicCD=2;
+ const start=player.position.clone().add(new THREE.Vector3(0,1.6,0));
+ const target=getAim().clone();target.y=1.5;
+ const dir=target.sub(start).normalize();
+ const orb=sphere(.22,mat(0x6fdfff,0x168aff),scene,start.x,start.y,start.z);
+ const light=new THREE.PointLight(0x38baff,3,6);orb.add(light);
+ projectiles.push({mesh:orb,dir,speed:24,life:3,damage:40+level*5});
+ notify("ARCANE BLAST!");
+}
+
+function damageEnemy(e,damage){
+ e.hp-=damage;
+ e.fill.scale.x=Math.max(.001,e.hp/e.maxHp);
+ e.fill.position.x=-(1-e.hp/e.maxHp)*(e.boss?1.3:.55);
+ if(e.hp<=0){
+  scene.remove(e.mesh);
+  enemies.splice(enemies.indexOf(e),1);
+  kills++;gold+=e.boss?100:10;xp+=e.boss?120:25;
+  if(e.boss)dragonKills++;
+  while(xp>=level*100){xp-=level*100;level++;health=Math.min(100,health+20);notify("LEVEL UP! LEVEL "+level)}
+  updateUI();
+  notify(e.boss?"DRAGON SLAIN! +100 GOLD":"ENEMY DEFEATED +10 GOLD");
+ }
+}
+
+function updateProjectiles(dt){
+ for(let i=projectiles.length-1;i>=0;i--){
+  const p=projectiles[i];p.mesh.position.addScaledVector(p.dir,p.speed*dt);p.life-=dt;
+  let hit=false;
+  for(const e of [...enemies]){
+   const center=e.mesh.position.clone().add(new THREE.Vector3(0,e.boss?1.7:1.2,0));
+   if(p.mesh.position.distanceTo(center)<(e.boss?1.5:.85)){
+    damageEnemy(e,p.damage);hit=true;break;
+   }
+  }
+  if(hit||p.life<=0){scene.remove(p.mesh);projectiles.splice(i,1)}
+ }
+}
+
+function updateEnemies(dt){
+ for(const e of [...enemies]){
+  const delta=player.position.clone().sub(e.mesh.position);delta.y=0;
+  const dist=delta.length()||1;
+  e.mesh.rotation.y=Math.atan2(-delta.x,-delta.z);
+  if(dist>(e.boss?3.5:1.5)){
+   e.mesh.position.addScaledVector(delta.normalize(),e.speed*dt);
+  }else{
+   e.attack-=dt;
+   if(e.attack<=0&&invuln<=0){
+    health-=e.boss?17:9;
+    invuln=.65;e.attack=e.boss?1.25:1.1;
+    updateUI();notify(e.boss?"DRAGON FIRE STRIKE!":"YOU TOOK DAMAGE!");
+    if(health<=0)endGame();
+   }
+  }
+  e.bar.lookAt(camera.position);
+  // Dragons breathe occasional fireballs
+  if(e.boss&&Math.random()<dt*.28&&dist>4&&dist<35){
+   const origin=e.mesh.position.clone().add(new THREE.Vector3(0,2,0));
+   const dir=player.position.clone().add(new THREE.Vector3(0,1,0)).sub(origin).normalize();
+   const fire=sphere(.25,mat(0xff5c25,0xff2900),scene,origin.x,origin.y,origin.z);
+   projectiles.push({mesh:fire,dir,speed:10,life:3,damage:0,enemyFire:true});
+  }
+ }
+}
+
+function updatePlayer(dt){
+ const move=new THREE.Vector3();
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+ const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ if(keys.KeyW)move.add(forward);
+ if(keys.KeyS)move.sub(forward);
+ if(keys.KeyD)move.add(right);
+ if(keys.KeyA)move.sub(right);
+ if(move.lengthSq()){
+  move.normalize();player.position.addScaledVector(move,7*dt);
+ }
+ player.position.x=THREE.MathUtils.clamp(player.position.x,-110,110);
+ player.position.z=THREE.MathUtils.clamp(player.position.z,-110,110);
+
+ const target=getAim();
+ const dx=target.x-player.position.x,dz=target.z-player.position.z;
+ if(Math.hypot(dx,dz)>.1)player.rotation.y=Math.atan2(-dx,-dz);
+
+ const dist=8;
+ const camTarget=new THREE.Vector3(
+  player.position.x+Math.sin(yaw)*dist,
+  player.position.y+4+pitch*5,
+  player.position.z+Math.cos(yaw)*dist
+ );
+ camera.position.lerp(camTarget,1-Math.exp(-dt*5));
+ camera.lookAt(player.position.x,player.position.y+1.4,player.position.z);
+
+ if(keys.Space&&dodgeCD<=0){
+  dodgeCD=1.1;invuln=.45;
+  const d=move.lengthSq()?move:forward;
+  player.position.addScaledVector(d,4);
+  notify("DODGE!");
+ }
+}
+
+function updateUI(){
+ $("hp").style.width=Math.max(0,health)+"%";
+ $("xpbar").style.width=Math.min(100,xp/(level*100)*100)+"%";
+ $("level").textContent=level;
+ $("healthNum").textContent=Math.max(0,Math.ceil(health));
+ $("kills").textContent=kills;$("gold").textContent=gold;$("dragons").textContent=dragonKills;
+}
+
+function endGame(){
+ if(dead)return;
+ dead=true;active=false;
+ $("title").innerHTML="REALM<br>FALLEN";
+ $("intro").innerHTML="Your adventure has ended.<br>Enemies defeated: "+kills+"<br>Dragons slain: "+dragonKills+"<br>Gold collected: "+gold;
+ $("start").textContent="TRY AGAIN";
+ $("overlay").classList.remove("hidden");
+ if(document.pointerLockElement)document.exitPointerLock();
+}
+
+function start(){
+ if(!renderer){init();animate()}
+ if(dead){location.reload();return}
+ active=true;$("overlay").classList.add("hidden");
+ $("bottom").classList.remove("hidden");$("crosshair").classList.remove("hidden");
+ spawnWave();
+ if(innerWidth>650)renderer.domElement.requestPointerLock?.();
+}
+
+function pause(){
+ if(dead||!renderer)return;
+ active=!active;
+ if(!active){
+  $("title").textContent="PAUSED";
+  $("intro").textContent="The realm awaits your return.";
+  $("start").textContent="RESUME";
+  $("overlay").classList.remove("hidden");
+  if(document.pointerLockElement)document.exitPointerLock();
+ }else{
+  $("overlay").classList.add("hidden");
+  if(innerWidth>650)renderer.domElement.requestPointerLock?.();
+ }
+}
+
+$("start").addEventListener("click",start);
+window.addEventListener("keydown",e=>{
+ keys[e.code]=true;
+ if(e.code==="Space")e.preventDefault();
+ if(e.code==="KeyE")magic();
+ if(e.code==="Escape"&&active)pause();
+});
+window.addEventListener("keyup",e=>keys[e.code]=false);
+window.addEventListener("mousemove",e=>{
+ if(document.pointerLockElement===renderer?.domElement){
+  yaw-=e.movementX*.0025;
+  pitch=THREE.MathUtils.clamp(pitch-e.movementY*.0015,-.1,.6);
+ }else if(innerWidth<=650&&mouseDown){
+  yaw-=e.movementX*.004;
+ }
+});
+window.addEventListener("mousedown",e=>{if(e.button===0&&active)attack()});
+window.addEventListener("mouseup",()=>mouseDown=false);
+window.addEventListener("touchstart",()=>{mouseDown=true},{passive:true});
+window.addEventListener("touchend",()=>mouseDown=false,{passive:true});
+$("mAttack").addEventListener("click",attack);
+$("mMagic").addEventListener("click",magic);
+$("mDodge").addEventListener("click",()=>{keys.Space=true;setTimeout(()=>keys.Space=false,120)});
+document.querySelectorAll("[data-key]").forEach(b=>{
+ const code=b.dataset.key;
+ b.addEventListener("touchstart",e=>{e.preventDefault();keys[code]=true},{passive:false});
+ b.addEventListener("touchend",e=>{e.preventDefault();keys[code]=false},{passive:false});
+ b.addEventListener("touchcancel",()=>keys[code]=false);
+ b.addEventListener("mousedown",()=>keys[code]=true);
+ b.addEventListener("mouseup",()=>keys[code]=false);
+ b.addEventListener("mouseleave",()=>keys[code]=false);
+});
+window.addEventListener("resize",()=>{
+ if(!camera||!renderer)return;
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+});
+
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.04);
+ if(active&&!dead){
+  attackCD=Math.max(0,attackCD-dt);
+  magicCD=Math.max(0,magicCD-dt);
+  dodgeCD=Math.max(0,dodgeCD-dt);
+  invuln=Math.max(0,invuln-dt);
+  updatePlayer(dt);
+  updateEnemies(dt);
+  updateProjectiles(dt);
+  if(enemies.length===0){
+   spawnTimer+=dt;
+   if(spawnTimer>2.5){wave++;spawnTimer=0;spawnWave()}
+  }else spawnTimer=0;
+  // Enemy fire damages player when it reaches them
+  for(let i=projectiles.length-1;i>=0;i--){
+   const p=projectiles[i];
+   if(p.enemyFire&&p.mesh.position.distanceTo(player.position.clone().add(new THREE.Vector3(0,1,0)))<1.3){
+    if(invuln<=0){health-=p.damage||12;invuln=.6;updateUI();if(health<=0)endGame()}
+    scene.remove(p.mesh);projectiles.splice(i,1);
+   }
+  }
+ }
+ for(const l of lights){
+  l.phase+=dt;l.crystal.position.y=1+Math.sin(l.phase)*.25;
+  l.light.intensity=1.2+Math.sin(l.phase*2)*.3;
+ }
+ if(toastTime>0){toastTime-=dt;if(toastTime<=0)$("toast").textContent=""}
+ if(renderer)renderer.render(scene,camera);
+}
+})();
+</script>
+</body>
+</html>
+```

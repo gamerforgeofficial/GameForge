@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metro Empire | Realistic Edition</title>
+
+<style>
+:root {
+  --bg: #07111f;
+  --panel: #0c1b2d;
+  --cyan: #22d3ee;
+  --blue: #3b82f6;
+  --gold: #fbbf24;
+  --text: #e8f4ff;
+  --muted: #8fa9c3;
+  --green: #34d399;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #12365a, #07111f 65%);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 15px 20px;
+  background: #07111fee;
+  border-bottom: 1px solid #21405d;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.brand {
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.brand span { color: var(--cyan); }
+
+.tag {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stat {
+  background: #10263c;
+  border: 1px solid #214764;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+
+.stat b { color: var(--gold); }
+
+main {
+  max-width: 1550px;
+  margin: auto;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 240px;
+  gap: 14px;
+}
+
+.panel {
+  background: linear-gradient(160deg, #10243a, #091727);
+  border: 1px solid #1e3c58;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px #0003;
+}
+
+.panel h3 {
+  margin: 0;
+  padding: 14px;
+  border-bottom: 1px solid #1e3c58;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #a8c7e4;
+}
+
+.tools {
+  padding: 9px;
+  display: grid;
+  gap: 7px;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.tool {
+  text-align: left;
+  background: #10283f;
+  color: #dceeff;
+  border: 1px solid #254968;
+  border-radius: 10px;
+  padding: 11px 9px;
+  font-weight: 700;
+}
+
+.tool small {
+  display: block;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+.tool:hover, .tool.active {
+  border-color: var(--cyan);
+  background: #123d59;
+}
+
+.center { min-width: 0; }
+
+.topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.level strong {
+  font-size: 24px;
+  color: var(--gold);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.action {
+  background: #10304a;
+  color: white;
+  border: 1px solid #2b597a;
+  padding: 9px 11px;
+  border-radius: 9px;
+}
+
+.primary {
+  background: linear-gradient(90deg, #0891b2, #2563eb);
+  border: none;
+  font-weight: 800;
+}
+
+.gamebox {
+  position: relative;
+  background: #06101b;
+  border: 1px solid #1f4c6c;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+}
+
+.hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 10px;
+  background: #061525dd;
+  border: 1px solid #28506b;
+  border-radius: 10px;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.hud b { color: var(--cyan); }
+
+.legend {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: #061525dd;
+  border: 1px solid #28506b;
+  padding: 9px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+
+.sidebody { padding: 13px; }
+
+.progress {
+  height: 9px;
+  background: #17324a;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  transition: width .3s;
+}
+
+.mission {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #d2e5f5;
+}
+
+.reward {
+  padding: 12px;
+  border-radius: 10px;
+  background: #0c2c32;
+  border: 1px solid #17645e;
+  margin-top: 12px;
+}
+
+.reward b { color: var(--green); }
+
+.bottom {
+  max-width: 1550px;
+  margin: 0 auto 22px;
+  padding: 0 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.info {
+  padding: 14px;
+  background: #0b1a2a;
+  border: 1px solid #1e3c58;
+  border-radius: 13px;
+  color: #b8cee0;
+  font-size: 13px;
+}
+
+.info strong { color: white; }
+
+.toast {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0c283d;
+  border: 1px solid var(--cyan);
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px #0008;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+
+.toast.show { opacity: 1; }
+
+@media(max-width:1050px) {
+  main { grid-template-columns: 180px minmax(0,1fr); }
+  .rightcol {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+}
+
+@media(max-width:680px) {
+  header { flex-direction: column; align-items: flex-start; }
+  main { display: flex; flex-direction: column; padding: 9px; }
+  .tools { grid-template-columns: repeat(2,1fr); }
+  .tool { font-size: 12px; }
+  .rightcol { display: flex; flex-direction: column; }
+  .bottom { grid-template-columns: 1fr; padding: 0 9px; }
+  .stats { gap: 5px; }
+  .stat { padding: 7px; font-size: 11px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <div class="brand">🚇 METRO <span>EMPIRE</span></div>
+    <div class="tag">BUILD • CONNECT • GROW</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">🪙 <b id="money">25000</b></div>
+    <div class="stat">💎 <b id="gems">120</b></div>
+    <div class="stat">👥 <b id="people">2400</b></div>
+    <div class="stat">😊 <b id="happiness">82%</b></div>
+  </div>
+</header>
+
+<main>
+
+  <aside class="panel">
+    <h3>Construction</h3>
+    <div class="tools">
+      <button class="tool active" data-tool="inspect">
+        🖱️ Inspect
+        <small>Select a station</small>
+      </button>
+
+      <button class="tool" data-tool="station">
+        🚉 Metro Station
+        <small>Cost: 1,500</small>
+      </button>
+
+      <button class="tool" data-tool="track">
+        🛤️ Metro Track
+        <small>Connect stations</small>
+      </button>
+
+      <button class="tool" data-tool="train">
+        🚄 Buy Train
+        <small>Cost: 3,000</small>
+      </button>
+
+      <button class="tool" data-tool="upgrade">
+        ⬆️ Upgrade Station
+        <small>Cost: 2,000</small>
+      </button>
+
+      <button class="tool" data-tool="building">
+        🏙️ City Building
+        <small>Cost: 2,500</small>
+      </button>
+    </div>
+  </aside>
+
+  <section class="center">
+    <div class="topline">
+      <div class="level">
+        LEVEL <strong id="level">1</strong> / 1000
+        <div class="muted" id="levelname">Small Town</div>
+      </div>
+
+      <div class="actions">
+        <button class="action" id="viewBtn">🌐 2D Map</button>
+        <button class="action" id="realBtn">🏙️ Realistic: ON</button>
+        <button class="action" id="speedBtn">⏩ 1×</button>
+        <button class="action" id="saveBtn">💾 Save</button>
+        <button class="action primary" id="nextBtn">Next Level ➜</button>
+      </div>
+    </div>
+
+    <div class="gamebox">
+      <canvas id="game" width="1000" height="650"></canvas>
+
+      <div class="hud">
+        MODE: <b id="modeLabel">ISOMETRIC</b><br>
+        TOOL: <b id="toolLabel">INSPECT</b><br>
+        <span id="hint">Select a tool.</span>
+      </div>
+
+      <div class="legend">
+        🔵 Blue Line &nbsp; 🟣 Pink Line &nbsp; 🟡 Gold Line
+        <br>🚉 Stations &nbsp; 🏙️ Buildings
+      </div>
+    </div>
+  </section>
+
+  <aside class="rightcol">
+
+    <div class="panel">
+      <h3>Mission Control</h3>
+      <div class="sidebody">
+        <b id="missionTitle">First Connection</b>
+
+        <div class="progress">
+          <span id="missionProgress"></span>
+        </div>
+
+        <div class="mission" id="missionText">
+          Build stations and connect them.
+        </div>
+
+        <p class="mission">
+          Stations: <b id="stationCount">3</b><br>
+          Track links: <b id="trackCount">2</b><br>
+          Trains: <b id="trainCount">1</b>
+        </p>
+
+        <button class="action primary" id="claimBtn">
+          Claim Reward
+        </button>
+
+        <div class="reward">
+          <b>🏆 Empire Milestone</b>
+          <div class="muted" id="milestone">
+            Reach level 10 to unlock a milestone.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>City Statistics</h3>
+      <div class="sidebody mission">
+        🚉 Stations: <b id="overviewStations">3</b><br>
+        🛤️ Tracks: <b id="overviewTracks">2</b><br>
+        🚄 Trains: <b id="overviewTrains">1</b><br>
+        🏙️ Buildings: <b id="overviewBuildings">17</b>
+
+        <hr style="border-color:#1e3c58">
+
+        <div id="advancedStats" class="muted">
+          Power: 100% · Water: 100%
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</main>
+
+<div class="bottom">
+  <div class="info">
+    <strong>Empire Research</strong><br>
+    Invest in technology to improve the city.
+    <br><br>
+    <button class="action" id="researchBtn">🧪 Research</button>
+    <button class="action" id="policyBtn">🌱 Green Policy</button>
+    <button class="action" id="eventBtn">🎯 City Event</button>
+  </div>
+
+  <div class="info">
+    <strong>How to play</strong><br>
+    Choose a construction tool, then click the map.
+    For tracks, select one station and then another.
+    Earn money, expand your city and progress through
+    the 1,000-level campaign.
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const $ = id => document.getElementById(id);
+
+  const W = 1000, H = 650;
+  const cols = 13, rows = 9;
+
+  const lineColors = [
+    "#22d3ee", "#f472b6", "#fbbf24",
+    "#a78bfa", "#34d399"
+  ];
+
+  const levelNames = [
+    "Small Town",
+    "Growing Suburb",
+    "Downtown Rush",
+    "Airport Express",
+    "Harbour City",
+    "Night Metro",
+    "Mega City",
+    "National Network",
+    "Global Metro Empire"
+  ];
+
+  const state = {
+    level: 1,
+    money: 25000,
+    gems: 120,
+    people: 2400,
+    happiness: 82,
+    mode: "iso",
+    realistic: true,
+    tool: "inspect",
+    stations: [],
+    tracks: [],
+    buildings: [],
+    trains: 1,
+    selected: null,
+    trackStart: null,
+    claimed: false,
+    research: 0,
+    policy: 0,
+    speed: 1,
+    power: 100,
+    water: 100,
+    traffic: 0,
+    events: 0
+  };
+
+  function initCity() {
+    state.stations = [
+      {x:3,y:4,level:1,name:"Central"},
+      {x:7,y:4,level:1,name:"Market"},
+      {x:10,y:6,level:1,name:"Harbour"}
+    ];
+
+    state.tracks = [
+      {a:0,b:1,line:0},
+      {a:1,b:2,line:0}
+    ];
+
+    const blocks = [
+      [1,1,1],[3,1,2],[5,1,0],[8,1,1],
+      [10,1,2],[2,3,0],[4,3,1],[7,3,2],
+      [10,3,0],[1,5,2],[4,5,0],[7,5,1],
+      [10,5,2],[2,7,1],[5,7,2],[8,7,0],
+      [11,7,1]
+    ];
+
+    state.buildings = blocks.map(b => ({
+      x:b[0], y:b[1], type:b[2], level:1
+    }));
+  }
+
+  function iso(x,y,z=0) {
+    return {
+      x: W/2 + (x-y)*34,
+      y: 120 + (x+y)*18-z
+    };
+  }
+
+  function pos(x,y) {
+    if (state.mode === "iso") return iso(x,y);
+
+    return {
+      x: 80+x*65,
+      y: 70+y*62
+    };
+  }
+
+  function notify(message) {
+    const t = $("toast");
+    t.textContent = message;
+    t.classList.add("show");
+
+    setTimeout(() => t.classList.remove("show"), 2400);
+  }
+
+  function drawBuilding(b) {
+    const p = pos(b.x,b.y);
+
+    if (state.mode === "2d") {
+      ctx.fillStyle = ["#28647c","#416d91","#555c82"][b.type];
+      ctx.fillRect(p.x-18,p.y-18,36,36);
+
+      ctx.strokeStyle = "#8edaff";
+      ctx.strokeRect(p.x-18,p.y-18,36,36);
+
+      for (let i=0;i<3;i++) {
+        ctx.fillStyle = "#f5dca0";
+        ctx.fillRect(p.x-12+i*10,p.y-10,5,6);
+      }
+      return;
+    }
+
+    const height = 35+b.type*14+b.level*4;
+    const width = b.type===2 ? 29 : 24;
+
+    if (state.realistic) {
+      ctx.fillStyle = "#02081266";
+      ctx.beginPath();
+      ctx.ellipse(p.x+4,p.y+2,width+8,13,0,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    // Left building wall
+    ctx.fillStyle = ["#244858","#314b66","#343b5d"][b.type];
+
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y-14);
+    ctx.lineTo(p.x-width,p.y-25);
+    ctx.lineTo(p.x-width,p.y-25-height);
+    ctx.lineTo(p.x,p.y-height-14);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right building wall
+    ctx.fillStyle = ["#386b7d","#526d87","#5c607f"][b.type];
+
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y-14);
+    ctx.lineTo(p.x+width,p.y-25);
+    ctx.lineTo(p.x+width,p.y-25-height);
+    ctx.lineTo(p.x,p.y-height-14);
+    ctx.closePath();
+    ctx.fill();
+
+    // Roof
+    ctx.fillStyle = ["#76b4c5","#a2c3d8","#a6a8cb"][b.type];
+
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y-height-14);
+    ctx.lineTo(p.x+width,p.y-height-25);
+    ctx.lineTo(p.x,p.y-height-36);
+    ctx.lineTo(p.x-width,p.y-height-25);
+    ctx.closePath();
+    ctx.fill();
+
+    // Windows
+    ctx.fillStyle = state.realistic ? "#f9df9a" : "#c6edff";
+
+    for (let i=0;i<Math.min(5,Math.floor(height/12));i++) {
+      ctx.fillRect(p.x-11,p.y-height+8+i*10,5,5);
+      ctx.fillRect(p.x+4,p.y-height+4+i*10,5,5);
+    }
+  }
+
+  function drawStation(s,i) {
+    const p = pos(s.x,s.y);
+
+    if (state.mode === "iso") {
+      ctx.fillStyle = "#5a6f7b";
+      ctx.beginPath();
+      ctx.ellipse(p.x,p.y-5,28,13,0,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#d6e4eb";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(p.x,p.y-5,24,9,0,0,Math.PI*2);
+      ctx.stroke();
+
+      ctx.fillStyle = "#eafaff";
+      ctx.fillRect(p.x-14,p.y-15,28,10);
+
+      ctx.fillStyle = lineColors[i%lineColors.length];
+      ctx.fillRect(p.x-11,p.y-13,22,4);
+
+      ctx.fillStyle = "#071421";
+      ctx.fillRect(p.x-4,p.y-5,8,9);
+
+      ctx.fillStyle = "#e5f7ff";
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(s.name,p.x,p.y+20);
+    } else {
+      ctx.fillStyle = "#071b2b";
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,15,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.strokeStyle = lineColors[i%lineColors.length];
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      ctx.fillStyle = "#eaffff";
+      ctx.font = "bold 13px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("M",p.x,p.y+5);
+
+      ctx.fillStyle = "#d8efff";
+      ctx.font = "11px Arial";
+      ctx.fillText(s.name,p.x,p.y+29);
+    }
+
+    if (state.selected === i) {
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,28,0,Math.PI*2);
+      ctx.stroke();
+    }
+  }
+
+  function drawTrack(t) {
+    const a = pos(state.stations[t.a].x,state.stations[t.a].y);
+    const b = pos(state.stations[t.b].x,state.stations[t.b].y);
+
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#07101a";
+    ctx.lineWidth = state.mode==="iso" ? 13 : 9;
+
+    ctx.beginPath();
+    ctx.moveTo(a.x,a.y);
+    ctx.lineTo(b.x,b.y);
+    ctx.stroke();
+
+    ctx.strokeStyle = lineColors[t.line%lineColors.length];
+    ctx.lineWidth = state.mode==="iso" ? 5 : 4;
+
+    ctx.beginPath();
+    ctx.moveTo(a.x,a.y);
+    ctx.lineTo(b.x,b.y);
+    ctx.stroke();
+
+    // Railway sleepers
+    const count = Math.max(
+      3,
+      Math.floor(Math.hypot(b.x-a.x,b.y-a.y)/18)
+    );
+
+    ctx.strokeStyle = "#c4d1d8";
+    ctx.lineWidth = 2;
+
+    for (let i=1;i<count;i++) {
+      const f = i/count;
+      const x = a.x+(b.x-a.x)*f;
+      const y = a.y+(b.y-a.y)*f;
+
+      ctx.beginPath();
+      ctx.moveTo(x-4,y-4);
+      ctx.lineTo(x+4,y+4);
+      ctx.stroke();
+    }
+  }
+
+  function drawTrain() {
+    if (!state.trains || !state.tracks.length) return;
+
+    const t = state.tracks[0];
+    const a = pos(state.stations[t.a].x,state.stations[t.a].y);
+    const b = pos(state.stations[t.b].x,state.stations[t.b].y);
+
+    const time = Date.now()/1000;
+    const f = (time*0.18)%1;
+
+    const x = a.x+(b.x-a.x)*f;
+    const y = a.y+(b.y-a.y)*f-10;
+
+    // Train shadow
+    ctx.fillStyle = "#0007";
+    ctx.fillRect(x-17,y+6,36,5);
+
+    // Train body
+    ctx.fillStyle = "#e8f5ff";
+    ctx.beginPath();
+    ctx.roundRect(x-18,y-7,36,14,5);
+    ctx.fill();
+
+    ctx.fillStyle = lineColors[t.line%lineColors.length];
+    ctx.fillRect(x-11,y-5,22,4);
+
+    ctx.fillStyle = "#102a3e";
+    ctx.fillRect(x-10,y+1,6,4);
+    ctx.fillRect(x+4,y+1,6,4);
+  }
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+
+    const sky = ctx.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,"#174b6a");
+    sky.addColorStop(.55,"#0a263b");
+    sky.addColorStop(1,"#061522");
+
+    ctx.fillStyle = sky;
+    ctx.fillRect(0,0,W,H);
+
+    // Distant skyline
+    if (state.mode === "iso") {
+      ctx.fillStyle = "#1a526e";
+      ctx.beginPath();
+      ctx.moveTo(0,205);
+
+      for (let x=0;x<=W;x+=80) {
+        ctx.lineTo(x,170+Math.sin(x*.017)*25);
+      }
+
+      ctx.lineTo(W,280);
+      ctx.lineTo(0,280);
+      ctx.fill();
+    }
+
+    // Map grid
+    for (let y=0;y<rows;y++) {
+      for (let x=0;x<cols;x++) {
+        const p = pos(x,y);
+
+        if (state.mode === "iso") {
+          ctx.fillStyle = (x+y)%2 ? "#123b4d" : "#103548";
+
+          ctx.beginPath();
+          ctx.moveTo(p.x,p.y);
+          ctx.lineTo(p.x+34,p.y+18);
+          ctx.lineTo(p.x,p.y+36);
+          ctx.lineTo(p.x-34,p.y+18);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = "#1b5063";
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = (x+y)%2 ? "#0b2b40" : "#0d3148";
+          ctx.fillRect(p.x-30,p.y-28,60,56);
+
+          ctx.strokeStyle = "#1c4b65";
+          ctx.strokeRect(p.x-30,p.y-28,60,56);
+        }
+      }
+    }
+
+    // Roads
+    ctx.strokeStyle = state.realistic ? "#536a78" : "#254a60";
+    ctx.lineWidth = state.mode==="iso" ? 7 : 3;
+
+    for (let y=0;y<rows;y+=2) {
+      ctx.beginPath();
+
+      for (let x=0;x<cols;x++) {
+        const p = pos(x,y);
+
+        if (x===0) ctx.moveTo(p.x,p.y+10);
+        else ctx.lineTo(p.x,p.y+10);
+      }
+
+      ctx.stroke();
+    }
+
+    // Buildings sorted for isometric depth
+    state.buildings
+      .slice()
+      .sort((a,b)=>(a.x+a.y)-(b.x+b.y))
+      .forEach(drawBuilding);
+
+    state.tracks.forEach(drawTrack);
+    state.stations.forEach(drawStation);
+    drawTrain();
+
+    // Animated road traffic
+    const time = Date.now()/1000;
+
+    for (let i=0;i<8;i++) {
+      const f = (time*(.08+i*.006)+i*.137)%1;
+      const x = f*W;
+      const y = 250+i*37;
+
+      ctx.fillStyle = [
+        "#fbbf24","#f8fafc","#fb7185","#34d399"
+      ][i%4];
+
+      ctx.fillRect(x,y,13,5);
+      ctx.fillStyle = "#0b1724";
+      ctx.fillRect(x+2,y+5,3,2);
+      ctx.fillRect(x+9,y+5,3,2);
+    }
+
+    ctx.textAlign = "left";
+    ctx.font = "bold 12px Arial";
+    ctx.fillStyle = "#bdeaff";
+    ctx.fillText("METRO CITY",18,615);
+
+    ctx.font = "11px Arial";
+    ctx.fillStyle = "#6eabc7";
+    ctx.fillText(
+      state.mode==="iso" ? "Isometric City View" : "2D Network Map",
+      18,632
+    );
+
+    requestAnimationFrame(draw);
+  }
+
+  function updateUI() {
+    $("money").textContent = Math.floor(state.money).toLocaleString("en-IN");
+    $("gems").textContent = state.gems.toLocaleString("en-IN");
+    $("people").textContent = Math.floor(state.people).toLocaleString("en-IN");
+    $("happiness").textContent = state.happiness+"%";
+
+    $("level").textContent = state.level;
+
+    $("levelname").textContent =
+      levelNames[Math.min(
+        levelNames.length-1,
+        Math.floor((state.level-1)/110)
+      )];
+
+    $("modeLabel").textContent =
+      state.mode==="iso" ? "ISOMETRIC 3D STYLE" : "2D MAP";
+
+    $("toolLabel").textContent = state.tool.toUpperCase();
+
+    $("stationCount").textContent = state.stations.length;
+    $("trackCount").textContent = state.tracks.length;
+    $("trainCount").textContent = state.trains;
+
+    $("overviewStations").textContent = state.stations.length;
+    $("overviewTracks").textContent = state.tracks.length;
+    $("overviewTrains").textContent = state.trains;
+    $("overviewBuildings").textContent = state.buildings.length;
+
+    const progress = Math.min(
+      100,
+      state.stations.length*20+
+      state.tracks.length*15+
+      state.trains*10
+    );
+
+    $("missionProgress").style.width = progress+"%";
+
+    $("missionTitle").textContent =
+      state.level===1 ? "First Connection" : "Empire Expansion";
+
+    $("missionText").textContent =
+      state.level===1
+        ? "Build stations and connect them with tracks."
+        : "Expand the network and serve more passengers.";
+
+    $("milestone").textContent =
+      state.level<10
+        ? "Reach level 10 to unlock a milestone."
+        : state.level<100
+        ? "Network growing! Reach level 100."
+        : "Keep expanding towards level 1000.";
+
+    $("claimBtn").textContent =
+      state.claimed ? "Reward Claimed ✓" : "Claim Reward";
+
+    $("claimBtn").disabled = state.claimed;
+
+    $("advancedStats").textContent =
+      `⚡ Power: ${state.power}% · 💧 Water: ${state.water}% · `+
+      `🚦 Traffic: ${state.traffic>65?"Heavy":state.traffic>30?"Busy":"Normal"}`;
+  }
+
+  function nearestStation(x,y) {
+    let best=-1, distance=Infinity;
+
+    state.stations.forEach((s,i)=>{
+      const p=pos(s.x,s.y);
+      const d=Math.hypot(p.x-x,p.y-y);
+
+      if(d<distance) {
+        distance=d;
+        best=i;
+      }
+    });
+
+    return distance<35 ? best : -1;
+  }
+
+  function getTile(x,y) {
+    if(state.mode==="iso") {
+      let best=null, distance=Infinity;
+
+      for(let yy=0;yy<rows;yy++) {
+        for(let xx=0;xx<cols;xx++) {
+          const p=pos(xx,yy);
+          const d=Math.hypot(p.x-x,p.y-y);
+
+          if(d<distance) {
+            distance=d;
+            best={x:xx,y:yy};
+          }
+        }
+      }
+
+      return distance<38 ? best : null;
+    }
+
+    const xx=Math.round((x-80)/65);
+    const yy=Math.round((y-70)/62);
+
+    if(xx<0||xx>=cols||yy<0||yy>=rows) return null;
+
+    return {x:xx,y:yy};
+  }
+
+  canvas.addEventListener("click",e=>{
+    const r=canvas.getBoundingClientRect();
+
+    const x=(e.clientX-r.left)*W/r.width;
+    const y=(e.clientY-r.top)*H/r.height;
+
+    const stationIndex=nearestStation(x,y);
+
+    if(state.tool==="inspect") {
+      if(stationIndex>=0) {
+        state.selected=stationIndex;
+
+        notify(
+          state.stations[stationIndex].name+
+          " Station • Level "+
+          state.stations[stationIndex].level
+        );
+      } else {
+        notify("Select a station or construction tool.");
+      }
+
+      updateUI();
+      return;
+    }
+
+    if(state.tool==="track") {
+      if(stationIndex<0) {
+        notify("Click directly on a station.");
+        return;
+      }
+
+      if(state.trackStart===null) {
+        state.trackStart=stationIndex;
+        state.selected=stationIndex;
+        notify("Now select the destination station.");
+        return;
+      }
+
+      const a=state.trackStart;
+      const b=stationIndex;
+
+      if(a===b) {
+        state.trackStart=null;
+        notify("Connection cancelled.");
+        return;
+      }
+
+      const exists=state.tracks.some(t=>
+        (t.a===a&&t.b===b)||(t.a===b&&t.b===a)
+      );
+
+      if(exists) {
+        state.trackStart=null;
+        notify("Stations are already connected.");
+        return;
+      }
+
+      if(state.money<800) {
+        notify("Track costs 800 coins.");
+        return;
+      }
+
+      state.money-=800;
+
+      state.tracks.push({
+        a,b,
+        line:Math.floor((state.level-1)/10)%lineColors.length
+      });
+
+      state.trackStart=null;
+      state.people+=350;
+      state.happiness=Math.min(100,state.happiness+1);
+
+      notify("Metro connection built!");
+      updateUI();
+      return;
+    }
+
+    if(state.tool==="upgrade") {
+      if(stationIndex<0) {
+        notify("Click a station to upgrade.");
+        return;
+      }
+
+      if(state.money<2000) {
+        notify("Upgrade costs 2,000 coins.");
+        return;
+      }
+
+      state.money-=2000;
+      state.stations[stationIndex].level++;
+      state.people+=150;
+
+      notify("Station upgraded!");
+      updateUI();
+      return;
+    }
+
+    if(state.tool==="train") {
+      if(state.money<3000) {
+        notify("Train costs 3,000 coins.");
+        return;
+      }
+
+      state.money-=3000;
+      state.trains++;
+      state.people+=100;
+
+      notify("New train added to your fleet!");
+      updateUI();
+      return;
+    }
+
+    const tile=getTile(x,y);
+
+    if(!tile) {
+      notify("Choose a tile inside the city.");
+      return;
+    }
+
+    const occupied =
+      state.stations.some(s=>s.x===tile.x&&s.y===tile.y) ||
+      state.buildings.some(b=>b.x===tile.x&&b.y===tile.y);
+
+    if(occupied) {
+      notify("This tile is occupied.");
+      return;
+    }
+
+    if(state.tool==="station") {
+      if(state.money<1500) {
+        notify("Station costs 1,500 coins.");
+        return;
+      }
+
+      state.money-=1500;
+
+      const stationNames=[
+        "Parkside","University","Airport","Old Town",
+        "Riverside","Stadium","East Gate","North Gate"
+      ];
+
+      state.stations.push({
+        x:tile.x,
+        y:tile.y,
+        level:1,
+        name:stationNames[state.stations.length%stationNames.length]
+      });
+
+      state.people+=200;
+      notify("New metro station constructed!");
+    }
+
+    if(state.tool==="building") {
+      if(state.money<2500) {
+        notify("Building costs 2,500 coins.");
+        return;
+      }
+
+      state.money-=2500;
+
+      state.buildings.push({
+        x:tile.x,
+        y:tile.y,
+        type:Math.floor(Math.random()*3),
+        level:1
+      });
+
+      state.people+=450;
+      state.happiness=Math.min(100,state.happiness+1);
+
+      notify("City building constructed!");
+    }
+
+    updateUI();
+  });
+
+  document.querySelectorAll(".tool").forEach(button=>{
+    button.addEventListener("click",()=>{
+      document.querySelectorAll(".tool").forEach(b=>
+        b.classList.remove("active")
+      );
+
+      button.classList.add("active");
+      state.tool=button.dataset.tool;
+      state.trackStart=null;
+
+      const hints={
+        inspect:"Select a station.",
+        station:"Click an empty tile to build.",
+        track:"Select two stations to connect.",
+        train:"Click to buy a train.",
+        upgrade:"Select a station to upgrade.",
+        building:"Click an empty tile for a building."
+      };
+
+      $("hint").textContent=hints[state.tool];
+      updateUI();
+    });
+  });
+
+  $("viewBtn").addEventListener("click",()=>{
+    state.mode=state.mode==="iso"?"2d":"iso";
+
+    $("viewBtn").textContent=
+      state.mode==="iso" ? "🌐 2D Map" : "🏙️ 3D City";
+
+    updateUI();
+  });
+
+  $("realBtn").addEventListener("click",()=>{
+    state.realistic=!state.realistic;
+
+    $("realBtn").textContent=
+      state.realistic ? "🏙️ Realistic: ON" : "🎨 Stylized: ON";
+
+    notify(
+      state.realistic
+        ? "Realistic-style visuals enabled."
+        : "Stylized visuals enabled."
+    );
+
+    save(false);
+  });
+
+  $("speedBtn").addEventListener("click",()=>{
+    state.speed=state.speed===1?2:state.speed===2?3:1;
+
+    $("speedBtn").textContent="⏩ "+state.speed+"×";
+
+    notify("Simulation speed: "+state.speed+"×");
+  });
+
+  $("nextBtn").addEventListener("click",()=>{
+    if(state.level>=1000) {
+      notify("Congratulations! You completed all 1000 levels.");
+      return;
+    }
+
+    state.level++;
+
+    state.money+=500+state.level*20;
+    state.gems+=state.level%10===0?10:1;
+    state.people+=100+state.level*2;
+    state.claimed=false;
+
+    if(state.level%25===0) {
+      state.gems+=25;
+      state.money+=5000;
+      notify("Major milestone reward!");
+    } else {
+      notify("Level "+state.level+" unlocked!");
+    }
+
+    updateUI();
+    save(false);
+  });
+
+  $("claimBtn").addEventListener("click",()=>{
+    if(state.claimed) return;
+
+    state.money+=500;
+    state.gems+=5;
+    state.claimed=true;
+
+    notify("Reward claimed: 500 coins + 5 gems!");
+    updateUI();
+    save(false);
+  });
+
+  function save(show=true) {
+    const data={
+      ...state,
+      selected:null,
+      trackStart:null
+    };
+
+    localStorage.setItem("metroEmpireSave",JSON.stringify(data));
+
+    if(show) notify("Empire saved in this browser.");
+  }
+
+  $("saveBtn").addEventListener("click",()=>save());
+
+  $("researchBtn").addEventListener("click",()=>{
+    const cost=1500+state.research*900;
+
+    if(state.money<cost) {
+      notify("Not enough coins for research.");
+      return;
+    }
+
+    state.money-=cost;
+    state.research++;
+    state.people+=250;
+    state.happiness=Math.min(100,state.happiness+1);
+
+    notify("Research upgraded to level "+state.research+"!");
+    updateUI();
+    save(false);
+  });
+
+  $("policyBtn").addEventListener("click",()=>{
+    const cost=1000+state.policy*500;
+
+    if(state.money<cost) {
+      notify("Not enough coins for policy.");
+      return;
+    }
+
+    state.money-=cost;
+    state.policy++;
+    state.happiness=Math.min(100,state.happiness+3);
+    state.traffic=Math.max(0,state.traffic-12);
+
+    notify("Green City Policy activated!");
+    updateUI();
+    save(false);
+  });
+
+  $("eventBtn").addEventListener("click",()=>{
+    state.events++;
+
+    const event=state.events%4;
+
+    if(event===0) {
+      state.money+=4000;
+      notify("Tourism boom! +4,000 coins.");
+    } else if(event===1) {
+      state.people+=1500;
+      state.traffic=Math.min(100,state.traffic+12);
+      notify("City event! +1,500 citizens.");
+    } else if(event===2) {
+      state.power=Math.max(60,state.power-8);
+      state.money+=1200;
+      notify("Power maintenance completed.");
+    } else {
+      state.gems+=8;
+      state.happiness=Math.min(100,state.happiness+2);
+      notify("City festival! +8 gems.");
+    }
+
+    updateUI();
+    save(false);
+  });
+
+  function load() {
+    try {
+      const data=JSON.parse(localStorage.getItem("metroEmpireSave"));
+
+      if(data) {
+        Object.assign(state,data);
+        state.selected=null;
+        state.trackStart=null;
+      }
+    } catch(error) {
+      console.log("No saved game found.");
+    }
+  }
+
+  // Simulation economy
+  setInterval(()=>{
+    const income=(
+      state.trains*2+
+      state.stations.length+
+      state.research
+    )*state.speed;
+
+    state.money+=Math.max(1,income);
+
+    state.people+=
+      Math.max(0,Math.floor(state.tracks.length/2))*state.speed;
+
+    state.traffic=Math.min(
+      100,
+      Math.max(
+        0,
+        state.buildings.length*2-
+        state.stations.length*3-
+        state.policy*5
+      )
+    );
+
+    state.power=Math.max(
+      55,
+      100-state.buildings.length+state.research*2
+    );
+
+    state.water=Math.max(
+      55,
+      100-Math.floor(state.people/1800)+state.policy
+    );
+
+    if(state.power<70||state.water<70) {
+      state.happiness=Math.max(45,state.happiness-1);
+    }
+
+    updateUI();
+  },2500);
+
+  initCity();
+  load();
+  updateUI();
+  draw();
+
+})();
+</script>
+</body>
+</html>
